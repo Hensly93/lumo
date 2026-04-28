@@ -28,7 +28,7 @@ export default function UploadHistorialCard({
 }: {
   onSkip?: () => void;
   onMPConnect?: () => void;
-  onUploadSuccess?: () => void;
+  onUploadSuccess?: (data: UploadResponse) => void;
 }) {
   const { token } = useAuth();
   const [flowState, setFlowState] = useState<FlowState>("options");
@@ -107,7 +107,7 @@ export default function UploadHistorialCard({
       const result = await response.json();
       setData(result);
       setFlowState("success");
-      onUploadSuccess?.();
+      onUploadSuccess?.(result);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error desconocido";
       setError(msg);

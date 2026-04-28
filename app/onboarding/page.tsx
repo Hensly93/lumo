@@ -65,6 +65,9 @@ export default function Onboarding() {
   const [emp, setEmp] = useState({ nombre: "", pin: "", pin2: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [baselineStatus, setBaselineStatus] = useState<string | null>(null);
+  const [baselineListo, setBaselineListo] = useState(false);
+  const [uploadData, setUploadData] = useState<any>(null);
 
   useEffect(() => {
     const t = localStorage.getItem("lumo_token");
@@ -134,6 +137,25 @@ export default function Onboarding() {
     else if (step === "ubicacion") setStep("empleado");
     else if (step === "empleado") setStep("historial");
     else setStep("listo");
+  }
+
+  function handleUploadSuccess(data: any) {
+    setUploadData(data);
+    setBaselineStatus(data.baseline_status);
+    setBaselineListo(data.baseline_listo ?? false);
+    setStep("listo");
+  }
+
+  function handleMPClick() {
+    setBaselineStatus("🔗 Conectando Mercado Pago...");
+    setBaselineListo(true);
+    setStep("listo");
+  }
+
+  function handleUploadSkip() {
+    setBaselineStatus(null);
+    setBaselineListo(false);
+    setStep("listo");
   }
 
   async function terminar() {
@@ -322,9 +344,9 @@ export default function Onboarding() {
             </p>
 
             <UploadHistorialCard
-              onMPConnect={() => setStep("listo")}
-              onUploadSuccess={() => setStep("listo")}
-              onSkip={() => setStep("listo")}
+              onMPConnect={handleMPClick}
+              onUploadSuccess={handleUploadSuccess}
+              onSkip={handleUploadSkip}
             />
           </>
         )}
@@ -390,87 +412,260 @@ export default function Onboarding() {
               Lumo está listo
             </h1>
 
-            <p
-              style={{
-                fontSize: 14,
-                color: "var(--text2)",
-                lineHeight: 1.75,
-                marginBottom: 16,
-              }}
-            >
-              Tu negocio está configurado y NICOLE está aprendiendo cómo funciona.
-            </p>
-
+            {/* Mensaje dinámico según baseline status */}
             <div
               style={{
-                padding: 12,
+                padding: 14,
                 borderRadius: 10,
-                background: "rgba(16, 185, 129, 0.08)",
-                border: "1px solid rgba(16, 185, 129, 0.2)",
-                marginBottom: 32,
+                marginBottom: 20,
+                border: "1px solid var(--border)",
+                background: baselineListo
+                  ? "rgba(16, 185, 129, 0.08)"
+                  : baselineStatus
+                    ? "rgba(245, 158, 11, 0.08)"
+                    : "rgba(107, 114, 128, 0.08)",
               }}
             >
-              <div style={{ fontSize: 12, color: "var(--emerald)", fontWeight: 600 }}>
-                ⏱️ Próximos 30 días
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: baselineListo
+                    ? "var(--emerald)"
+                    : baselineStatus
+                      ? "#F59E0B"
+                      : "var(--muted)",
+                  marginBottom: 6,
+                }}
+              >
+                {baselineListo
+                  ? "✅ Baseline listo"
+                  : baselineStatus && baselineStatus.includes("construcción")
+                    ? "⚠️ Baseline en construcción"
+                    : "📊 Usando benchmark sectorial"}
               </div>
-              <div style={{ fontSize: 12, color: "var(--text2)", marginTop: 6, lineHeight: 1.6 }}>
-                El motor recopilará datos para calibrar umbrales de detección. En 30 días, las predicciones serán máximamente precisas.
+
+              <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.6 }}>
+                {baselineListo
+                  ? "NICOLE ya está analizando tu negocio desde hoy. Las predicciones serán cada vez más precisas."
+                  : baselineStatus && baselineStatus.includes("construcción")
+                    ? `${baselineStatus.split("(")[1]?.replace(")", "")
+                        ? `En ${baselineStatus.split("(")[1]?.replace(")", "")} tendrás análisis completo.`
+                        : "En unos días tendrás análisis completo."
+                      }`
+                    : "En 30 días tendrás análisis personalizado basado en tus datos reales."}
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
-              {PROXIMOS_PASOS.map((p, i) => (
+            {/* Card de métricas si hay datos */}
+            {uploadData && uploadData.transacciones_cargadas > 0 && (
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 10,
+                  marginBottom: 20,
+                  background: "var(--card3)",
+                  border: "1px solid var(--border)",
+                }}
+              >
                 <div
-                  key={i}
                   style={{
-                    background: "var(--card)",
-                    borderLeft: `3px solid ${p.color}`,
-                    border: "1px solid var(--border)",
-                    borderRadius: 12,
-                    padding: "14px 16px",
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "flex-start",
-                    boxShadow: "var(--sh)",
-                    transition: "transform 0.2s, box-shadow 0.2s",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "var(--muted)",
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                    marginBottom: 12,
                   }}
-                  onMouseOver={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 16px rgba(0,0,0,0.1)";
-                  }}
-                  onMouseOut={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--sh)";
+                >
+                  📊 Datos importados
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 10,
                   }}
                 >
                   <div
                     style={{
-                      fontFamily: "'Syne',sans-serif",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: p.color,
-                      flexShrink: 0,
-                      paddingTop: 2,
-                      minWidth: 24,
+                      padding: 10,
+                      background: "rgba(59, 130, 246, 0.1)",
+                      borderRadius: 8,
                     }}
                   >
-                    0{i + 1}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>
-                      {p.titulo}
+                    <div style={{ fontSize: 10, color: "var(--muted)" }}>
+                      Transacciones
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.5 }}>
-                      {p.desc}
+                    <div
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 800,
+                        color: "#3B82F6",
+                        fontFamily: "'Syne',sans-serif",
+                      }}
+                    >
+                      {uploadData.transacciones_cargadas}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: 10,
+                      background: "rgba(139, 92, 246, 0.1)",
+                      borderRadius: 8,
+                    }}
+                  >
+                    <div style={{ fontSize: 10, color: "var(--muted)" }}>
+                      Días
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 800,
+                        color: "#8B5CF6",
+                        fontFamily: "'Syne',sans-serif",
+                      }}
+                    >
+                      {uploadData.dias_datos}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: 10,
+                      background: "rgba(0, 196, 140, 0.1)",
+                      borderRadius: 8,
+                    }}
+                  >
+                    <div style={{ fontSize: 10, color: "var(--muted)" }}>
+                      Ratio efectivo
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 800,
+                        color: "#00C48C",
+                        fontFamily: "'Syne',sans-serif",
+                      }}
+                    >
+                      {Math.round(uploadData.ratio_efectivo * 100)}%
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: 10,
+                      background: "rgba(52, 168, 219, 0.1)",
+                      borderRadius: 8,
+                    }}
+                  >
+                    <div style={{ fontSize: 10, color: "var(--muted)" }}>
+                      Ticket promedio
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 800,
+                        color: "#34A8DB",
+                        fontFamily: "'Syne',sans-serif",
+                      }}
+                    >
+                      ${uploadData.ticket_promedio}
                     </div>
                   </div>
                 </div>
-              ))}
+              </div>
+            )}
+
+            {/* Próximos pasos */}
+            <div style={{ marginBottom: 20 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "var(--muted)",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                  marginBottom: 10,
+                }}
+              >
+                🎯 Próximos pasos
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {PROXIMOS_PASOS.map((p, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      background: "var(--card)",
+                      borderLeft: `3px solid ${p.color}`,
+                      border: "1px solid var(--border)",
+                      borderRadius: 12,
+                      padding: "12px 14px",
+                      display: "flex",
+                      gap: 12,
+                      alignItems: "flex-start",
+                      boxShadow: "var(--sh)",
+                      transition: "transform 0.2s, box-shadow 0.2s",
+                    }}
+                    onMouseOver={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+                      (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 16px rgba(0,0,0,0.1)";
+                    }}
+                    onMouseOut={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                      (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--sh)";
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: "'Syne',sans-serif",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: p.color,
+                        flexShrink: 0,
+                        paddingTop: 2,
+                        minWidth: 24,
+                      }}
+                    >
+                      0{i + 1}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: "var(--text)",
+                          marginBottom: 3,
+                        }}
+                      >
+                        {p.titulo}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: "var(--text2)",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {p.desc}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <BtnPrimary onClick={terminar}>Ir al dashboard →</BtnPrimary>
 
-            <div style={{ fontSize: 11, color: "var(--muted)", textAlign: "center", marginTop: 16 }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted)",
+                textAlign: "center",
+                marginTop: 14,
+              }}
+            >
               Podés completar estos pasos en cualquier momento desde Configuración.
             </div>
           </div>
