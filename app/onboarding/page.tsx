@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import UploadHistorialCard from "../components/UploadHistorialCard";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -21,8 +22,8 @@ const PROXIMOS_PASOS = [
   { color: "var(--yellow)",  titulo: "Revisá el dashboard",   desc: "En 30 días Lumo ya tiene suficientes datos para predicciones." },
 ];
 
-type Step = "tipo" | "ubicacion" | "empleado" | "listo";
-const STEPS: Step[] = ["tipo", "ubicacion", "empleado", "listo"];
+type Step = "tipo" | "ubicacion" | "empleado" | "historial" | "listo";
+const STEPS: Step[] = ["tipo", "ubicacion", "empleado", "historial", "listo"];
 
 function inp(): React.CSSProperties {
   return {
@@ -116,7 +117,7 @@ export default function Onboarding() {
     if (!emp.nombre.trim()) { setError("Ingresá el nombre del empleado"); return; }
     if (emp.pin.length < 4 || isNaN(Number(emp.pin))) { setError("El PIN debe ser de 4 dígitos numéricos"); return; }
     if (emp.pin !== emp.pin2) { setError("Los PINs no coinciden"); return; }
-    if (!userId) { setStep("listo"); return; }
+    if (!userId) { setStep("historial"); return; }
     setLoading(true);
     try {
       await fetch(`${API}/api/caja/empleados`, {
@@ -125,12 +126,13 @@ export default function Onboarding() {
         body: JSON.stringify({ usuario_id: userId, nombre: emp.nombre.trim(), pin: emp.pin }),
       });
     } catch { /* pueden agregar desde Equipo */ } finally { setLoading(false); }
-    setStep("listo");
+    setStep("historial");
   }
 
   function saltar() {
     if (step === "tipo") setStep("ubicacion");
     else if (step === "ubicacion") setStep("empleado");
+    else if (step === "empleado") setStep("historial");
     else setStep("listo");
   }
 
@@ -246,6 +248,25 @@ export default function Onboarding() {
             {error && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
             <BtnPrimary onClick={crearEmpleado} disabled={loading}>{loading ? "Guardando..." : "Registrar empleado"}</BtnPrimary>
             <button onClick={saltar} style={skipBtn}>Saltar — lo hago después</button>
+          </>
+        )}
+
+        {/* PASO 4: Cargar historial */}
+        {step === "historial" && (
+          <>
+            <div style={{ fontSize: 9, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>// paso 4 de 4</div>
+            <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 26, fontWeight: 800, color: "var(--text)", marginBottom: 10, lineHeight: 1.2 }}>
+              Cargá tu historial
+            </h1>
+            <p style={{ fontSize: 14, color: "var(--text2)", marginBottom: 28, lineHeight: 1.65 }}>
+              Importá tus últimas transacciones para que NICOLE aprenda rápidamente cómo funciona tu negocio.
+            </p>
+
+            <UploadHistorialCard
+              onMPConnect={() => setStep("listo")}
+              onUploadSuccess={() => setStep("listo")}
+              onSkip={() => setStep("listo")}
+            />
           </>
         )}
 
