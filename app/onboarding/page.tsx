@@ -158,9 +158,26 @@ export default function Onboarding() {
     <main style={{ background: "var(--bg)", minHeight: "100vh", fontFamily: "'DM Sans',sans-serif", paddingBottom: 48 }}>
 
       {/* Barra de progreso */}
-      <div style={{ padding: "20px 24px 0", display: "flex", gap: 6 }}>
+      <div
+        style={{ padding: "20px 24px 0", display: "flex", gap: 6 }}
+        role="progressbar"
+        aria-valuenow={stepIndex + 1}
+        aria-valuemin={1}
+        aria-valuemax={STEPS.length}
+        aria-label={`Paso ${stepIndex + 1} de ${STEPS.length}`}
+      >
         {STEPS.map((s, i) => (
-          <div key={s} style={{ flex: 1, height: 3, borderRadius: 2, background: stepIndex >= i ? "var(--cyan)" : "var(--border)", transition: "background 0.3s" }} />
+          <div
+            key={s}
+            style={{
+              flex: 1,
+              height: 3,
+              borderRadius: 2,
+              background: stepIndex >= i ? "var(--cyan)" : "var(--border)",
+              transition: "background 0.3s",
+            }}
+            aria-hidden={stepIndex < i ? "true" : undefined}
+          />
         ))}
       </div>
 
@@ -169,7 +186,7 @@ export default function Onboarding() {
         {/* PASO 1: Tipo de negocio */}
         {step === "tipo" && (
           <>
-            <div style={{ fontSize: 9, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>// paso 1 de 3</div>
+            <div style={{ fontSize: 9, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>// paso 1 de 4</div>
             <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 26, fontWeight: 800, color: "var(--text)", marginBottom: 10, lineHeight: 1.2 }}>
               ¿Qué tipo de negocio tenés?
             </h1>
@@ -196,7 +213,7 @@ export default function Onboarding() {
         {/* PASO 2: Ubicación */}
         {step === "ubicacion" && (
           <>
-            <div style={{ fontSize: 9, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>// paso 2 de 3</div>
+            <div style={{ fontSize: 9, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>// paso 2 de 4</div>
             <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 26, fontWeight: 800, color: "var(--text)", marginBottom: 10, lineHeight: 1.2 }}>
               ¿Dónde está tu negocio?
             </h1>
@@ -205,15 +222,33 @@ export default function Onboarding() {
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
-              <input placeholder="Provincia (ej: Buenos Aires)" value={ubicacion.provincia}
+              <input
+                id="provincia"
+                placeholder="Provincia (ej: Buenos Aires)"
+                value={ubicacion.provincia}
                 onChange={e => setUbicacion(v => ({ ...v, provincia: e.target.value }))}
-                style={inp()} autoComplete="off" />
-              <input placeholder="Ciudad (ej: Mar del Plata)" value={ubicacion.ciudad}
+                style={inp()}
+                autoComplete="off"
+                aria-label="Provincia del negocio"
+              />
+              <input
+                id="ciudad"
+                placeholder="Ciudad (ej: Mar del Plata)"
+                value={ubicacion.ciudad}
                 onChange={e => setUbicacion(v => ({ ...v, ciudad: e.target.value }))}
-                style={inp()} autoComplete="off" />
-              <input placeholder="Zona o barrio (opcional)" value={ubicacion.zona}
+                style={inp()}
+                autoComplete="off"
+                aria-label="Ciudad del negocio"
+              />
+              <input
+                id="zona"
+                placeholder="Zona o barrio (opcional)"
+                value={ubicacion.zona}
                 onChange={e => setUbicacion(v => ({ ...v, zona: e.target.value }))}
-                style={inp()} autoComplete="off" />
+                style={inp()}
+                autoComplete="off"
+                aria-label="Zona o barrio del negocio (opcional)"
+              />
             </div>
 
             {error && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
@@ -225,7 +260,7 @@ export default function Onboarding() {
         {/* PASO 3: Primer empleado */}
         {step === "empleado" && (
           <>
-            <div style={{ fontSize: 9, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>// paso 3 de 3</div>
+            <div style={{ fontSize: 9, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>// paso 3 de 4</div>
             <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 26, fontWeight: 800, color: "var(--text)", marginBottom: 10, lineHeight: 1.2 }}>
               Registrá tu primer empleado
             </h1>
@@ -234,15 +269,39 @@ export default function Onboarding() {
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
-              <input placeholder="Nombre del empleado" value={emp.nombre}
+              <input
+                id="empleado-nombre"
+                placeholder="Nombre del empleado"
+                value={emp.nombre}
                 onChange={e => { setEmp(v => ({ ...v, nombre: e.target.value })); setError(""); }}
-                style={inp()} autoComplete="off" />
-              <input type="tel" inputMode="numeric" placeholder="PIN — 4 dígitos" value={emp.pin}
+                style={inp()}
+                autoComplete="off"
+                aria-label="Nombre del empleado"
+              />
+              <input
+                id="empleado-pin"
+                type="tel"
+                inputMode="numeric"
+                placeholder="PIN — 4 dígitos"
+                value={emp.pin}
                 onChange={e => { setEmp(v => ({ ...v, pin: e.target.value.slice(0, 4) })); setError(""); }}
-                style={inp()} autoComplete="off" maxLength={4} />
-              <input type="tel" inputMode="numeric" placeholder="Repetir PIN" value={emp.pin2}
+                style={inp()}
+                autoComplete="off"
+                maxLength={4}
+                aria-label="PIN de 4 dígitos"
+              />
+              <input
+                id="empleado-pin2"
+                type="tel"
+                inputMode="numeric"
+                placeholder="Repetir PIN"
+                value={emp.pin2}
                 onChange={e => { setEmp(v => ({ ...v, pin2: e.target.value.slice(0, 4) })); setError(""); }}
-                style={inp()} autoComplete="off" maxLength={4} />
+                style={inp()}
+                autoComplete="off"
+                maxLength={4}
+                aria-label="Repetir PIN de 4 dígitos"
+              />
             </div>
 
             {error && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 14 }}>{error}</div>}
@@ -273,33 +332,147 @@ export default function Onboarding() {
         {/* LISTO */}
         {step === "listo" && (
           <div style={{ paddingTop: 16 }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", border: "2px solid var(--emerald)", background: "rgba(16,185,129,0.10)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <polyline points="20 6 9 17 4 12" stroke="var(--emerald)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Checkmark animado */}
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                border: "2px solid var(--emerald)",
+                background: "rgba(16, 185, 129, 0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 28,
+                animation: "scaleIn 0.5s ease-out",
+              }}
+            >
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                <polyline
+                  points="20 6 9 17 4 12"
+                  stroke="var(--emerald)"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    strokeDasharray: 24,
+                    strokeDashoffset: 24,
+                    animation: "drawCheck 0.6s ease-out 0.2s forwards",
+                  }}
+                />
               </svg>
             </div>
 
-            <div style={{ fontSize: 9, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>// configuración completa</div>
-            <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, color: "var(--text)", marginBottom: 12, lineHeight: 1.2 }}>
-              Lumo está listo.
+            <style>{`
+              @keyframes scaleIn {
+                from { transform: scale(0.8); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+              }
+              @keyframes drawCheck {
+                to { stroke-dashoffset: 0; }
+              }
+            `}</style>
+
+            <div style={{ fontSize: 9, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>
+              // ✅ configuración completa
+            </div>
+
+            <h1
+              style={{
+                fontFamily: "'Syne',sans-serif",
+                fontSize: 32,
+                fontWeight: 800,
+                color: "var(--text)",
+                marginBottom: 12,
+                lineHeight: 1.2,
+              }}
+            >
+              Lumo está listo
             </h1>
-            <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.75, marginBottom: 32 }}>
-              Tu negocio está configurado. Estos son los primeros pasos para que el motor empiece a aprender.
+
+            <p
+              style={{
+                fontSize: 14,
+                color: "var(--text2)",
+                lineHeight: 1.75,
+                marginBottom: 16,
+              }}
+            >
+              Tu negocio está configurado y NICOLE está aprendiendo cómo funciona.
             </p>
+
+            <div
+              style={{
+                padding: 12,
+                borderRadius: 10,
+                background: "rgba(16, 185, 129, 0.08)",
+                border: "1px solid rgba(16, 185, 129, 0.2)",
+                marginBottom: 32,
+              }}
+            >
+              <div style={{ fontSize: 12, color: "var(--emerald)", fontWeight: 600 }}>
+                ⏱️ Próximos 30 días
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text2)", marginTop: 6, lineHeight: 1.6 }}>
+                El motor recopilará datos para calibrar umbrales de detección. En 30 días, las predicciones serán máximamente precisas.
+              </div>
+            </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
               {PROXIMOS_PASOS.map((p, i) => (
-                <div key={i} style={{ background: "var(--card)", borderLeft: `3px solid ${p.color}`, border: "1px solid var(--border)", borderRadius: 14, padding: "14px 18px", display: "flex", gap: 14, alignItems: "flex-start", boxShadow: "var(--sh)" }}>
-                  <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 12, fontWeight: 700, color: p.color, flexShrink: 0, paddingTop: 2 }}>0{i + 1}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>{p.titulo}</div>
-                    <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.55 }}>{p.desc}</div>
+                <div
+                  key={i}
+                  style={{
+                    background: "var(--card)",
+                    borderLeft: `3px solid ${p.color}`,
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    padding: "14px 16px",
+                    display: "flex",
+                    gap: 12,
+                    alignItems: "flex-start",
+                    boxShadow: "var(--sh)",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                  }}
+                  onMouseOver={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 16px rgba(0,0,0,0.1)";
+                  }}
+                  onMouseOut={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--sh)";
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "'Syne',sans-serif",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: p.color,
+                      flexShrink: 0,
+                      paddingTop: 2,
+                      minWidth: 24,
+                    }}
+                  >
+                    0{i + 1}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>
+                      {p.titulo}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.5 }}>
+                      {p.desc}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
             <BtnPrimary onClick={terminar}>Ir al dashboard →</BtnPrimary>
+
+            <div style={{ fontSize: 11, color: "var(--muted)", textAlign: "center", marginTop: 16 }}>
+              Podés completar estos pasos en cualquier momento desde Configuración.
+            </div>
           </div>
         )}
 
