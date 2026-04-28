@@ -43,12 +43,18 @@ export default function DataQualityCard({
   title = "Calidad de datos",
   hideIfGood = false,
 }: DataQualityCardProps) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  console.log("🔐 Token disponible:", !!token);
+  console.log("👤 User ID:", user?.id);
+  console.log("🏪 Negocio ID:", user?.negocio_id);
+
   const [state, setState] = useState<CardState>("loading");
   const [data, setData] = useState<DataQualityResponse | null>(null);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
+    console.log("⏳ useEffect disparado, token:", !!token);
+
     async function fetchDataQuality() {
       try {
         setState("loading");
@@ -58,20 +64,30 @@ export default function DataQualityCard({
           return;
         }
 
-        const res = await fetch(`${API}/api/negocio/data-quality-score`, {
+        const apiUrl = `${API}/api/negocio/data-quality-score${user?.negocio_id ? `?negocioId=${user.negocio_id}` : ""}`;
+        console.log("🌐 Fetcheando URL:", apiUrl);
+
+        const res = await fetch(apiUrl, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        console.log("📡 Response status:", res.status);
 
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
 
         const json = await res.json();
+        console.log("📦 Response data:", json);
+
         setData(json);
+        console.log("✅ Estado actualizado a: success");
         setState("success");
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Error desconocido";
+        console.error("❌ Error fetching:", e);
         setError(msg);
+        console.log("✅ Estado actualizado a: error");
         setState("error");
       }
     }
@@ -79,7 +95,7 @@ export default function DataQualityCard({
     if (token) {
       fetchDataQuality();
     }
-  }, [token]);
+  }, [token, user?.negocio_id]);
 
   // hideIfGood: si score >= 90 y está habilitado, no mostrar nada
   if (hideIfGood && data && data.score >= 90) {
