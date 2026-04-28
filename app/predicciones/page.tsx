@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Nav from "../components/Nav";
+import DataQualityCard from "../components/DataQualityCard";
 import { usePush } from "../hooks/usePush";
 import { HeroCard, PageHeader, PredCard, AlertCard } from "../components/ui";
 
@@ -127,6 +128,8 @@ export default function Predicciones() {
   return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       <PageHeader title="Predicciones" sub="NICOLE · próximos 7 días" />
+
+      <DataQualityCard variant="predicciones" title="Confianza de predicción" />
 
       {loading ? (
         <div style={{ padding: "60px 20px", textAlign: "center" }}>

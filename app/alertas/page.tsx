@@ -1,5 +1,6 @@
 "use client";
 import Nav from "../components/Nav";
+import DataQualityCard from "../components/DataQualityCard";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
@@ -130,6 +131,8 @@ export default function Alertas() {
         </div>
       ) : (
         <>
+          <DataQualityCard variant="mini" hideIfGood={true} />
+
           <FilterChips chips={chips} />
 
           {stats && (

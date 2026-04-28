@@ -1,5 +1,6 @@
 "use client";
 import Nav from "./components/Nav";
+import DataQualityCard from "./components/DataQualityCard";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
@@ -132,6 +133,8 @@ function HomeContent() {
             value={facturacion != null ? fmt(facturacion) : "—"}
             sub={pred?.facturacion?.confianza ? `Confianza ${pred.facturacion.confianza.pct}%` : "NICOLE · proyección"}
           />
+
+          <DataQualityCard />
 
           <StatRow>
             <StatCard
