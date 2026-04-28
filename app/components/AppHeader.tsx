@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import LumoEyeIcon from "./LumoEyeIcon";
+import ConfirmDeleteAccountModal from "./ConfirmDeleteAccountModal";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -48,6 +49,7 @@ export default function AppHeader() {
   const { token } = useAuth();
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem("lumo_usuario");
@@ -83,6 +85,7 @@ export default function AppHeader() {
   };
 
   return (
+    <>
     <header
       style={{
         background: "rgba(255,255,255,0.92)",
@@ -293,6 +296,33 @@ export default function AppHeader() {
               >
                 🚪 Salir
               </button>
+
+              <button
+                onClick={() => {
+                  setShowDeleteModal(true);
+                  setShowDropdown(false);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "none",
+                  background: "transparent",
+                  color: "#EF4444",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "background 0.15s",
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "var(--border)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+              >
+                🗑️ Borrar cuenta
+              </button>
             </div>
           </div>
         )}
@@ -310,5 +340,17 @@ export default function AppHeader() {
         />
       )}
     </header>
-  );
+
+    {/* Delete Account Modal */}
+    {showDeleteModal && (
+      <ConfirmDeleteAccountModal
+        onClose={() => setShowDeleteModal(false)}
+        onSuccess={() => {
+          localStorage.clear();
+          router.replace("/login");
+        }}
+      />
+    )}
+  </>
+);
 }
