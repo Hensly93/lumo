@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg:         #EEF3FC;
+  --bg2:        #E4EBF8;
+  --card:       #FFFFFF;
+  --card2:      #F5F8FF;
+  --cyan:       #007AFF;
+  --cyan2:      #00C2FF;
+  --emerald:    #00C48C;
+  --yellow:     #F59E0B;
+  --red:        #EF4444;
+  --text:       #0A1628;
+  --text2:      #1E3A5A;
+  --muted:      #6B8099;
+  --border:     #D8E4F5;
+  --grad:       linear-gradient(135deg, #007AFF, #00C2FF);
+  --grad-g:     linear-gradient(135deg, #00C2FF, #00C48C);
+  --grad-soft:  linear-gradient(135deg, #007AFF12, #00C2FF08);
+  --sh:         0 2px 16px #007AFF0D, 0 1px 3px #0A162808;
+  --sh2:        0 8px 32px #007AFF14, 0 2px 8px #0A162810;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 0%,  #007AFF0F, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 90% 100%, #00C48C0A, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 50%,  #00C2FF07, transparent 60%),
+    #EEF3FC;
+  background-attachment: fixed;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── Nicole keyframes (exactos del mockup) ──────────────────── */
+@keyframes nicPulse     { 0%,100%{opacity:1}          50%{opacity:0.7} }
+@keyframes nicLineFlash { 0%,100%{opacity:0.22}        50%{opacity:0.65} }
+@keyframes nicDiagFlash { 0%,100%{opacity:0.9}         50%{opacity:0.5} }
+@keyframes nicSubFlash  { 0%,100%{opacity:0.5}         50%{opacity:0.95} }
+@keyframes nicHalo      { 0%,100%{opacity:0.15}        50%{opacity:0.28} }
+@keyframes nicIdle      { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.75;transform:scale(0.92)} }
+
+/* Idle — solo el nodo central pulsa suavemente */
+.nic-icon-idle .nic-central {
+  animation: nicIdle 3s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Thinking — todo el ícono se activa en cascada */
+.nic-icon-think .nic-halo     { animation: nicHalo      1.2s ease-in-out infinite; }
+.nic-icon-think .nic-line-v   { animation: nicLineFlash 1.2s ease-in-out infinite; }
+.nic-icon-think .nic-line-diag{ animation: nicDiagFlash 1.2s ease-in-out infinite; }
+.nic-icon-think .nic-line-sub { animation: nicSubFlash  1.2s ease-in-out infinite; }
+.nic-icon-think .nic-s1       { animation: nicPulse 1.2s ease-in-out 0s    infinite; }
+.nic-icon-think .nic-s2       { animation: nicPulse 1.2s ease-in-out 0.05s infinite; }
+.nic-icon-think .nic-s3       { animation: nicPulse 1.2s ease-in-out 0.10s infinite; }
+.nic-icon-think .nic-s4       { animation: nicPulse 1.2s ease-in-out 0.15s infinite; }
+.nic-icon-think .nic-s5       { animation: nicPulse 1.2s ease-in-out 0.20s infinite; }
+.nic-icon-think .nic-s6       { animation: nicPulse 1.2s ease-in-out 0.25s infinite; }
+.nic-icon-think .nic-s7       { animation: nicPulse 1.2s ease-in-out 0.30s infinite; }
+.nic-icon-think .nic-s8       { animation: nicPulse 1.2s ease-in-out 0.35s infinite; }
+.nic-icon-think .nic-s9       { animation: nicPulse 1.2s ease-in-out 0.40s infinite; }
+.nic-icon-think .nic-s10      { animation: nicPulse 1.2s ease-in-out 0.45s infinite; }
+.nic-icon-think .nic-central  {
+  animation: nicPulse 0.8s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ── Utilidades compartidas ─────────────────────────────────── */
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.fade-in     { animation: fadeIn 0.4s ease forwards; }
+.lumo-number { font-variant-numeric: tabular-nums; }
+
+@keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.45} }
+.pulse-red { animation: pulse-red 2s ease-in-out infinite; }

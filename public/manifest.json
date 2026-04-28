@@ -1,0 +1,40 @@
+{
+  "name": "Lumo — Detección operativa",
+  "short_name": "Lumo",
+  "description": "Detectá inconsistencias en tu caja antes de que se acumulen.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050D1A",
+  "theme_color": "#050D1A",
+  "categories": ["business", "finance", "productivity"],
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "/api/pwa-icon?size=192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/api/pwa-icon?size=512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/",
+      "description": "Ver alertas y predicciones"
+    },
+    {
+      "name": "Caja",
+      "url": "/empleado",
+      "description": "Abrir turno de caja"
+    }
+  ]
+}
