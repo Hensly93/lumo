@@ -413,49 +413,59 @@ export default function Onboarding() {
             </h1>
 
             {/* Mensaje dinámico según baseline status */}
-            <div
-              style={{
-                padding: 14,
-                borderRadius: 10,
-                marginBottom: 20,
-                border: "1px solid var(--border)",
-                background: baselineListo
-                  ? "rgba(16, 185, 129, 0.08)"
-                  : baselineStatus
-                    ? "rgba(245, 158, 11, 0.08)"
-                    : "rgba(107, 114, 128, 0.08)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: baselineListo
-                    ? "var(--emerald)"
-                    : baselineStatus
-                      ? "#F59E0B"
-                      : "var(--muted)",
-                  marginBottom: 6,
-                }}
-              >
-                {baselineListo
-                  ? "✅ Baseline listo"
-                  : baselineStatus && baselineStatus.includes("construcción")
-                    ? "⚠️ Baseline en construcción"
-                    : "📊 Usando benchmark sectorial"}
-              </div>
+            {(() => {
+              const diasFaltantes =
+                uploadData && uploadData.dias_datos < 8
+                  ? Math.ceil(8 - uploadData.dias_datos)
+                  : uploadData && uploadData.dias_datos < 30
+                    ? Math.ceil(30 - uploadData.dias_datos)
+                    : 0;
 
-              <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.6 }}>
-                {baselineListo
-                  ? "NICOLE ya está analizando tu negocio desde hoy. Las predicciones serán cada vez más precisas."
-                  : baselineStatus && baselineStatus.includes("construcción")
-                    ? `${baselineStatus.split("(")[1]?.replace(")", "")
-                        ? `En ${baselineStatus.split("(")[1]?.replace(")", "")} tendrás análisis completo.`
-                        : "En unos días tendrás análisis completo."
-                      }`
-                    : "En 30 días tendrás análisis personalizado basado en tus datos reales."}
-              </div>
-            </div>
+              return (
+                <div
+                  style={{
+                    padding: 14,
+                    borderRadius: 10,
+                    marginBottom: 20,
+                    border: "1px solid var(--border)",
+                    background: baselineListo
+                      ? "rgba(16, 185, 129, 0.08)"
+                      : uploadData
+                        ? "rgba(245, 158, 11, 0.08)"
+                        : "rgba(107, 114, 128, 0.08)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: baselineListo
+                        ? "var(--emerald)"
+                        : uploadData
+                          ? "#F59E0B"
+                          : "var(--muted)",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {baselineListo
+                      ? "✅ Baseline listo"
+                      : uploadData
+                        ? "⚠️ Baseline en construcción"
+                        : "📊 Usando benchmark sectorial"}
+                  </div>
+
+                  <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.6 }}>
+                    {baselineListo
+                      ? "NICOLE ya está analizando tu negocio desde hoy. Las predicciones serán cada vez más precisas."
+                      : uploadData
+                        ? uploadData.dias_datos >= 8
+                          ? `En ${diasFaltantes} días tendrás análisis personalizado completo.`
+                          : `En ${diasFaltantes}+ días tendrás confianza media en análisis.`
+                        : "En 30 días tendrás análisis personalizado basado en tus datos reales."}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Card de métricas si hay datos */}
             {uploadData && uploadData.transacciones_cargadas > 0 && (
@@ -470,15 +480,65 @@ export default function Onboarding() {
               >
                 <div
                   style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "var(--muted)",
-                    textTransform: "uppercase",
-                    letterSpacing: 0.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                     marginBottom: 12,
                   }}
                 >
-                  📊 Datos importados
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "var(--muted)",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    📊 Datos importados
+                  </div>
+                  {uploadData.dias_datos >= 30 && (
+                    <div
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        color: "var(--emerald)",
+                        background: "rgba(16, 185, 129, 0.15)",
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                      }}
+                    >
+                      ✅ CONFIANZA MÁXIMA
+                    </div>
+                  )}
+                  {uploadData.dias_datos >= 8 && uploadData.dias_datos < 30 && (
+                    <div
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        color: "#F59E0B",
+                        background: "rgba(245, 158, 11, 0.15)",
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                      }}
+                    >
+                      ⚠️ CONFIANZA MEDIA
+                    </div>
+                  )}
+                  {uploadData.dias_datos < 8 && (
+                    <div
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        color: "#EF4444",
+                        background: "rgba(239, 68, 68, 0.15)",
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                      }}
+                    >
+                      ⏳ DATOS INSUFICIENTES
+                    </div>
+                  )}
                 </div>
                 <div
                   style={{
