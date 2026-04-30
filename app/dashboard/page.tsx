@@ -121,6 +121,7 @@ export default function Dashboard() {
   };
 
   const renderModal = () => {
+    console.log("renderModal called, modalOpen:", modalOpen);
     if (!modalOpen) return null;
 
     const modals = {
@@ -470,6 +471,7 @@ export default function Dashboard() {
                 color: T.green,
                 delta: pred?.facturacion?.disponible ? `Proyectado: ${fmt(pred.facturacion.proyeccion_mes_completo.esperado)}` : "Sin datos suficientes",
                 modal: "facturacion" as ModalType,
+                isFirst: true,
               },
               {
                 label: "Pérdida acumulada",
@@ -497,7 +499,10 @@ export default function Dashboard() {
             ].map(k => (
               <div
                 key={k.label}
-                onClick={() => setModalOpen(k.modal)}
+                onClick={() => {
+                  if (k.isFirst) console.log("Modal click:", k.modal);
+                  setModalOpen(k.modal);
+                }}
                 style={{
                   background: T.bgCard,
                   border: `1px solid ${T.border}`,
