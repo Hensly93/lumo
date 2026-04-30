@@ -63,6 +63,12 @@ function alertTag(prioridad: string): string {
   return "Info";
 }
 
+type ModalData = {
+  title: string;
+  text: string;
+  actionButton?: { text: string; href: string };
+};
+
 function HomeContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -73,6 +79,7 @@ function HomeContent() {
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [pred, setPred] = useState<Prediccion | null>(null);
   const [loading, setLoading] = useState(true);
+  const [modalData, setModalData] = useState<ModalData | null>(null);
 
   useEffect(() => {
     if (params.get("mp_conectado") === "true") {
@@ -106,7 +113,153 @@ function HomeContent() {
   const critCount = alertas.filter(a => ["critico", "inconsistencia"].includes(a.prioridad)).length;
   const facturacion = pred?.facturacion?.disponible ? pred.facturacion.venta_diaria_esperada : null;
 
+  const openModal = (data: ModalData) => setModalData(data);
+  const closeModal = () => setModalData(null);
+
   return (
+    <>
+      {modalData && (
+        <div
+          onClick={closeModal}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(10, 22, 40, 0.6)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "20px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#EEF3FC",
+              borderRadius: 20,
+              padding: 24,
+              maxWidth: 500,
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 20,
+            }}>
+              <h2 style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: "#0A1628",
+                margin: 0,
+              }}>
+                {modalData.title}
+              </h2>
+              <button
+                onClick={closeModal}
+                style={{
+                  background: "white",
+                  border: "1px solid #E0E7F1",
+                  borderRadius: 10,
+                  width: 36,
+                  height: 36,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  fontSize: 20,
+                  color: "#0A1628",
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{
+              background: "white",
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 16,
+            }}>
+              <p style={{
+                fontSize: 14,
+                lineHeight: 1.6,
+                color: "#0A1628",
+                margin: 0,
+              }}>
+                {modalData.text}
+              </p>
+            </div>
+
+            {modalData.actionButton && (
+              <button
+                onClick={() => {
+                  closeModal();
+                  router.push(modalData.actionButton!.href);
+                }}
+                style={{
+                  width: "100%",
+                  background: "#007AFF",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 12,
+                  padding: "14px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  marginBottom: 12,
+                }}
+              >
+                {modalData.actionButton.text}
+              </button>
+            )}
+
+            <button
+              onClick={() => router.push("/nicole")}
+              style={{
+                width: "100%",
+                background: "white",
+                color: "#007AFF",
+                border: "1px solid #007AFF",
+                borderRadius: 12,
+                padding: "14px",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                marginBottom: 12,
+              }}
+            >
+              ¿Tenés dudas? Hablá con NICOLE →
+            </button>
+
+            <button
+              onClick={closeModal}
+              style={{
+                width: "100%",
+                background: "#007AFF",
+                color: "white",
+                border: "none",
+                borderRadius: 12,
+                padding: "14px",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
 
       {toast && (
@@ -128,11 +281,16 @@ function HomeContent() {
         </div>
       ) : (
         <>
-          <HeroCard
-            label="Facturación estimada hoy"
-            value={facturacion != null ? fmt(facturacion) : "—"}
-            sub={pred?.facturacion?.confianza ? `Confianza ${pred.facturacion.confianza.pct}%` : "NICOLE · proyección"}
-          />
+          <div onClick={() => openModal({
+            title: "Facturación estimada hoy",
+            text: "NICOLE proyecta tus ventas de hoy en base a tu historial de transacciones. Cuantos más datos tenga, más precisa será la proyección. El número se actualiza cada vez que registrás una venta."
+          })} style={{ cursor: "pointer" }}>
+            <HeroCard
+              label="Facturación estimada hoy"
+              value={facturacion != null ? fmt(facturacion) : "—"}
+              sub={pred?.facturacion?.confianza ? `Confianza ${pred.facturacion.confianza.pct}%` : "NICOLE · proyección"}
+            />
+          </div>
 
           <DataQualityCard />
 
@@ -142,29 +300,45 @@ function HomeContent() {
               value={dq != null ? `${Math.round(dq)}%` : "—"}
               color={dq == null ? "blue" : dq >= 70 ? "blue" : dq >= 40 ? "yellow" : "red"}
             />
-            <StatCard
-              label="Alertas hoy"
-              value={String(critCount)}
-              color={critCount > 0 ? "yellow" : "green"}
-            />
-            <StatCard
-              label="Score"
-              value={analisis?.score != null ? String(analisis.score) : "—"}
-              color="blue"
-            />
+            <div onClick={() => openModal({
+              title: "Alertas hoy",
+              text: "Cantidad de inconsistencias operativas detectadas hoy. NICOLE requiere mínimo 2 señales simultáneas para generar una alerta, lo que reduce los falsos positivos.",
+              actionButton: { text: "Ver alertas →", href: "/alertas" }
+            })} style={{ cursor: "pointer" }}>
+              <StatCard
+                label="Alertas hoy"
+                value={String(critCount)}
+                color={critCount > 0 ? "yellow" : "green"}
+              />
+            </div>
+            <div onClick={() => openModal({
+              title: "Score",
+              text: "El score resume el nivel de inconsistencia operativa del negocio. Se calcula combinando ticket promedio, ratio efectivo/digital y volumen por turno. Sin datos suficientes aparece como —."
+            })} style={{ cursor: "pointer" }}>
+              <StatCard
+                label="Score"
+                value={analisis?.score != null ? String(analisis.score) : "—"}
+                color="blue"
+              />
+            </div>
           </StatRow>
 
           <SectionTitle>Alertas activas</SectionTitle>
 
           {alertas.length === 0 ? (
-            <AlertCard
-              variant="ok"
-              tag="Todo ok"
-              title="Sin anomalías detectadas"
-              desc="Tu negocio opera dentro del rango esperado."
-              amount="En orden ✓"
-              positive
-            />
+            <div onClick={() => openModal({
+              title: "Sin anomalías detectadas",
+              text: "Tu negocio opera dentro del rango esperado hoy. NICOLE no detectó patrones fuera de lo normal. Esto es una buena señal."
+            })} style={{ cursor: "pointer" }}>
+              <AlertCard
+                variant="ok"
+                tag="Todo ok"
+                title="Sin anomalías detectadas"
+                desc="Tu negocio opera dentro del rango esperado."
+                amount="En orden ✓"
+                positive
+              />
+            </div>
           ) : (
             alertas.map((a, i) => (
               <AlertCard
@@ -184,6 +358,7 @@ function HomeContent() {
 
       <Nav />
     </main>
+    </>
   );
 }
 
