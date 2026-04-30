@@ -122,6 +122,9 @@ export default function Dashboard() {
 
   const renderModal = () => {
     console.log("renderModal called, modalOpen:", modalOpen);
+    if (modalOpen) {
+      console.log("Modal ABIERTO:", modalOpen);
+    }
     if (!modalOpen) return null;
 
     const modals = {
@@ -500,7 +503,7 @@ export default function Dashboard() {
               <div
                 key={k.label}
                 onClick={() => {
-                  if (k.isFirst) console.log("Modal click:", k.modal);
+                  if (k.isFirst) alert("click funcionando");
                   setModalOpen(k.modal);
                 }}
                 style={{
