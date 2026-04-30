@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -107,6 +108,23 @@ export default function Header() {
 
       {/* Punto de estado — verde siempre (online) */}
       <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#00E5A0", flexShrink: 0, boxShadow: "0 0 6px rgba(0,229,160,0.5)" }} />
+
+      {/* Ícono de ajustes */}
+      <Link href="/ajustes" style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 34,
+        height: 34,
+        flexShrink: 0,
+        textDecoration: "none",
+        cursor: "pointer",
+        transition: "opacity 0.2s"
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"}
+      onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>
+        <span style={{ fontSize: 18, color: T.accent }}>⚙️</span>
+      </Link>
     </header>
   );
 }

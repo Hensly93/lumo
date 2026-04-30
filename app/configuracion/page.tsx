@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Nav from "../components/Nav";
 import { PageHeader, PlanCard, SectionTitle } from "../components/ui";
+import ConfirmCancelSubscriptionModal from "../components/ConfirmCancelSubscriptionModal";
+import ConfirmDeleteAccountModal from "../components/ConfirmDeleteAccountModal";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -15,6 +17,7 @@ type Perfil = {
   ciudad: string | null; zona: string | null;
   pos: string | null; logo: string | null;
   cuit: string | null; razon_social: string | null;
+  subscription_status: string | null;
 };
 type Empleado = { id: number; nombre: string; sucursal_id: number | null; sucursal_nombre: string | null };
 
@@ -483,12 +486,89 @@ function SecSoporte() {
   );
 }
 
+// ── SecCuenta ─────────────────────────────────────────────────────
+function SecCuenta({
+  subscriptionStatus,
+  onCancelSubscription,
+  onDeleteAccount
+}: {
+  subscriptionStatus: string;
+  onCancelSubscription: () => void;
+  onDeleteAccount: () => void;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.6, marginBottom: 4 }}>
+        Administrá tu suscripción y cuenta de Lumo.
+      </div>
+
+      {/* Botón Cancelar Suscripción - solo si está activa */}
+      {subscriptionStatus === "activa" && (
+        <>
+          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, color: "var(--muted)", textTransform: "uppercase" }}>
+            // Suscripción
+          </div>
+          <button
+            onClick={onCancelSubscription}
+            style={{
+              width: "100%",
+              padding: "12px 14px",
+              borderRadius: 11,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              background: "#F59E0B10",
+              border: "1px solid #F59E0B30",
+              color: "#F59E0B",
+              transition: "background 0.2s",
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = "#F59E0B18"}
+            onMouseOut={(e) => e.currentTarget.style.background = "#F59E0B10"}
+          >
+            ⚠️ Cancelar suscripción
+          </button>
+        </>
+      )}
+
+      {/* Botón Borrar Cuenta */}
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, color: "var(--muted)", textTransform: "uppercase", marginTop: subscriptionStatus === "activa" ? 8 : 0 }}>
+        // Cuenta
+      </div>
+      <button
+        onClick={onDeleteAccount}
+        style={{
+          width: "100%",
+          padding: "12px 14px",
+          borderRadius: 11,
+          fontSize: 14,
+          fontWeight: 600,
+          cursor: "pointer",
+          background: "#EF444410",
+          border: "1px solid #EF444430",
+          color: "#EF4444",
+          transition: "background 0.2s",
+        }}
+        onMouseOver={(e) => e.currentTarget.style.background = "#EF444418"}
+        onMouseOut={(e) => e.currentTarget.style.background = "#EF444410"}
+      >
+        🗑️ Borrar cuenta permanentemente
+      </button>
+
+      <div style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.5, marginTop: 4 }}>
+        Al borrar tu cuenta se eliminarán todos tus datos de forma permanente.
+      </div>
+    </div>
+  );
+}
+
 // ── Página ────────────────────────────────────────────────────────
 export default function Configuracion() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [open, setOpen] = useState<string>("negocio");
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const t = localStorage.getItem("lumo_token");
@@ -521,6 +601,7 @@ export default function Configuracion() {
     { id: "facturacion",    tag: "04", label: "Facturación",    content: <SecFacturacion token={token} perfil={perfil} onSave={p => setPerfil(p)} /> },
     { id: "notificaciones", tag: "05", label: "Notificaciones", content: <SecNotificaciones token={token} /> },
     { id: "soporte",        tag: "06", label: "Soporte",        content: <SecSoporte /> },
+    { id: "cuenta",         tag: "07", label: "Cuenta",         content: <SecCuenta subscriptionStatus={perfil?.subscription_status ?? "activa"} onCancelSubscription={() => setShowCancelModal(true)} onDeleteAccount={() => setShowDeleteModal(true)} /> },
   ];
 
   return (
@@ -550,6 +631,33 @@ export default function Configuracion() {
       </div>
 
       <Nav />
+
+      {/* Modales */}
+      {showCancelModal && (
+        <ConfirmCancelSubscriptionModal
+          onClose={() => setShowCancelModal(false)}
+          onSuccess={() => {
+            setShowCancelModal(false);
+            // Recargar perfil para actualizar estado de suscripción
+            fetch(`${API}/api/usuario/perfil`, { headers: { Authorization: `Bearer ${token}` } })
+              .then(r => r.json())
+              .then(setPerfil)
+              .catch(() => {});
+          }}
+        />
+      )}
+
+      {showDeleteModal && (
+        <ConfirmDeleteAccountModal
+          onClose={() => setShowDeleteModal(false)}
+          onSuccess={() => {
+            // Limpiar localStorage y redirigir a login
+            localStorage.removeItem("lumo_token");
+            localStorage.removeItem("lumo_usuario");
+            router.replace("/login");
+          }}
+        />
+      )}
     </main>
   );
 }
