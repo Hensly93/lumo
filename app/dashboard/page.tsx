@@ -372,6 +372,7 @@ export default function Dashboard() {
       )}
 
       <Nav />
+    </main>
     </>
   );
 }
