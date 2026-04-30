@@ -7,7 +7,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.
 
 type DataQualityResponse = {
   score: number;
-  transactionsCount: number;
+  total_transacciones: number;
   daysCount: number;
   message: string;
   status: "good" | "warning" | "critical";
@@ -51,6 +51,7 @@ export default function DataQualityCard({
   const [state, setState] = useState<CardState>("loading");
   const [data, setData] = useState<DataQualityResponse | null>(null);
   const [error, setError] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     console.log("⏳ useEffect disparado, token:", !!token);
@@ -147,6 +148,35 @@ export default function DataQualityCard({
   const colors = getScoreColor(data.score);
   const barColor = getProgressBarColor(data.score);
 
+  const handleCardClick = () => {
+    if (variant !== "mini") {
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsModalOpen(false);
+  };
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setIsModalOpen(false);
+    }
+  };
+
+  function getScoreMeaning(score: number): string {
+    if (score >= 90) {
+      return "Tu negocio tiene datos excelentes. Las alertas de NICOLE son altamente confiables y las predicciones serán muy precisas.";
+    } else if (score >= 70) {
+      return "Tus datos son buenos, pero podrían mejorar. NICOLE funciona bien, aunque más historial aumentará la precisión de las alertas.";
+    } else if (score >= 40) {
+      return "Datos insuficientes. NICOLE funciona con limitaciones. Las alertas pueden ser aproximadas hasta que tengas más historial.";
+    } else {
+      return "Datos muy limitados. NICOLE necesita más información para funcionar correctamente. Registrá más transacciones diarias.";
+    }
+  }
+
   // Variante MINI — compacta para alertas
   if (variant === "mini") {
     return (
@@ -183,14 +213,18 @@ export default function DataQualityCard({
   // Variante PREDICCIONES — con título personalizado
   if (variant === "predicciones") {
     return (
-      <div style={{
-        margin: "0 12px 8px",
-        borderRadius: 14,
-        padding: 16,
-        background: colors.bg,
-        border: `1px solid ${colors.border}`,
-        boxShadow: "var(--sh)",
-      }}>
+      <>
+      <div
+        onClick={handleCardClick}
+        style={{
+          margin: "0 12px 8px",
+          borderRadius: 14,
+          padding: 16,
+          background: colors.bg,
+          border: `1px solid ${colors.border}`,
+          boxShadow: "var(--sh)",
+          cursor: "pointer",
+        }}>
         <div style={{
           display: "flex",
           alignItems: "center",
@@ -246,19 +280,243 @@ export default function DataQualityCard({
           {data.message}
         </div>
       </div>
+      {isModalOpen && renderModal()}
+      </>
+    );
+  }
+
+  function renderModal() {
+    if (!data) return null;
+
+    return (
+      <div
+        onClick={handleOverlayClick}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(10, 22, 40, 0.6)",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: "20px",
+        }}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            background: "#EEF3FC",
+            borderRadius: 20,
+            padding: 24,
+            maxWidth: 500,
+            width: "100%",
+            maxHeight: "90vh",
+            overflowY: "auto",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          }}
+        >
+          {/* Header */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 20,
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}>
+              <LumoEyeIcon size={24} />
+              <h2 style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: "#0A1628",
+                margin: 0,
+              }}>
+                Calidad de Datos
+              </h2>
+            </div>
+            <button
+              onClick={handleCloseModal}
+              style={{
+                background: "white",
+                border: "1px solid #E0E7F1",
+                borderRadius: 10,
+                width: 36,
+                height: 36,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: 20,
+                color: "#0A1628",
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Score Card */}
+          <div style={{
+            background: "white",
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+            border: `2px solid ${colors.border}`,
+          }}>
+            <div style={{
+              fontFamily: "'Syne', sans-serif",
+              fontSize: 48,
+              fontWeight: 800,
+              color: colors.text,
+              lineHeight: 1,
+              marginBottom: 12,
+            }}>
+              {data.score}%
+            </div>
+            <div style={{
+              width: "100%",
+              height: 8,
+              background: "rgba(0,0,0,0.08)",
+              borderRadius: 4,
+              overflow: "hidden",
+            }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${data.score}%`,
+                  background: barColor,
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Cómo se calcula */}
+          <div style={{
+            background: "white",
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+          }}>
+            <h3 style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#0A1628",
+              marginTop: 0,
+              marginBottom: 12,
+            }}>
+              Cómo se calcula
+            </h3>
+            <p style={{
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "#0A1628",
+              margin: 0,
+            }}>
+              Analizamos <strong>{data.total_transacciones} transacciones</strong> de los últimos <strong>{data.daysCount} {data.daysCount === 1 ? "día" : "días"}</strong>. Un score alto significa que tus datos son consistentes y las alertas de NICOLE son más confiables.
+            </p>
+          </div>
+
+          {/* Estadísticas */}
+          <div style={{
+            background: "white",
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+          }}>
+            <h3 style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#0A1628",
+              marginTop: 0,
+              marginBottom: 12,
+            }}>
+              Estadísticas
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 13, color: "#6B7280" }}>Total de transacciones</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#0A1628" }}>
+                  {data.total_transacciones}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 13, color: "#6B7280" }}>Días con datos</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#0A1628" }}>
+                  {data.daysCount}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Qué significa */}
+          <div style={{
+            background: "white",
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+          }}>
+            <h3 style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#0A1628",
+              marginTop: 0,
+              marginBottom: 12,
+            }}>
+              Qué significa para tu negocio
+            </h3>
+            <p style={{
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "#0A1628",
+              margin: 0,
+            }}>
+              {getScoreMeaning(data.score)}
+            </p>
+          </div>
+
+          {/* Botón Cerrar */}
+          <button
+            onClick={handleCloseModal}
+            style={{
+              width: "100%",
+              background: "#007AFF",
+              color: "white",
+              border: "none",
+              borderRadius: 12,
+              padding: "14px",
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
     );
   }
 
   // Variante DEFAULT — full size
   return (
-    <div style={{
-      margin: "0 12px 8px",
-      borderRadius: 14,
-      padding: 16,
-      background: colors.bg,
-      border: `1px solid ${colors.border}`,
-      boxShadow: "var(--sh)",
-    }}>
+    <>
+    <div
+      onClick={handleCardClick}
+      style={{
+        margin: "0 12px 8px",
+        borderRadius: 14,
+        padding: 16,
+        background: colors.bg,
+        border: `1px solid ${colors.border}`,
+        boxShadow: "var(--sh)",
+        cursor: "pointer",
+      }}>
       {/* Header: Logo + Título */}
       <div style={{
         display: "flex",
@@ -320,7 +578,7 @@ export default function DataQualityCard({
         color: "var(--muted)",
         marginBottom: 8,
       }}>
-        {data.transactionsCount} transacciones en {data.daysCount} {data.daysCount === 1 ? "día" : "días"}
+        {data.total_transacciones} transacciones en {data.daysCount} {data.daysCount === 1 ? "día" : "días"}
       </div>
 
       {/* Mensaje contextual */}
@@ -333,5 +591,7 @@ export default function DataQualityCard({
         {data.message}
       </div>
     </div>
+    {isModalOpen && renderModal()}
+    </>
   );
 }
