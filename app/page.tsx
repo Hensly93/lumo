@@ -69,6 +69,23 @@ type ModalData = {
   actionButton?: { text: string; href: string };
 };
 
+type WowPattern = {
+  id: string;
+  icono: string;
+  titulo: string;
+  descripcion: string;
+  duele: string;
+  recomendacion: string;
+  advertencia: string;
+  impacto_pesos: number;
+  confianza: number;
+  detalle: Record<string, unknown>;
+};
+
+type WowModalData = {
+  pattern: WowPattern;
+};
+
 function HomeContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -80,6 +97,8 @@ function HomeContent() {
   const [pred, setPred] = useState<Prediccion | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalData, setModalData] = useState<ModalData | null>(null);
+  const [wowPatterns, setWowPatterns] = useState<WowPattern[]>([]);
+  const [wowModalData, setWowModalData] = useState<WowModalData | null>(null);
 
   useEffect(() => {
     if (params.get("mp_conectado") === "true") {
@@ -101,10 +120,12 @@ function HomeContent() {
       fetch(`${API}/api/analisis`, { headers }).then(r => r.json()).catch(() => null),
       fetch(`${API}/api/alertas`, { headers }).then(r => r.json()).catch(() => null),
       fetch(`${API}/api/predicciones`, { headers }).then(r => r.json()).catch(() => null),
-    ]).then(([an, al, pr]) => {
+      fetch(`${API}/api/negocio/wow-moment`, { headers }).then(r => r.json()).catch(() => null),
+    ]).then(([an, al, pr, wow]) => {
       setAnalisis(an);
       setAlertas(al?.alertas || []);
       setPred(pr);
+      setWowPatterns(wow?.patrones || []);
       setLoading(false);
     });
   }, [ready, token]);
@@ -115,6 +136,9 @@ function HomeContent() {
 
   const openModal = (data: ModalData) => setModalData(data);
   const closeModal = () => setModalData(null);
+
+  const openWowModal = (pattern: WowPattern) => setWowModalData({ pattern });
+  const closeWowModal = () => setWowModalData(null);
 
   return (
     <>
@@ -260,6 +284,171 @@ function HomeContent() {
         </div>
       )}
 
+      {wowModalData && (
+        <div
+          onClick={closeWowModal}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(10, 22, 40, 0.6)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "20px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#EEF3FC",
+              borderRadius: 20,
+              padding: 24,
+              maxWidth: 500,
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 20,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 32 }}>{wowModalData.pattern.icono}</span>
+                <h2 style={{
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#0A1628",
+                  margin: 0,
+                }}>
+                  {wowModalData.pattern.titulo}
+                </h2>
+              </div>
+              <button
+                onClick={closeWowModal}
+                style={{
+                  background: "white",
+                  border: "1px solid #E0E7F1",
+                  borderRadius: 10,
+                  width: 36,
+                  height: 36,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  fontSize: 20,
+                  color: "#0A1628",
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{
+              background: "white",
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 16,
+            }}>
+              <p style={{
+                fontSize: 14,
+                lineHeight: 1.6,
+                color: "#0A1628",
+                margin: 0,
+                marginBottom: 16,
+              }}>
+                {wowModalData.pattern.descripcion}
+              </p>
+
+              <div style={{
+                background: "#FEF2F2",
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 16,
+                borderLeft: "4px solid #EF4444",
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#EF4444", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>
+                  Impacto
+                </div>
+                <div style={{ fontSize: 13, color: "#0A1628", lineHeight: 1.5 }}>
+                  {wowModalData.pattern.duele}
+                </div>
+              </div>
+
+              <div style={{
+                background: "#F0F9FF",
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 16,
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#007AFF", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>
+                  💡 Recomendación
+                </div>
+                <div style={{ fontSize: 13, color: "#0A1628", lineHeight: 1.5 }}>
+                  {wowModalData.pattern.recomendacion}
+                </div>
+              </div>
+
+              <p style={{
+                fontSize: 11,
+                lineHeight: 1.5,
+                color: "#94A3B8",
+                margin: 0,
+                fontStyle: "italic",
+              }}>
+                {wowModalData.pattern.advertencia}
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                closeWowModal();
+                router.push("/nicole");
+              }}
+              style={{
+                width: "100%",
+                background: "white",
+                color: "#007AFF",
+                border: "1px solid #007AFF",
+                borderRadius: 12,
+                padding: "14px",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                marginBottom: 12,
+              }}
+            >
+              Hablá con NICOLE sobre esto →
+            </button>
+
+            <button
+              onClick={closeWowModal}
+              style={{
+                width: "100%",
+                background: "#007AFF",
+                color: "white",
+                border: "none",
+                borderRadius: 12,
+                padding: "14px",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
 
       {toast && (
@@ -293,6 +482,103 @@ function HomeContent() {
           </div>
 
           <DataQualityCard />
+
+          {wowPatterns.length > 0 && (
+            <>
+              <div style={{ margin: "24px 12px 12px", padding: "0 8px" }}>
+                <div style={{
+                  fontFamily: "monospace",
+                  fontSize: 9,
+                  letterSpacing: 3,
+                  color: "var(--muted)",
+                  textTransform: "uppercase",
+                  marginBottom: 4,
+                }}>
+                  // LO QUE ENCONTRÓ NICOLE
+                </div>
+                <div style={{
+                  fontSize: 11,
+                  color: "var(--text-secondary)",
+                  marginBottom: 16,
+                }}>
+                  Análisis de tus últimos 30 días · Preliminar
+                </div>
+              </div>
+
+              {wowPatterns.slice(0, 3).map((pattern, i) => (
+                <div
+                  key={i}
+                  onClick={() => openWowModal(pattern)}
+                  style={{
+                    margin: "0 12px 12px",
+                    background: "white",
+                    borderRadius: 16,
+                    padding: "20px",
+                    border: "1px solid #E0E7F1",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 12 }}>
+                    <span style={{ fontSize: 36, lineHeight: 1 }}>{pattern.icono}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontFamily: "'Syne', sans-serif",
+                        fontSize: 15,
+                        fontWeight: 700,
+                        color: "#0A1628",
+                        marginBottom: 6,
+                        lineHeight: 1.3,
+                      }}>
+                        {pattern.titulo}
+                      </div>
+                      <div style={{
+                        fontSize: 12,
+                        color: "#EF4444",
+                        fontWeight: 600,
+                        marginBottom: 8,
+                      }}>
+                        {pattern.duele}
+                      </div>
+                      <div style={{
+                        fontSize: 13,
+                        color: "#0A1628",
+                        lineHeight: 1.5,
+                        marginBottom: 12,
+                      }}>
+                        {pattern.descripcion}
+                      </div>
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        paddingTop: 12,
+                        borderTop: "1px solid #F1F5F9",
+                      }}>
+                        <div style={{
+                          fontSize: 11,
+                          color: "#64748B",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}>
+                          💡 {pattern.recomendacion}
+                        </div>
+                        <div style={{
+                          fontFamily: "monospace",
+                          fontSize: 16,
+                          fontWeight: 700,
+                          color: "#EF4444",
+                        }}>
+                          {fmt(pattern.impacto_pesos)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
 
           <StatRow>
             <StatCard
