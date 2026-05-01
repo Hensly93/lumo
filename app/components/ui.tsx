@@ -64,7 +64,12 @@ type AlertCardProps = {
   amount?: string;
   positive?: boolean;
   time?: string;
-  actions?: { primary: string; secondary: string };
+  actions?: {
+    primary: string;
+    secondary: string;
+    onPrimary?: (e: React.MouseEvent) => void;
+    onSecondary?: (e: React.MouseEvent) => void;
+  };
 };
 const alertBg   = { ok:"#F0FFF8", warn:"#FFFBF0", crit:"#FFF5F5" };
 const alertBdr  = { ok:"#00C48C22", warn:"#F59E0B22", crit:"#EF444422" };
@@ -85,8 +90,8 @@ export function AlertCard({ variant, tag, title, desc, amount, positive, time, a
       )}
       {actions && (
         <div style={{ display:"flex", gap:6, marginTop:8 }}>
-          <div style={{ flex:1, background:"linear-gradient(135deg,#007AFF,#00C2FF)", color:"#fff", padding:7, borderRadius:10, fontSize:10, fontWeight:700, textAlign:"center", cursor:"pointer" }}>{actions.primary}</div>
-          <div style={{ flex:1, background:"var(--card2)", color:"var(--muted)", padding:7, borderRadius:10, fontSize:10, fontWeight:600, textAlign:"center", cursor:"pointer", border:"1px solid var(--border)" }}>{actions.secondary}</div>
+          <div onClick={actions.onPrimary} style={{ flex:1, background:"linear-gradient(135deg,#007AFF,#00C2FF)", color:"#fff", padding:7, borderRadius:10, fontSize:10, fontWeight:700, textAlign:"center", cursor:"pointer" }}>{actions.primary}</div>
+          <div onClick={actions.onSecondary} style={{ flex:1, background:"var(--card2)", color:"var(--muted)", padding:7, borderRadius:10, fontSize:10, fontWeight:600, textAlign:"center", cursor:"pointer", border:"1px solid var(--border)" }}>{actions.secondary}</div>
         </div>
       )}
     </div>
