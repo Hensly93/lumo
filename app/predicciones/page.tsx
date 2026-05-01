@@ -103,11 +103,17 @@ function CardDia({ p, mensajeNicole, esHoy }: { p: Prediccion; mensajeNicole?: s
   );
 }
 
+type ModalData = {
+  title: string;
+  text: string;
+};
+
 export default function Predicciones() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [data, setData] = useState<RespuestaPredicciones | null>(null);
   const [loading, setLoading] = useState(true);
+  const [modalData, setModalData] = useState<ModalData | null>(null);
 
   usePush(token);
 
@@ -125,7 +131,131 @@ export default function Predicciones() {
   const hoyStr = new Date().toISOString().slice(0, 10);
   const totalSemana = predicciones.slice(0, 7).reduce((s, p) => s + p.valor_predicho, 0);
 
+  const openModal = (data: ModalData) => setModalData(data);
+  const closeModal = () => setModalData(null);
+
   return (
+    <>
+      {modalData && (
+        <div
+          onClick={closeModal}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(10, 22, 40, 0.6)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "20px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#EEF3FC",
+              borderRadius: 20,
+              padding: 24,
+              maxWidth: 500,
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 20,
+            }}>
+              <h2 style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: "#0A1628",
+                margin: 0,
+              }}>
+                {modalData.title}
+              </h2>
+              <button
+                onClick={closeModal}
+                style={{
+                  background: "white",
+                  border: "1px solid #E0E7F1",
+                  borderRadius: 10,
+                  width: 36,
+                  height: 36,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  fontSize: 20,
+                  color: "#0A1628",
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{
+              background: "white",
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 16,
+            }}>
+              <p style={{
+                fontSize: 14,
+                lineHeight: 1.6,
+                color: "#0A1628",
+                margin: 0,
+                whiteSpace: "pre-line",
+              }}>
+                {modalData.text}
+              </p>
+            </div>
+
+            <button
+              onClick={() => router.push("/nicole")}
+              style={{
+                width: "100%",
+                background: "white",
+                color: "#007AFF",
+                border: "1px solid #007AFF",
+                borderRadius: 12,
+                padding: "14px",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                marginBottom: 12,
+              }}
+            >
+              ¿Tenés dudas? Hablá con NICOLE →
+            </button>
+
+            <button
+              onClick={closeModal}
+              style={{
+                width: "100%",
+                background: "#007AFF",
+                color: "white",
+                border: "none",
+                borderRadius: 12,
+                padding: "14px",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       <PageHeader title="Predicciones" sub="NICOLE · próximos 7 días" />
 
@@ -147,12 +277,17 @@ export default function Predicciones() {
       ) : (
         <>
           {totalSemana > 0 && (
-            <HeroCard
-              gradient="green"
-              label="Proyección esta semana"
-              value={fmt(totalSemana)}
-              sub={`Confianza ${Math.round((data.confianza ?? 0) * 100)}%`}
-            />
+            <div onClick={() => openModal({
+              title: "¿Cómo se calcula esta proyección?",
+              text: "NICOLE combina dos señales para predecir tus ventas de la semana:\n\n• Señal propia: tu historial real de ventas de las últimas semanas\n• Contexto Argentina: calendario económico (quincena, aguinaldo, feriados)\n\nCuantos más días de datos tengas, mayor es la confianza de la predicción. Con 30+ días, la confianza llega al 95%."
+            })} style={{ cursor: "pointer" }}>
+              <HeroCard
+                gradient="green"
+                label="Proyección esta semana"
+                value={fmt(totalSemana)}
+                sub={`Confianza ${Math.round((data.confianza ?? 0) * 100)}%`}
+              />
+            </div>
           )}
 
           {predicciones.map(p => (
@@ -174,5 +309,6 @@ export default function Predicciones() {
 
       <Nav />
     </main>
+    </>
   );
 }
