@@ -6,7 +6,8 @@
       "Bash(npx vercel *)",
       "Bash(git show *)",
       "Bash(mv /tmp/dashboard_clean.tsx app/dashboard/page.tsx)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git push *)"
     ]
   }
 }

@@ -2,11 +2,16 @@
 import { useEffect, useState, useCallback } from "react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
-const T = {
-  bg: "#070B12", bgCard: "#111827", bgSecondary: "#0D1520",
-  border: "#1C2E42", accent: "#00D4FF", green: "#00E5A0",
-  red: "#FF4560", yellow: "#FFB800",
-  text: "#EDF2FF", textSec: "#7090AA", textMuted: "#3A5270",
+const C = {
+  bg: "#FFFFFF",
+  primary: "#007AFF",
+  text: "#0A1628",
+  muted: "#6B8099",
+  cardBorder: "#E8EDF5",
+  red: "#FF3B30",
+  yellow: "#FFCC00",
+  amber: "#FF9500",
+  green: "#34C759",
 };
 
 type Paso = "codigo" | "sucursal" | "empleado" | "pin" | "apertura" | "activo" | "egreso" | "conteo" | "cierre" | "resumen";
@@ -19,7 +24,14 @@ function fmt(n: number) {
 function duracionLabel(min: number) {
   const h = Math.floor(min / 60);
   const m = min % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  const s = 0; // We don't track seconds, just for display
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function getInitials(name: string) {
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) return parts[0][0] + parts[1][0];
+  return parts[0].slice(0, 2);
 }
 
 export default function EmpleadoPage() {
@@ -262,332 +274,651 @@ export default function EmpleadoPage() {
     setResumen(null);
   }
 
-  // ─── Renders ────────────────────────────────────────────────────────────────
+  // ─── UI Components ──────────────────────────────────────────────────────────
 
-  const renderError = () => error ? (
-    <div style={{ background: "rgba(255,69,96,0.1)", border: "1px solid rgba(255,69,96,0.3)", borderRadius: 10, padding: "10px 14px", color: T.red, fontSize: 13, marginBottom: 16 }}>
+  const Avatar = ({ name, size = 80 }: { name: string; size?: number }) => (
+    <div style={{
+      width: size,
+      height: size,
+      borderRadius: '50%',
+      background: `linear-gradient(135deg, ${C.primary} 0%, #00C2FF 100%)`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'Syne, sans-serif',
+      fontWeight: 800,
+      fontSize: size / 2.5,
+      color: '#FFFFFF',
+      textTransform: 'uppercase',
+    }}>
+      {getInitials(name)}
+    </div>
+  );
+
+  const ErrorBox = () => error ? (
+    <div style={{
+      background: 'rgba(255,59,48,0.08)',
+      border: `1px solid rgba(255,59,48,0.2)`,
+      borderRadius: 14,
+      padding: '12px 16px',
+      color: C.red,
+      fontSize: 14,
+      marginBottom: 20,
+      fontFamily: 'DM Sans, sans-serif',
+    }}>
       {error}
     </div>
   ) : null;
 
-  const Btn = ({ label, onPress, color = T.accent, disabled = false }: { label: string; onPress: () => void; color?: string; disabled?: boolean }) => (
+  const PrimaryButton = ({ label, onPress, color = C.primary, disabled = false, icon }: { label: string; onPress: () => void; color?: string; disabled?: boolean; icon?: string }) => (
     <button
       onClick={onPress}
       disabled={disabled || loading}
-      style={{ width: "100%", padding: "16px", borderRadius: 14, background: disabled || loading ? "#1C2E42" : color === T.red ? "rgba(255,69,96,0.15)" : "rgba(0,212,255,0.12)", color: disabled || loading ? T.textMuted : color, fontSize: 15, fontWeight: 700, cursor: disabled || loading ? "default" : "pointer", marginBottom: 10, border: `1px solid ${disabled || loading ? "#1C2E42" : color + "40"}` }}
+      style={{
+        width: '100%',
+        padding: '18px 24px',
+        borderRadius: 14,
+        background: disabled || loading ? C.cardBorder : color,
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: 700,
+        fontFamily: 'Syne, sans-serif',
+        cursor: disabled || loading ? 'default' : 'pointer',
+        marginBottom: 12,
+        border: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        transition: 'all 0.2s',
+      }}
     >
-      {loading ? "..." : label}
+      {loading ? "..." : <>{icon && <span>{icon}</span>}{label}</>}
     </button>
   );
 
-  const InputNum = ({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) => (
-    <input
-      type="number"
-      inputMode="numeric"
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      placeholder={placeholder}
-      style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: `1px solid ${T.border}`, background: T.bgCard, color: T.text, fontSize: 18, fontWeight: 600, fontFamily: "monospace", marginBottom: 12, boxSizing: "border-box" as any }}
-    />
+  const SecondaryButton = ({ label, onPress, color = C.primary }: { label: string; onPress: () => void; color?: string }) => (
+    <button
+      onClick={onPress}
+      style={{
+        width: '100%',
+        padding: '18px 24px',
+        borderRadius: 14,
+        background: 'transparent',
+        color: color,
+        fontSize: 16,
+        fontWeight: 700,
+        fontFamily: 'Syne, sans-serif',
+        cursor: 'pointer',
+        marginBottom: 12,
+        border: `2px solid ${color}`,
+        transition: 'all 0.2s',
+      }}
+    >
+      {label}
+    </button>
   );
 
-  const Header = ({ titulo, sub }: { titulo: string; sub?: string }) => (
-    <div style={{ padding: "28px 24px 20px", borderBottom: `1px solid ${T.border}` }}>
-      <div style={{ fontSize: 9, letterSpacing: 4, color: T.textMuted, textTransform: "uppercase", marginBottom: 6, fontFamily: "monospace" }}>LUMO — Control de caja</div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: T.text }}>{titulo}</div>
-      {sub && <div style={{ fontSize: 13, color: T.textSec, marginTop: 4 }}>{sub}</div>}
+  const TextButton = ({ label, onPress }: { label: string; onPress: () => void }) => (
+    <button
+      onClick={onPress}
+      style={{
+        background: 'none',
+        border: 'none',
+        color: C.muted,
+        fontSize: 14,
+        fontFamily: 'DM Sans, sans-serif',
+        cursor: 'pointer',
+        width: '100%',
+        textAlign: 'center',
+        padding: '12px',
+      }}
+    >
+      {label}
+    </button>
+  );
+
+  const CurrencyInput = ({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) => (
+    <div style={{
+      position: 'relative',
+      marginBottom: 24,
+    }}>
+      <div style={{
+        position: 'absolute',
+        left: 24,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        fontSize: 32,
+        fontWeight: 800,
+        fontFamily: 'Syne, sans-serif',
+        color: C.muted,
+      }}>$</div>
+      <input
+        type="number"
+        inputMode="numeric"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{
+          width: '100%',
+          padding: '20px 24px 20px 56px',
+          borderRadius: 20,
+          border: `2px solid ${C.cardBorder}`,
+          background: C.bg,
+          color: C.text,
+          fontSize: 32,
+          fontWeight: 800,
+          fontFamily: 'Syne, sans-serif',
+          boxSizing: 'border-box' as any,
+          outline: 'none',
+        }}
+      />
     </div>
   );
 
-  // ─── PASO: código de negocio ─────────────────────────────────────────────
+  const NumpadKey = ({ value, onPress }: { value: string; onPress: () => void }) => (
+    <button
+      onClick={onPress}
+      style={{
+        width: 70,
+        height: 70,
+        borderRadius: '50%',
+        border: `2px solid ${C.cardBorder}`,
+        background: C.bg,
+        color: C.text,
+        fontSize: 24,
+        fontWeight: 700,
+        fontFamily: 'Syne, sans-serif',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.15s',
+      }}
+    >
+      {value}
+    </button>
+  );
+
+  // ─── SCREEN 1: codigo ───────────────────────────────────────────────────────
   if (paso === "codigo") return (
-    <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <Header titulo="Identificá tu negocio" />
-      <div style={{ padding: "24px" }}>
-        {renderError()}
-        <div style={{ fontSize: 13, color: T.textSec, marginBottom: 16 }}>
-          Ingresá el código que te dio el dueño del negocio.
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ maxWidth: 420, width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <div style={{ fontSize: 14, letterSpacing: 3, color: C.muted, marginBottom: 12, fontWeight: 600 }}>LUMO</div>
+          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 40, color: C.text, margin: '0 0 12px 0' }}>Modo empleado</h1>
+          <p style={{ fontSize: 16, color: C.muted, margin: 0 }}>Ingresá el código de tu negocio</p>
         </div>
-        <InputNum value={negocioId} onChange={v => { setNegocioId(v); setError(""); }} placeholder="Código de negocio" />
-        <Btn label="Continuar" onPress={() => cargarSucursales(negocioId)} />
+        <ErrorBox />
+        <input
+          type="number"
+          inputMode="numeric"
+          value={negocioId}
+          onChange={e => { setNegocioId(e.target.value); setError(""); }}
+          placeholder="Código de negocio"
+          style={{
+            width: '100%',
+            padding: '20px 24px',
+            borderRadius: 20,
+            border: `2px solid ${C.cardBorder}`,
+            background: C.bg,
+            color: C.text,
+            fontSize: 18,
+            fontFamily: 'DM Sans, sans-serif',
+            boxSizing: 'border-box' as any,
+            marginBottom: 24,
+            outline: 'none',
+          }}
+        />
+        <PrimaryButton label="Continuar →" onPress={() => cargarSucursales(negocioId)} />
       </div>
     </main>
   );
 
-  // ─── PASO: selección de sucursal ────────────────────────────────────────
+  // ─── SCREEN 2: sucursal ─────────────────────────────────────────────────────
   if (paso === "sucursal") return (
-    <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <Header titulo="¿En qué local trabajás hoy?" />
-      <div style={{ padding: "24px" }}>
-        {renderError()}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+      <div style={{ padding: '32px 24px', borderBottom: `1px solid ${C.cardBorder}` }}>
+        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿En qué local trabajás hoy?</h1>
+      </div>
+      <div style={{ padding: 24 }}>
+        <ErrorBox />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {sucursales.map(s => (
             <button
               key={s.id}
               onClick={async () => { setSucursalSel(s); setError(""); await cargarEmpleados(negocioId, s.id); }}
-              style={{ padding: "18px 20px", borderRadius: 14, border: `1px solid ${T.border}`, background: T.bgCard, color: T.text, fontSize: 16, fontWeight: 600, textAlign: "left", cursor: "pointer" }}
+              style={{
+                padding: '24px',
+                borderRadius: 20,
+                border: `2px solid ${C.cardBorder}`,
+                background: C.bg,
+                color: C.text,
+                fontSize: 18,
+                fontWeight: 600,
+                fontFamily: 'DM Sans, sans-serif',
+                textAlign: 'left',
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
             >
-              <div>{s.nombre}</div>
-              {s.direccion && <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>{s.direccion}</div>}
+              <div>
+                <div style={{ fontWeight: 700, marginBottom: 4 }}>{s.nombre}</div>
+                {s.direccion && <div style={{ fontSize: 14, color: C.muted }}>{s.direccion}</div>}
+              </div>
+              <div style={{ fontSize: 24, color: C.muted }}>→</div>
             </button>
           ))}
         </div>
-        <button
-          onClick={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_id"); setPaso("codigo"); }}
-          style={{ marginTop: 24, background: "none", border: "none", color: T.textMuted, fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}
-        >
-          Cambiar negocio
-        </button>
+        <div style={{ marginTop: 24 }}>
+          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_id"); setPaso("codigo"); }} />
+        </div>
       </div>
     </main>
   );
 
-  // ─── PASO: selección de empleado ─────────────────────────────────────────
+  // ─── SCREEN 3: empleado ─────────────────────────────────────────────────────
   if (paso === "empleado") return (
-    <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <Header titulo="¿Quién sos?" />
-      <div style={{ padding: "24px" }}>
-        {renderError()}
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+      <div style={{ padding: '32px 24px', borderBottom: `1px solid ${C.cardBorder}` }}>
+        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Quién sos?</h1>
+      </div>
+      <div style={{ padding: 24 }}>
+        <ErrorBox />
         {sucursalSel && (
-          <div style={{ marginBottom: 12, padding: "8px 12px", background: `${T.accent}0D`, borderRadius: 8, fontSize: 12, color: T.accent }}>
-            Local: {sucursalSel.nombre}
+          <div style={{ marginBottom: 20, padding: '12px 16px', background: `rgba(0,122,255,0.08)`, borderRadius: 14, fontSize: 14, color: C.primary, fontWeight: 600 }}>
+            📍 {sucursalSel.nombre}
           </div>
         )}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {empleados.map(e => (
             <button
               key={e.id}
               onClick={() => { setEmpleadoSel(e.nombre); setError(""); setPaso("pin"); }}
-              style={{ padding: "18px 20px", borderRadius: 14, border: `1px solid ${T.border}`, background: T.bgCard, color: T.text, fontSize: 16, fontWeight: 600, textAlign: "left", cursor: "pointer" }}
+              style={{
+                padding: '20px 24px',
+                borderRadius: 20,
+                border: `2px solid ${C.cardBorder}`,
+                background: C.bg,
+                color: C.text,
+                fontSize: 18,
+                fontWeight: 600,
+                fontFamily: 'DM Sans, sans-serif',
+                textAlign: 'left',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+              }}
             >
-              {e.nombre}
+              <Avatar name={e.nombre} size={48} />
+              <span>{e.nombre}</span>
             </button>
           ))}
         </div>
-        {sucursales.length > 1 && (
-          <button
-            onClick={() => { setSucursalSel(null); setPaso("sucursal"); }}
-            style={{ marginTop: 12, background: "none", border: "none", color: T.textMuted, fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}
-          >
-            Cambiar local
-          </button>
-        )}
-        <button
-          onClick={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_id"); setPaso("codigo"); }}
-          style={{ marginTop: 8, background: "none", border: "none", color: T.textMuted, fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}
-        >
-          Cambiar negocio
-        </button>
-      </div>
-    </main>
-  );
-
-  // ─── PASO: PIN ───────────────────────────────────────────────────────────
-  if (paso === "pin") return (
-    <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <Header titulo={`Hola, ${empleadoSel}`} sub="Ingresá tu PIN de 4 dígitos" />
-      <div style={{ padding: "24px" }}>
-        {renderError()}
-        <input
-          type="password"
-          inputMode="numeric"
-          maxLength={4}
-          value={pin}
-          onChange={e => { setPin(e.target.value.replace(/\D/g, "").slice(0, 4)); setError(""); }}
-          placeholder="• • • •"
-          style={{ width: "100%", padding: "18px", borderRadius: 12, border: `1px solid ${T.border}`, background: T.bgCard, color: T.text, fontSize: 28, textAlign: "center", letterSpacing: 12, marginBottom: 16, boxSizing: "border-box" as any }}
-        />
-        <Btn label="Confirmar" onPress={handleValidarPin} />
-        <Btn label="← Volver" onPress={() => { setPaso("empleado"); setPin(""); setError(""); }} color={T.textSec} />
-      </div>
-    </main>
-  );
-
-  // ─── PASO: apertura de turno ─────────────────────────────────────────────
-  if (paso === "apertura") return (
-    <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <Header titulo="Apertura de turno" sub={`${empleadoSel} — Contá el efectivo en caja`} />
-      <div style={{ padding: "24px" }}>
-        {renderError()}
-        <div style={{ fontSize: 13, color: T.textSec, marginBottom: 16 }}>
-          ¿Cuánto efectivo hay en la caja ahora?
+        <div style={{ marginTop: 24 }}>
+          {sucursales.length > 1 && <TextButton label="← Cambiar local" onPress={() => { setSucursalSel(null); setPaso("sucursal"); }} />}
+          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_id"); setPaso("codigo"); }} />
         </div>
-        <InputNum value={aperturaEfectivo} onChange={v => { setAperturaEfectivo(v); setError(""); }} placeholder="Ej: 15000" />
-        <Btn label="Abrir turno" onPress={handleApertura} color={T.green} />
-        <Btn label="← Volver" onPress={() => { setPaso("pin"); setError(""); }} color={T.textSec} />
       </div>
     </main>
   );
 
-  // ─── PASO: turno activo ──────────────────────────────────────────────────
+  // ─── SCREEN 4: pin ──────────────────────────────────────────────────────────
+  if (paso === "pin") return (
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
+        <Avatar name={empleadoSel} size={100} />
+        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 28, color: C.text, margin: '24px 0 8px 0' }}>{empleadoSel}</h1>
+        <p style={{ fontSize: 16, color: C.muted, marginBottom: 40 }}>Ingresá tu PIN de 4 dígitos</p>
+        <ErrorBox />
+
+        {/* PIN Dots */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 48 }}>
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} style={{
+              width: 16,
+              height: 16,
+              borderRadius: '50%',
+              border: `2px solid ${pin.length > i ? C.primary : C.cardBorder}`,
+              background: pin.length > i ? C.primary : 'transparent',
+              transition: 'all 0.2s',
+            }} />
+          ))}
+        </div>
+
+        {/* Numpad */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, justifyItems: 'center', marginBottom: 32 }}>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+            <NumpadKey key={num} value={String(num)} onPress={() => {
+              if (pin.length < 4) {
+                const newPin = pin + num;
+                setPin(newPin);
+                setError("");
+              }
+            }} />
+          ))}
+          <button
+            onClick={() => setPin(pin.slice(0, -1))}
+            style={{
+              width: 70,
+              height: 70,
+              borderRadius: '50%',
+              border: 'none',
+              background: 'transparent',
+              color: C.muted,
+              fontSize: 14,
+              fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer',
+            }}
+          >
+            ←
+          </button>
+          <NumpadKey value="0" onPress={() => {
+            if (pin.length < 4) {
+              setPin(pin + "0");
+              setError("");
+            }
+          }} />
+          <button
+            onClick={() => { setPaso("empleado"); setPin(""); setError(""); }}
+            style={{
+              width: 70,
+              height: 70,
+              borderRadius: '50%',
+              border: 'none',
+              background: 'transparent',
+              color: C.muted,
+              fontSize: 12,
+              fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <PrimaryButton label="Confirmar" onPress={handleValidarPin} disabled={pin.length !== 4} />
+      </div>
+    </main>
+  );
+
+  // ─── SCREEN 5: apertura ─────────────────────────────────────────────────────
+  if (paso === "apertura") return (
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ maxWidth: 420, width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, color: C.muted, margin: '0 0 12px 0' }}>Bienvenido/a, {empleadoSel}</h2>
+          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Cuánto efectivo hay en caja ahora?</h1>
+          <p style={{ fontSize: 14, color: C.muted, marginTop: 12 }}>Declaración de apertura de turno</p>
+        </div>
+        <ErrorBox />
+        <CurrencyInput value={aperturaEfectivo} onChange={v => { setAperturaEfectivo(v); setError(""); }} placeholder="15000" />
+        <PrimaryButton label="Abrir turno" onPress={handleApertura} color={C.green} />
+        <SecondaryButton label="← Volver" onPress={() => { setPaso("pin"); setError(""); }} color={C.muted} />
+      </div>
+    </main>
+  );
+
+  // ─── SCREEN 6: activo ───────────────────────────────────────────────────────
   if (paso === "activo") {
     const durMin = turno ? (Math.floor((Date.now() - new Date(turno.hora_apertura).getTime()) / 60000)) : 0;
-    const colorTurno = turno?.tipo_turno === "manana" ? T.green : turno?.tipo_turno === "tarde" ? T.yellow : T.accent;
 
     return (
-      <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif", paddingBottom: 32 }}>
-        <div style={{ padding: "20px 24px 16px", borderBottom: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div style={{ fontSize: 9, letterSpacing: 4, color: T.textMuted, textTransform: "uppercase", fontFamily: "monospace", marginBottom: 4 }}>LUMO — turno activo</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{turno?.nombre_empleado}</div>
+      <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', paddingBottom: 32 }}>
+        {/* Header gradient card */}
+        <div style={{
+          background: `linear-gradient(135deg, ${C.primary} 0%, #00C2FF 100%)`,
+          padding: '32px 24px',
+          color: '#FFFFFF',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+            <Avatar name={turno?.nombre_empleado || empleadoSel} size={64} />
+            <div>
+              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Turno en curso</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24 }}>{turno?.nombre_empleado}</div>
+            </div>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontFamily: "monospace", fontSize: 13, color: colorTurno, fontWeight: 700 }}>{turno?.tipo_turno?.toUpperCase()}</div>
-            <div style={{ fontSize: 11, color: T.textSec, marginTop: 2 }}>{duracionLabel(durMin)}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Duración</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, letterSpacing: 2 }}>{duracionLabel(durMin)}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Caja inicial</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24 }}>{fmt(turno?.caja_apertura || 0)}</div>
+            </div>
           </div>
         </div>
 
-        {/* Conteo pendiente — alerta urgente */}
-        {conteoPend && (
-          <div style={{ margin: "16px 20px 0", background: "rgba(255,184,0,0.08)", border: `2px solid ${T.yellow}`, borderRadius: 16, padding: "18px 20px" }}>
-            <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: 3, color: T.yellow, textTransform: "uppercase", marginBottom: 8 }}>⚑ CONTEO ALEATORIO</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 6 }}>Contá la caja ahora</div>
-            <div style={{ fontSize: 13, color: T.textSec, marginBottom: 14 }}>
-              Tenés <span style={{ color: T.yellow, fontWeight: 700 }}>{conteoPend.minutos_restantes} min</span> para responder.
+        <div style={{ padding: 24 }}>
+          {/* Conteo pendiente alert */}
+          {conteoPend && (
+            <div style={{
+              background: 'rgba(255,149,0,0.1)',
+              border: `2px solid ${C.amber}`,
+              borderRadius: 20,
+              padding: '24px',
+              marginBottom: 24,
+            }}>
+              <div style={{ fontSize: 12, letterSpacing: 2, color: C.amber, fontWeight: 700, marginBottom: 8 }}>⚠️ CONTEO SOLICITADO</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20, color: C.text, marginBottom: 8 }}>Contá la caja ahora</div>
+              <div style={{ fontSize: 14, color: C.muted, marginBottom: 16 }}>
+                Tenés <span style={{ color: C.amber, fontWeight: 700 }}>{conteoPend.minutos_restantes} min</span> para responder
+              </div>
+              <button
+                onClick={() => setPaso("conteo")}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: 14,
+                  border: `2px solid ${C.amber}`,
+                  background: C.amber,
+                  color: '#FFFFFF',
+                  fontSize: 16,
+                  fontWeight: 700,
+                  fontFamily: 'Syne, sans-serif',
+                  cursor: 'pointer',
+                }}
+              >
+                Registrar conteo
+              </button>
             </div>
-            <button
-              onClick={() => setPaso("conteo")}
-              style={{ width: "100%", padding: "14px", borderRadius: 12, border: `1px solid ${T.yellow}`, background: "rgba(255,184,0,0.15)", color: T.yellow, fontSize: 15, fontWeight: 700, cursor: "pointer" }}
-            >
-              Registrar conteo
-            </button>
+          )}
+
+          {/* Stats card */}
+          <div style={{
+            background: C.bg,
+            border: `2px solid ${C.cardBorder}`,
+            borderRadius: 20,
+            padding: '24px',
+            marginBottom: 24,
+          }}>
+            <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 16 }}>ÚLTIMA DECLARACIÓN</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <span style={{ fontSize: 14, color: C.text }}>Efectivo en apertura</span>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(turno?.caja_apertura || 0)}</span>
+            </div>
+            {turno?.total_egresos > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 14, color: C.text }}>Egresos registrados</span>
+                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.amber }}>{fmt(turno?.total_egresos || 0)}</span>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Info del turno */}
-        <div style={{ margin: "16px 20px 0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {[
-            { label: "Caja apertura", valor: fmt(turno?.caja_apertura || 0), color: T.text },
-            { label: "Egresos registrados", valor: fmt(turno?.total_egresos || 0), color: turno?.total_egresos > 0 ? T.yellow : T.textSec },
-          ].map(k => (
-            <div key={k.label} style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12, padding: "14px 12px" }}>
-              <div style={{ fontSize: 10, color: T.textMuted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{k.label}</div>
-              <div style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 700, color: k.color }}>{k.valor}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Acciones */}
-        <div style={{ padding: "20px 20px 0" }}>
-          <Btn label="Registrar egreso" onPress={() => { setEgresoMonto(""); setEgresoMotivo(""); setError(""); setPaso("egreso"); }} color={T.yellow} />
-          <Btn label="Cerrar turno" onPress={() => { setCierreMonto(""); setError(""); setPaso("cierre"); }} color={T.red} />
+          {/* Actions */}
+          <PrimaryButton label="💰 Declaración mid-turno" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.yellow} icon="" />
+          <SecondaryButton label="Cerrar turno" onPress={() => { setCierreMonto(""); setError(""); setPaso("cierre"); }} color={C.red} />
         </div>
       </main>
     );
   }
 
-  // ─── PASO: egreso ────────────────────────────────────────────────────────
-  if (paso === "egreso") return (
-    <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <Header titulo="Registrar egreso" sub="Un gasto o retiro de efectivo del turno" />
-      <div style={{ padding: "24px" }}>
-        {renderError()}
-        <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 8 }}>Monto</div>
-        <InputNum value={egresoMonto} onChange={v => { setEgresoMonto(v); setError(""); }} placeholder="Ej: 3500" />
-        <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 8 }}>Motivo</div>
-        <input
-          type="text"
-          value={egresoMotivo}
-          onChange={e => { setEgresoMotivo(e.target.value); setError(""); }}
-          placeholder="Ej: Compra de insumos, cambio de billete..."
-          style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: `1px solid ${T.border}`, background: T.bgCard, color: T.text, fontSize: 14, marginBottom: 16, boxSizing: "border-box" as any }}
-        />
-        {/* Atajos de motivo */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-          {["Insumos", "Cambio", "Proveedor", "Propina", "Otro"].map(m => (
-            <button
-              key={m}
-              onClick={() => setEgresoMotivo(m)}
-              style={{ padding: "6px 14px", borderRadius: 20, border: `1px solid ${T.border}`, background: egresoMotivo === m ? "rgba(0,212,255,0.15)" : T.bgCard, color: egresoMotivo === m ? T.accent : T.textSec, fontSize: 12, cursor: "pointer" }}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-        <Btn label="Confirmar egreso" onPress={handleEgreso} color={T.yellow} />
-        <Btn label="← Cancelar" onPress={() => { setPaso("activo"); setError(""); }} color={T.textSec} />
-      </div>
-    </main>
-  );
+  // ─── SCREEN 7: egreso (SKIP - goes back to activo) ─────────────────────────
+  if (paso === "egreso") {
+    // Immediately go back to activo
+    setPaso("activo");
+    return null;
+  }
 
-  // ─── PASO: conteo aleatorio ──────────────────────────────────────────────
+  // ─── SCREEN 8: conteo ───────────────────────────────────────────────────────
   if (paso === "conteo") return (
-    <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <Header titulo="Conteo de caja" sub={conteoPend ? `Quedan ${conteoPend.minutos_restantes} minutos` : "Conteo aleatorio"} />
-      <div style={{ padding: "24px" }}>
-        {renderError()}
-        <div style={{ background: "rgba(255,184,0,0.06)", border: `1px solid rgba(255,184,0,0.2)`, borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
-          <div style={{ fontSize: 13, color: T.textSec, lineHeight: 1.6 }}>
-            Contá el efectivo físico en la caja sin mover nada. No cuentes lo que está separado.
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+      <div style={{
+        background: `rgba(255,149,0,0.1)`,
+        borderBottom: `3px solid ${C.amber}`,
+        padding: '32px 24px',
+      }}>
+        <div style={{ fontSize: 12, letterSpacing: 2, color: C.amber, fontWeight: 700, marginBottom: 8 }}>⚠️ CONTEO SOLICITADO</div>
+        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>
+          {conteoPend ? `Quedan ${conteoPend.minutos_restantes} minutos` : "Conteo de caja"}
+        </h1>
+      </div>
+      <div style={{ padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 200px)' }}>
+        <div style={{ maxWidth: 420, width: '100%' }}>
+          <div style={{
+            background: 'rgba(255,149,0,0.08)',
+            border: `1px solid rgba(255,149,0,0.2)`,
+            borderRadius: 20,
+            padding: '20px 24px',
+            marginBottom: 32,
+          }}>
+            <p style={{ fontSize: 14, color: C.text, lineHeight: 1.6, margin: 0 }}>
+              Contá el efectivo físico en la caja sin mover nada. No cuentes lo que está separado.
+            </p>
           </div>
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, color: C.text, marginBottom: 24 }}>¿Cuánto efectivo hay en caja ahora?</h2>
+          <ErrorBox />
+          <CurrencyInput value={conteoMonto} onChange={v => { setConteoMonto(v); setError(""); }} placeholder="18500" />
+          <PrimaryButton label="Confirmar conteo" onPress={handleConteo} color={C.primary} />
+          <SecondaryButton label="← Volver al turno" onPress={() => { setPaso("activo"); setError(""); }} color={C.muted} />
         </div>
-        <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 8 }}>Total efectivo contado</div>
-        <InputNum value={conteoMonto} onChange={v => { setConteoMonto(v); setError(""); }} placeholder="Ej: 18500" />
-        <Btn label="Confirmar conteo" onPress={handleConteo} color={T.accent} />
-        <Btn label="← Volver al turno" onPress={() => { setPaso("activo"); setError(""); }} color={T.textSec} />
       </div>
     </main>
   );
 
-  // ─── PASO: cierre de turno ───────────────────────────────────────────────
+  // ─── SCREEN 9: cierre ───────────────────────────────────────────────────────
   if (paso === "cierre") return (
-    <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <Header titulo="Cierre de turno" sub={`${turno?.nombre_empleado} — Contá el efectivo final`} />
-      <div style={{ padding: "24px" }}>
-        {renderError()}
-        <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12, padding: "16px", marginBottom: 20 }}>
-          <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 10 }}>Resumen del turno</div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 13, color: T.textSec }}>Caja apertura</span>
-            <span style={{ fontFamily: "monospace", fontSize: 13, color: T.text }}>{fmt(turno?.caja_apertura || 0)}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 13, color: T.textSec }}>Egresos registrados</span>
-            <span style={{ fontFamily: "monospace", fontSize: 13, color: T.yellow }}>{fmt(turno?.total_egresos || 0)}</span>
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ maxWidth: 420, width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: '0 0 12px 0' }}>Cerrando turno</h1>
+          <p style={{ fontSize: 16, color: C.muted }}>¿Cuánto efectivo hay en caja al cerrar?</p>
+        </div>
+        <ErrorBox />
+        <div style={{
+          background: C.bg,
+          border: `2px solid ${C.cardBorder}`,
+          borderRadius: 20,
+          padding: '20px 24px',
+          marginBottom: 32,
+        }}>
+          <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 16 }}>EFECTIVO EN APERTURA</div>
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text }}>{fmt(turno?.caja_apertura || 0)}</span>
           </div>
         </div>
-        <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 8 }}>¿Cuánto efectivo hay en la caja ahora?</div>
-        <InputNum value={cierreMonto} onChange={v => { setCierreMonto(v); setError(""); }} placeholder="Ej: 24000" />
-        <Btn label="Cerrar turno" onPress={handleCierre} color={T.red} />
-        <Btn label="← Volver al turno" onPress={() => { setPaso("activo"); setError(""); }} color={T.textSec} />
+        <CurrencyInput value={cierreMonto} onChange={v => { setCierreMonto(v); setError(""); }} placeholder="24000" />
+        <button
+          onClick={handleCierre}
+          disabled={loading}
+          style={{
+            width: '100%',
+            padding: '18px 24px',
+            borderRadius: 14,
+            background: 'transparent',
+            color: C.red,
+            fontSize: 16,
+            fontWeight: 700,
+            fontFamily: 'Syne, sans-serif',
+            cursor: loading ? 'default' : 'pointer',
+            marginBottom: 12,
+            border: `2px solid ${C.red}`,
+          }}
+        >
+          {loading ? "..." : "Cerrar turno definitivamente"}
+        </button>
+        <SecondaryButton label="← Volver al turno" onPress={() => { setPaso("activo"); setError(""); }} color={C.muted} />
       </div>
     </main>
   );
 
-  // ─── PASO: resumen de cierre ─────────────────────────────────────────────
+  // ─── SCREEN 10: resumen ─────────────────────────────────────────────────────
   if (paso === "resumen" && resumen) {
-    const colorEstado = resumen.estado === "ok" ? T.green : resumen.estado === "atencion" ? T.yellow : T.red;
+    // Auto-redirect after 4 seconds
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        resetear();
+      }, 4000);
+      return () => clearTimeout(timer);
+    }, []);
+
+    const durMin = turno ? (Math.floor((Date.now() - new Date(turno.hora_apertura).getTime()) / 60000)) : 0;
+
     return (
-      <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "sans-serif" }}>
-        <div style={{ padding: "28px 24px 20px", borderBottom: `1px solid ${T.border}` }}>
-          <div style={{ fontSize: 9, letterSpacing: 4, color: T.textMuted, textTransform: "uppercase", fontFamily: "monospace", marginBottom: 8 }}>LUMO — Cierre registrado</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: colorEstado }}>{resumen.mensaje}</div>
-        </div>
-        <div style={{ padding: "24px" }}>
-          <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 16, padding: "20px", marginBottom: 16 }}>
-            {[
-              { label: "Ventas totales", valor: fmt(resumen.total_ventas), color: T.text },
-              { label: "Ventas MP / digital", valor: fmt(resumen.total_mp), color: T.accent },
-              { label: "Egresos", valor: fmt(resumen.total_egresos), color: T.yellow },
-              { label: "Efectivo esperado", valor: fmt(resumen.efectivo_esperado), color: T.text },
-              { label: "Efectivo declarado", valor: fmt(resumen.caja_cierre), color: T.text },
-            ].map((r, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: i < 4 ? `1px solid ${T.border}` : "none" }}>
-                <span style={{ fontSize: 13, color: T.textSec }}>{r.label}</span>
-                <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: r.color }}>{r.valor}</span>
-              </div>
-            ))}
+      <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
+          {/* Checkmark animation */}
+          <div style={{
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            background: C.green,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 32px',
+            animation: 'checkmarkPop 0.5s ease-out',
+          }}>
+            <div style={{ fontSize: 48, color: '#FFFFFF' }}>✓</div>
           </div>
 
-          <div style={{ background: `rgba(${resumen.estado === "ok" ? "0,229,160" : resumen.estado === "atencion" ? "255,184,0" : "255,69,96"},0.08)`, border: `1px solid ${colorEstado}40`, borderRadius: 12, padding: "14px 16px", marginBottom: 20, textAlign: "center" }}>
-            <div style={{ fontFamily: "monospace", fontSize: 22, fontWeight: 700, color: colorEstado }}>
-              {resumen.brecha === 0 ? "±$0" : (resumen.brecha > 0 ? "-" : "+") + fmt(Math.abs(resumen.brecha))}
+          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 36, color: C.text, margin: '0 0 40px 0' }}>Turno cerrado</h1>
+
+          {/* Summary card */}
+          <div style={{
+            background: C.bg,
+            border: `2px solid ${C.cardBorder}`,
+            borderRadius: 20,
+            padding: '24px',
+            marginBottom: 32,
+            textAlign: 'left',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <span style={{ fontSize: 14, color: C.muted }}>Efectivo en apertura</span>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(resumen.caja_apertura || turno?.caja_apertura || 0)}</span>
             </div>
-            <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Brecha de caja ({resumen.brecha_porcentaje}%)</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <span style={{ fontSize: 14, color: C.muted }}>Efectivo en cierre</span>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(resumen.caja_cierre)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 16, borderTop: `1px solid ${C.cardBorder}` }}>
+              <span style={{ fontSize: 14, color: C.muted }}>Duración del turno</span>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{duracionLabel(durMin)}</span>
+            </div>
           </div>
 
-          <Btn label="Nuevo turno" onPress={resetear} color={T.accent} />
+          <p style={{ fontSize: 18, color: C.muted, margin: 0 }}>Hasta la próxima, <span style={{ fontWeight: 700, color: C.text }}>{empleadoSel}</span></p>
         </div>
+
+        <style jsx>{`
+          @keyframes checkmarkPop {
+            0% {
+              transform: scale(0);
+              opacity: 0;
+            }
+            50% {
+              transform: scale(1.1);
+            }
+            100% {
+              transform: scale(1);
+              opacity: 1;
+            }
+          }
+        `}</style>
       </main>
     );
   }
