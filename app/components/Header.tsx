@@ -1,44 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
-const T = {
-  bg:      "rgba(7,11,18,0.96)",
-  border:  "#1C2E42",
-  accent:  "#00D4FF",
-  text:    "#EDF2FF",
-  textSec: "#7090AA",
-  textMuted: "#3A5270",
-};
-
 type Perfil = { negocio: string; nombre: string; logo?: string | null };
 
-function Initials({ negocio }: { negocio: string }) {
-  const letters = negocio
-    .split(" ")
-    .slice(0, 2)
-    .map(w => w[0]?.toUpperCase() ?? "")
-    .join("");
-  return (
-    <div style={{
-      width: 34, height: 34, borderRadius: "50%",
-      background: `rgba(0,212,255,0.15)`,
-      border: `1.5px solid ${T.accent}`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      flexShrink: 0,
-    }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: T.accent, letterSpacing: 0.5 }}>
-        {letters || "L"}
-      </span>
-    </div>
-  );
-}
-
 export default function Header() {
-  const router = useRouter();
   const [perfil, setPerfil] = useState<Perfil | null>(null);
 
   useEffect(() => {
@@ -64,67 +32,135 @@ export default function Header() {
       .catch(() => { /* silencioso */ });
   }, []);
 
-  if (!perfil) return <div style={{ height: 56 }} />;
+  if (!perfil) return <div style={{ height: 68 }} />;
 
   return (
     <header style={{
-      position: "sticky", top: 0, zIndex: 40,
-      height: 56,
-      background: T.bg,
-      borderBottom: `1px solid ${T.border}`,
+      position: "sticky",
+      top: 0,
+      zIndex: 50,
+      height: 68,
+      background: "rgba(255,255,255,0.97)",
+      borderBottom: "1px solid #E8EDF5",
       backdropFilter: "blur(12px)",
-      display: "flex", alignItems: "center",
-      padding: "0 18px",
-      gap: 12,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "0 20px",
     }}>
-      {/* Logo o iniciales */}
-      <button
-        onClick={() => router.push("/configuracion")}
-        style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", flexShrink: 0 }}
-      >
-        {perfil.logo ? (
-          <img
-            src={perfil.logo}
-            alt={perfil.negocio}
-            style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", border: `1.5px solid ${T.border}` }}
-          />
-        ) : (
-          <Initials negocio={perfil.negocio} />
-        )}
-      </button>
-
-      {/* Nombre del negocio */}
-      <button
-        onClick={() => router.push("/configuracion")}
-        style={{ background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", flex: 1, minWidth: 0 }}
-      >
-        <div style={{ fontSize: 14, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {perfil.negocio}
-        </div>
-        <div style={{ fontSize: 10, color: T.textMuted, fontFamily: "monospace", letterSpacing: 1 }}>
-          LUMO · BETA
-        </div>
-      </button>
-
-      {/* Punto de estado — verde siempre (online) */}
-      <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#00E5A0", flexShrink: 0, boxShadow: "0 0 6px rgba(0,229,160,0.5)" }} />
-
-      {/* Ícono de ajustes */}
-      <Link href="/ajustes" style={{
+      {/* LEFT SIDE */}
+      <div style={{
         display: "flex",
+        flexDirection: "row",
+        gap: 16,
         alignItems: "center",
-        justifyContent: "center",
-        width: 34,
-        height: 34,
-        flexShrink: 0,
-        textDecoration: "none",
-        cursor: "pointer",
-        transition: "opacity 0.2s"
-      }}
-      onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"}
-      onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>
-        <span style={{ fontSize: 18, color: T.accent }}>⚙️</span>
-      </Link>
+      }}>
+        {/* 1. Full Lumo Logo */}
+        <svg width="110" height="34" viewBox="0 0 180 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lumoGradient" x1="0" y1="0" x2="180" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#007AFF"/>
+              <stop offset="100%" stopColor="#00C2FF"/>
+            </linearGradient>
+          </defs>
+
+          {/* Eye shape */}
+          <path d="M4 28 C4 28 14 16 28 16 C42 16 52 28 52 28 C52 28 42 40 28 40 C14 40 4 28 4 28Z" stroke="url(#lumoGradient)" strokeWidth="1.8" fill="none"/>
+
+          {/* Iris circle */}
+          <circle cx="28" cy="28" r="7" fill="url(#lumoGradient)" opacity="0.15"/>
+          <circle cx="28" cy="28" r="7" stroke="url(#lumoGradient)" strokeWidth="1.5" fill="none"/>
+
+          {/* Pupil */}
+          <circle cx="28" cy="28" r="3" fill="url(#lumoGradient)"/>
+
+          {/* Highlight */}
+          <circle cx="26.5" cy="26.5" r="1" fill="white"/>
+
+          {/* Light rays - cardinal directions (opacity 0.7) */}
+          <line x1="28" y1="6" x2="28" y2="11" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+          <line x1="28" y1="45" x2="28" y2="50" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+          <line x1="6" y1="28" x2="11" y2="28" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+          <line x1="45" y1="28" x2="50" y2="28" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+
+          {/* Light rays - diagonals (opacity 0.4) */}
+          <line x1="10" y1="12" x2="13.5" y2="15.5" stroke="url(#lumoGradient)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+          <line x1="46" y1="12" x2="42.5" y2="15.5" stroke="url(#lumoGradient)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+          <line x1="10" y1="44" x2="13.5" y2="40.5" stroke="url(#lumoGradient)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+          <line x1="46" y1="44" x2="42.5" y2="40.5" stroke="url(#lumoGradient)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+
+          {/* Text "lumo" */}
+          <text x="64" y="36" fontFamily="'Syne', sans-serif" fontSize="28" fontWeight="800" fill="url(#lumoGradient)" letterSpacing="-0.5">lumo</text>
+
+          {/* Underline */}
+          <line x1="64" y1="44" x2="174" y2="44" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round"/>
+
+          {/* Dot on underline */}
+          <circle cx="119" cy="44" r="2.5" fill="url(#lumoGradient)"/>
+        </svg>
+
+        {/* 2. Vertical separator */}
+        <div style={{
+          width: 1,
+          height: 28,
+          background: "#E8EDF5",
+        }}/>
+
+        {/* 3. Business name column */}
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}>
+          <div style={{
+            fontFamily: "'Syne', sans-serif",
+            fontSize: 15,
+            fontWeight: 700,
+            color: "#0A1628",
+            maxWidth: 150,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}>
+            {perfil.negocio}
+          </div>
+          <div style={{
+            fontFamily: "monospace",
+            fontSize: 10,
+            color: "#9CA3AF",
+            letterSpacing: 1,
+          }}>
+            LUMO · BETA
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE */}
+      <div style={{
+        display: "flex",
+        flexDirection: "row",
+        gap: 14,
+        alignItems: "center",
+      }}>
+        {/* 1. Green dot */}
+        <div style={{
+          width: 9,
+          height: 9,
+          borderRadius: "50%",
+          background: "#00C48C",
+        }}/>
+
+        {/* 2. Gear icon */}
+        <Link href="/configuracion" style={{
+          fontSize: 20,
+          color: "#9CA3AF",
+          textDecoration: "none",
+          display: "flex",
+          alignItems: "center",
+        }}>
+          ⚙️
+        </Link>
+      </div>
     </header>
   );
 }
