@@ -39,14 +39,14 @@ export default function Header() {
       position: "sticky",
       top: 0,
       zIndex: 50,
-      height: 68,
+      minHeight: 68,
       background: "rgba(255,255,255,0.97)",
       borderBottom: "1px solid #E8EDF5",
       backdropFilter: "blur(12px)",
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: "0 20px",
+      padding: "12px 20px",
     }}>
       {/* LEFT SIDE */}
       <div style={{
@@ -56,47 +56,25 @@ export default function Header() {
         alignItems: "center",
       }}>
         {/* 1. Full Lumo Logo */}
-        <svg width="110" height="34" viewBox="0 0 180 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="90" height="28" viewBox="0 0 180 56" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="lumoGradient" x1="0" y1="0" x2="180" y2="56" gradientUnits="userSpaceOnUse">
+            <linearGradient id="lg1" x1="0" y1="0" x2="180" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#007AFF"/>
+              <stop offset="100%" stopColor="#00C2FF"/>
+            </linearGradient>
+            <linearGradient id="lg2" x1="0" y1="0" x2="48" y2="56" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#007AFF"/>
               <stop offset="100%" stopColor="#00C2FF"/>
             </linearGradient>
           </defs>
-
-          {/* Eye shape */}
-          <path d="M4 28 C4 28 14 16 28 16 C42 16 52 28 52 28 C52 28 42 40 28 40 C14 40 4 28 4 28Z" stroke="url(#lumoGradient)" strokeWidth="1.8" fill="none"/>
-
-          {/* Iris circle */}
-          <circle cx="28" cy="28" r="7" fill="url(#lumoGradient)" opacity="0.15"/>
-          <circle cx="28" cy="28" r="7" stroke="url(#lumoGradient)" strokeWidth="1.5" fill="none"/>
-
-          {/* Pupil */}
-          <circle cx="28" cy="28" r="3" fill="url(#lumoGradient)"/>
-
-          {/* Highlight */}
-          <circle cx="26.5" cy="26.5" r="1" fill="white"/>
-
-          {/* Light rays - cardinal directions (opacity 0.7) */}
-          <line x1="28" y1="6" x2="28" y2="11" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-          <line x1="28" y1="45" x2="28" y2="50" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-          <line x1="6" y1="28" x2="11" y2="28" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-          <line x1="45" y1="28" x2="50" y2="28" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-
-          {/* Light rays - diagonals (opacity 0.4) */}
-          <line x1="10" y1="12" x2="13.5" y2="15.5" stroke="url(#lumoGradient)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
-          <line x1="46" y1="12" x2="42.5" y2="15.5" stroke="url(#lumoGradient)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
-          <line x1="10" y1="44" x2="13.5" y2="40.5" stroke="url(#lumoGradient)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
-          <line x1="46" y1="44" x2="42.5" y2="40.5" stroke="url(#lumoGradient)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
-
-          {/* Text "lumo" */}
-          <text x="64" y="36" fontFamily="'Syne', sans-serif" fontSize="28" fontWeight="800" fill="url(#lumoGradient)" letterSpacing="-0.5">lumo</text>
-
-          {/* Underline */}
-          <line x1="64" y1="44" x2="174" y2="44" stroke="url(#lumoGradient)" strokeWidth="1.5" strokeLinecap="round"/>
-
-          {/* Dot on underline */}
-          <circle cx="119" cy="44" r="2.5" fill="url(#lumoGradient)"/>
+          <path d="M4 28 C4 28 14 16 28 16 C42 16 52 28 52 28 C52 28 42 40 28 40 C14 40 4 28 4 28Z" stroke="url(#lg2)" strokeWidth="1.8" fill="none"/>
+          <circle cx="28" cy="28" r="7" fill="url(#lg2)" opacity="0.15"/>
+          <circle cx="28" cy="28" r="7" stroke="url(#lg2)" strokeWidth="1.5" fill="none"/>
+          <circle cx="28" cy="28" r="3" fill="url(#lg2)"/>
+          <circle cx="26.5" cy="26.5" r="1" fill="white" opacity="0.9"/>
+          <text x="64" y="36" fontFamily="'Syne', sans-serif" fontSize="28" fontWeight="800" fill="url(#lg1)" letterSpacing="-0.5">lumo</text>
+          <line x1="64" y1="44" x2="174" y2="44" stroke="url(#lg1)" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="119" cy="44" r="2.5" fill="url(#lg1)"/>
         </svg>
 
         {/* 2. Vertical separator */}
