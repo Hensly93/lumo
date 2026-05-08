@@ -58,23 +58,31 @@ export default function Header() {
         {/* 1. Full Lumo Logo */}
         <svg width="90" height="28" viewBox="0 0 180 56" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="lg1" x1="0" y1="0" x2="180" y2="56" gradientUnits="userSpaceOnUse">
+            <linearGradient id="hg1" x1="0" y1="0" x2="180" y2="56" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#007AFF"/>
               <stop offset="100%" stopColor="#00C2FF"/>
             </linearGradient>
-            <linearGradient id="lg2" x1="0" y1="0" x2="48" y2="56" gradientUnits="userSpaceOnUse">
+            <linearGradient id="hg2" x1="0" y1="0" x2="48" y2="56" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#007AFF"/>
               <stop offset="100%" stopColor="#00C2FF"/>
             </linearGradient>
           </defs>
-          <path d="M4 28 C4 28 14 16 28 16 C42 16 52 28 52 28 C52 28 42 40 28 40 C14 40 4 28 4 28Z" stroke="url(#lg2)" strokeWidth="1.8" fill="none"/>
-          <circle cx="28" cy="28" r="7" fill="url(#lg2)" opacity="0.15"/>
-          <circle cx="28" cy="28" r="7" stroke="url(#lg2)" strokeWidth="1.5" fill="none"/>
-          <circle cx="28" cy="28" r="3" fill="url(#lg2)"/>
+          <path d="M4 28 C4 28 14 16 28 16 C42 16 52 28 52 28 C52 28 42 40 28 40 C14 40 4 28 4 28Z" stroke="url(#hg2)" strokeWidth="1.8" fill="none"/>
+          <circle cx="28" cy="28" r="7" fill="url(#hg2)" opacity="0.15"/>
+          <circle cx="28" cy="28" r="7" stroke="url(#hg2)" strokeWidth="1.5" fill="none"/>
+          <circle cx="28" cy="28" r="3" fill="url(#hg2)"/>
           <circle cx="26.5" cy="26.5" r="1" fill="white" opacity="0.9"/>
-          <text x="64" y="36" fontFamily="'Syne', sans-serif" fontSize="28" fontWeight="800" fill="url(#lg1)" letterSpacing="-0.5">lumo</text>
-          <line x1="64" y1="44" x2="174" y2="44" stroke="url(#lg1)" strokeWidth="1.5" strokeLinecap="round"/>
-          <circle cx="119" cy="44" r="2.5" fill="url(#lg1)"/>
+          <line x1="28" y1="6" x2="28" y2="11" stroke="url(#hg2)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+          <line x1="28" y1="45" x2="28" y2="50" stroke="url(#hg2)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+          <line x1="6" y1="28" x2="11" y2="28" stroke="url(#hg2)" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>
+          <line x1="45" y1="28" x2="50" y2="28" stroke="url(#hg2)" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>
+          <line x1="10" y1="12" x2="13.5" y2="15.5" stroke="url(#hg2)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+          <line x1="46" y1="12" x2="42.5" y2="15.5" stroke="url(#hg2)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+          <line x1="10" y1="44" x2="13.5" y2="40.5" stroke="url(#hg2)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+          <line x1="46" y1="44" x2="42.5" y2="40.5" stroke="url(#hg2)" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+          <text x="64" y="36" fontFamily="'Syne', sans-serif" fontSize="28" fontWeight="800" fill="url(#hg1)" letterSpacing="-0.5">lumo</text>
+          <line x1="64" y1="44" x2="174" y2="44" stroke="url(#hg1)" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="119" cy="44" r="2.5" fill="url(#hg1)"/>
         </svg>
 
         {/* 2. Vertical separator */}
