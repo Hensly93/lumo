@@ -220,15 +220,16 @@ function SecEmpleados({ token }: { token: string }) {
 
   function toast(text: string, ok: boolean) { setMsg({ text, ok }); setTimeout(() => setMsg(null), 3000); }
 
-  async function cargar() {
+  const cargar = async () => {
     setLoading(true);
     const r = await fetch(`${API}/api/usuario/empleados`, { headers: { Authorization: `Bearer ${token}` } });
     setEmpleados(await r.json());
     setLoading(false);
-  }
+  };
 
   useEffect(() => {
     cargar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   async function agregar() {
