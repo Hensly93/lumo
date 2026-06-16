@@ -36,11 +36,19 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
+/* Scrollbar para navegadores Webkit/Blink (Chrome, Safari, Edge) */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Scrollbar para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg2);
+}
 
 /* ── Nicole keyframes (exactos del mockup) ──────────────────── */
 @keyframes nicPulse     { 0%,100%{opacity:1}          50%{opacity:0.7} }

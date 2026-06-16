@@ -144,7 +144,7 @@ export default function AppHeader() {
                   textTransform: "uppercase",
                 }}
               >
-                Lumo · Beta
+                LUMO · BETA
               </div>
             </div>
           </>
@@ -295,33 +295,6 @@ export default function AppHeader() {
                 }
               >
                 🚪 Salir
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowDeleteModal(true);
-                  setShowDropdown(false);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  border: "none",
-                  background: "transparent",
-                  color: "#EF4444",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "background 0.15s",
-                }}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "var(--border)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-              >
-                🗑️ Borrar cuenta
               </button>
             </div>
           </div>

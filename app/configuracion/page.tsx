@@ -220,14 +220,15 @@ function SecEmpleados({ token }: { token: string }) {
 
   function toast(text: string, ok: boolean) { setMsg({ text, ok }); setTimeout(() => setMsg(null), 3000); }
 
-  async function cargar() {
-    setLoading(true);
-    const r = await fetch(`${API}/api/usuario/empleados`, { headers: { Authorization: `Bearer ${token}` } });
-    setEmpleados(await r.json());
-    setLoading(false);
-  }
-
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => {
+    async function cargar() {
+      setLoading(true);
+      const r = await fetch(`${API}/api/usuario/empleados`, { headers: { Authorization: `Bearer ${token}` } });
+      setEmpleados(await r.json());
+      setLoading(false);
+    }
+    cargar();
+  }, [token]);
 
   async function agregar() {
     if (!form.nombre.trim()) { toast("El nombre es obligatorio", false); return; }

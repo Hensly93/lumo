@@ -1,12 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
+const APP_STATUS = "BETA";
 
 type Perfil = { negocio: string; nombre: string; logo?: string | null };
 
 export default function Header() {
+  const router = useRouter();
   const [perfil, setPerfil] = useState<Perfil | null>(null);
 
   useEffect(() => {
@@ -116,7 +118,7 @@ export default function Header() {
             color: "#9CA3AF",
             letterSpacing: 1,
           }}>
-            LUMO · BETA
+            LUMO · {APP_STATUS}
           </div>
         </div>
       </div>
@@ -137,15 +139,20 @@ export default function Header() {
         }}/>
 
         {/* 2. Gear icon */}
-        <Link href="/configuracion" style={{
-          fontSize: 20,
-          color: "#9CA3AF",
-          textDecoration: "none",
-          display: "flex",
-          alignItems: "center",
-        }}>
+        <button
+          onClick={() => router.push("/configuracion")}
+          style={{
+            fontSize: 20,
+            color: "#9CA3AF",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
           ⚙️
-        </Link>
+        </button>
       </div>
     </header>
   );
