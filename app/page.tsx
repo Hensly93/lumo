@@ -1,10 +1,8 @@
 "use client";
 import Nav from "./components/Nav";
-import DataQualityCard from "./components/DataQualityCard";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
-import { HeroCard, StatRow, StatCard, AlertCard, SectionTitle } from "./components/ui";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -133,13 +131,18 @@ function HomeContent() {
 
   const dq = dqScore(analisis?.data_quality_score);
   const critCount = alertas.filter(a => ["critico", "inconsistencia"].includes(a.prioridad)).length;
+  const warnCount = alertas.filter(a => ["atencion", "ineficiencia"].includes(a.prioridad)).length;
   const facturacion = pred?.facturacion?.disponible ? pred.facturacion.venta_diaria_esperada : null;
+  const perdidaMes = pred?.resumen?.perdida_esperada_mes?.esperado ?? null;
+  const confianzaPct = pred?.facturacion?.confianza?.pct ?? null;
 
   const openModal = (data: ModalData) => setModalData(data);
   const closeModal = () => setModalData(null);
 
   const openWowModal = (pattern: WowPattern) => setWowModalData({ pattern });
   const closeWowModal = () => setWowModalData(null);
+
+  const dqColor = dq == null ? "#94A3B8" : dq >= 70 ? "#00C48C" : dq >= 40 ? "#F59E0B" : "#EF4444";
 
   return (
     <>
@@ -148,30 +151,27 @@ function HomeContent() {
           onClick={closeModal}
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(10, 22, 40, 0.6)",
+            inset: 0,
+            backgroundColor: "rgba(10,22,40,0.6)",
             backdropFilter: "blur(8px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 9999,
-            padding: "20px",
+            padding: 20,
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#EEF3FC",
+              background: "#F5F7FA",
               borderRadius: 20,
               padding: 24,
               maxWidth: 500,
               width: "100%",
               maxHeight: "90vh",
               overflowY: "auto",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
             }}
           >
             <div style={{
@@ -236,7 +236,7 @@ function HomeContent() {
                   color: "white",
                   border: "none",
                   borderRadius: 12,
-                  padding: "14px",
+                  padding: 14,
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: "pointer",
@@ -255,7 +255,7 @@ function HomeContent() {
                 color: "#007AFF",
                 border: "1px solid #007AFF",
                 borderRadius: 12,
-                padding: "14px",
+                padding: 14,
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: "pointer",
@@ -273,7 +273,7 @@ function HomeContent() {
                 color: "white",
                 border: "none",
                 borderRadius: 12,
-                padding: "14px",
+                padding: 14,
                 fontSize: 15,
                 fontWeight: 600,
                 cursor: "pointer",
@@ -290,30 +290,27 @@ function HomeContent() {
           onClick={closeWowModal}
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(10, 22, 40, 0.6)",
+            inset: 0,
+            backgroundColor: "rgba(10,22,40,0.6)",
             backdropFilter: "blur(8px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 9999,
-            padding: "20px",
+            padding: 20,
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#EEF3FC",
+              background: "#F5F7FA",
               borderRadius: 20,
               padding: 24,
               maxWidth: 500,
               width: "100%",
               maxHeight: "90vh",
               overflowY: "auto",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
             }}
           >
             <div style={{
@@ -420,7 +417,7 @@ function HomeContent() {
                 color: "#007AFF",
                 border: "1px solid #007AFF",
                 borderRadius: 12,
-                padding: "14px",
+                padding: 14,
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: "pointer",
@@ -438,7 +435,7 @@ function HomeContent() {
                 color: "white",
                 border: "none",
                 borderRadius: 12,
-                padding: "14px",
+                padding: 14,
                 fontSize: 15,
                 fontWeight: 600,
                 cursor: "pointer",
@@ -450,201 +447,448 @@ function HomeContent() {
         </div>
       )}
 
-    <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
+      <main style={{ minHeight: "100vh", background: "#F5F7FA", paddingBottom: 100 }}>
 
-      {toast && (
-        <div style={{
-          position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 100,
-          background: "var(--card)", borderRadius: 12, padding: "12px 20px",
-          fontSize: 13, fontWeight: 600, whiteSpace: "nowrap",
-          color: toast.ok ? "var(--emerald)" : "var(--red)",
-          border: `1px solid ${toast.ok ? "#00C48C40" : "#EF444440"}`,
-          boxShadow: "var(--sh2)",
-        }}>
-          {toast.msg}
-        </div>
-      )}
-
-      {loading ? (
-        <div style={{ padding: "80px 20px", textAlign: "center" }}>
-          <div style={{ fontSize: 11, color: "var(--muted)", letterSpacing: 3, textTransform: "uppercase" }}>Cargando...</div>
-        </div>
-      ) : (
-        <>
-          <div onClick={() => openModal({
-            title: "Facturación estimada hoy",
-            text: "NICOLE proyecta tus ventas de hoy en base a tu historial de transacciones. Cuantos más datos tenga, más precisa será la proyección. El número se actualiza cada vez que registrás una venta."
-          })} style={{ cursor: "pointer" }}>
-            <HeroCard
-              label="Facturación estimada hoy"
-              value={facturacion != null ? fmt(facturacion) : "—"}
-              sub={pred?.facturacion?.confianza ? `Confianza ${pred.facturacion.confianza.pct}%` : "NICOLE · proyección"}
-            />
+        {toast && (
+          <div style={{
+            position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 100,
+            background: "white", borderRadius: 12, padding: "12px 20px",
+            fontSize: 13, fontWeight: 600, whiteSpace: "nowrap",
+            color: toast.ok ? "#00C48C" : "#EF4444",
+            border: `1px solid ${toast.ok ? "#00C48C40" : "#EF444440"}`,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+          }}>
+            {toast.msg}
           </div>
+        )}
 
-          <DataQualityCard />
+        {loading ? (
+          <div style={{ padding: "80px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: "#94A3B8", letterSpacing: 3, textTransform: "uppercase" }}>Cargando...</div>
+          </div>
+        ) : (
+          <div style={{ padding: "16px 16px 0" }}>
 
-          {wowPatterns.length > 0 && (
-            <>
-              <div style={{ margin: "24px 12px 12px", padding: "0 8px" }}>
+            {/* Hero Card */}
+            <div
+              onClick={() => openModal({
+                title: "Facturación estimada hoy",
+                text: "NICOLE proyecta tus ventas de hoy en base a tu historial de transacciones. Cuantos más datos tenga, más precisa será la proyección. El número se actualiza cada vez que registrás una venta."
+              })}
+              style={{
+                background: "linear-gradient(135deg, #007AFF 0%, #00C2FF 100%)",
+                borderRadius: 20,
+                padding: 24,
+                marginBottom: 16,
+                cursor: "pointer",
+                boxShadow: "0 8px 24px rgba(0,122,255,0.25)",
+              }}
+            >
+              <div style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "rgba(255,255,255,0.85)",
+                marginBottom: 8,
+                letterSpacing: 0.5,
+              }}>
+                Facturación estimada hoy
+              </div>
+
+              <div style={{
+                fontFamily: "'Syne', sans-serif",
+                fontSize: 42,
+                fontWeight: 800,
+                color: "white",
+                marginBottom: 16,
+                lineHeight: 1,
+              }}>
+                {facturacion != null ? fmt(facturacion) : "—"}
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                {perdidaMes != null && (
+                  <div style={{
+                    background: "rgba(255,255,255,0.15)",
+                    borderRadius: 12,
+                    padding: "8px 12px",
+                    fontSize: 12,
+                    color: "white",
+                    fontWeight: 600,
+                  }}>
+                    Pérdida est. mes: {fmt(perdidaMes)}
+                  </div>
+                )}
                 <div style={{
-                  fontFamily: "monospace",
-                  fontSize: 9,
-                  letterSpacing: 3,
-                  color: "var(--muted)",
-                  textTransform: "uppercase",
-                  marginBottom: 4,
+                  background: "rgba(255,255,255,0.15)",
+                  borderRadius: 12,
+                  padding: "8px 12px",
+                  fontSize: 12,
+                  color: "white",
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
                 }}>
-                  // LO QUE ENCONTRÓ NICOLE
+                  <span style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: dqColor,
+                    display: "inline-block",
+                  }} />
+                  Calidad datos: {dq != null ? `${Math.round(dq)}%` : "—"}
                 </div>
+              </div>
+            </div>
+
+            {/* StatRow - 3 cards */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: 12,
+              marginBottom: 24,
+            }}>
+              {/* Críticas */}
+              <div
+                onClick={() => openModal({
+                  title: "Alertas críticas",
+                  text: "Cantidad de inconsistencias críticas detectadas hoy. NICOLE requiere mínimo 2 señales simultáneas para generar una alerta crítica.",
+                  actionButton: { text: "Ver alertas →", href: "/alertas" }
+                })}
+                style={{
+                  background: "white",
+                  borderRadius: 16,
+                  padding: 16,
+                  borderTop: `3px solid ${critCount > 0 ? "#EF4444" : "#00C48C"}`,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  cursor: "pointer",
+                }}
+              >
                 <div style={{
                   fontSize: 11,
-                  color: "var(--text-secondary)",
-                  marginBottom: 16,
+                  fontWeight: 600,
+                  color: "#64748B",
+                  marginBottom: 8,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
                 }}>
-                  Análisis de tus últimos 30 días · Preliminar
+                  Críticas
+                </div>
+                <div style={{
+                  fontFamily: "'Syne', sans-serif",
+                  fontSize: 28,
+                  fontWeight: 800,
+                  color: "#0A1628",
+                }}>
+                  {critCount}
                 </div>
               </div>
 
-              {wowPatterns.slice(0, 3).map((pattern, i) => (
-                <div
-                  key={i}
-                  onClick={() => openWowModal(pattern)}
-                  style={{
-                    margin: "0 12px 12px",
-                    background: "white",
-                    borderRadius: 16,
-                    padding: "20px",
-                    border: "1px solid #E0E7F1",
-                    cursor: "pointer",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 12 }}>
-                    <span style={{ fontSize: 36, lineHeight: 1 }}>{pattern.icono}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        fontFamily: "'Syne', sans-serif",
-                        fontSize: 15,
-                        fontWeight: 700,
-                        color: "#0A1628",
-                        marginBottom: 6,
-                        lineHeight: 1.3,
-                      }}>
-                        {pattern.titulo}
-                      </div>
-                      <div style={{
-                        fontSize: 12,
-                        color: "#EF4444",
-                        fontWeight: 600,
-                        marginBottom: 8,
-                      }}>
-                        {pattern.duele}
-                      </div>
-                      <div style={{
-                        fontSize: 13,
-                        color: "#0A1628",
-                        lineHeight: 1.5,
-                        marginBottom: 12,
-                      }}>
-                        {pattern.descripcion}
-                      </div>
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        paddingTop: 12,
-                        borderTop: "1px solid #F1F5F9",
-                      }}>
+              {/* Atención */}
+              <div
+                onClick={() => openModal({
+                  title: "Alertas de atención",
+                  text: "Cantidad de situaciones que requieren atención detectadas hoy. Menor prioridad que las críticas pero vale revisarlas.",
+                  actionButton: { text: "Ver alertas →", href: "/alertas" }
+                })}
+                style={{
+                  background: "white",
+                  borderRadius: 16,
+                  padding: 16,
+                  borderTop: `3px solid ${warnCount > 0 ? "#F59E0B" : "#00C48C"}`,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  cursor: "pointer",
+                }}
+              >
+                <div style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#64748B",
+                  marginBottom: 8,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}>
+                  Atención
+                </div>
+                <div style={{
+                  fontFamily: "'Syne', sans-serif",
+                  fontSize: 28,
+                  fontWeight: 800,
+                  color: "#0A1628",
+                }}>
+                  {warnCount}
+                </div>
+              </div>
+
+              {/* Score */}
+              <div
+                onClick={() => openModal({
+                  title: "Score",
+                  text: "El score resume el nivel de inconsistencia operativa del negocio. Se calcula combinando ticket promedio, ratio efectivo/digital y volumen por turno. Sin datos suficientes aparece como —."
+                })}
+                style={{
+                  background: "white",
+                  borderRadius: 16,
+                  padding: 16,
+                  borderTop: "3px solid #007AFF",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  cursor: "pointer",
+                }}
+              >
+                <div style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#64748B",
+                  marginBottom: 8,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}>
+                  Score
+                </div>
+                <div style={{
+                  fontFamily: "'Syne', sans-serif",
+                  fontSize: 28,
+                  fontWeight: 800,
+                  color: "#0A1628",
+                }}>
+                  {analisis?.score != null ? String(analisis.score) : "—"}
+                </div>
+              </div>
+            </div>
+
+            {/* Sección WOW */}
+            {wowPatterns.length > 0 && (
+              <>
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{
+                    fontFamily: "monospace",
+                    fontSize: 9,
+                    letterSpacing: 3,
+                    color: "#94A3B8",
+                    textTransform: "uppercase",
+                    marginBottom: 4,
+                  }}>
+                    // LO QUE ENCONTRÓ NICOLE
+                  </div>
+                  <div style={{
+                    fontSize: 11,
+                    color: "#64748B",
+                    marginBottom: 16,
+                  }}>
+                    Análisis de tus últimos 30 días · Preliminar
+                  </div>
+                </div>
+
+                {wowPatterns.slice(0, 3).map((pattern, i) => (
+                  <div
+                    key={i}
+                    onClick={() => openWowModal(pattern)}
+                    style={{
+                      marginBottom: 12,
+                      background: "white",
+                      borderRadius: 16,
+                      padding: 20,
+                      border: "1px solid #E0E7F1",
+                      cursor: "pointer",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 12 }}>
+                      <span style={{ fontSize: 36, lineHeight: 1 }}>{pattern.icono}</span>
+                      <div style={{ flex: 1 }}>
                         <div style={{
-                          fontSize: 11,
-                          color: "#64748B",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
+                          fontFamily: "'Syne', sans-serif",
+                          fontSize: 15,
+                          fontWeight: 700,
+                          color: "#0A1628",
+                          marginBottom: 6,
+                          lineHeight: 1.3,
                         }}>
-                          💡 {pattern.recomendacion}
+                          {pattern.titulo}
                         </div>
                         <div style={{
-                          fontFamily: "monospace",
-                          fontSize: 16,
-                          fontWeight: 700,
+                          fontSize: 12,
                           color: "#EF4444",
+                          fontWeight: 600,
+                          marginBottom: 8,
                         }}>
-                          {fmt(pattern.impacto_pesos)}
+                          {pattern.duele}
+                        </div>
+                        <div style={{
+                          fontSize: 13,
+                          color: "#0A1628",
+                          lineHeight: 1.5,
+                          marginBottom: 12,
+                        }}>
+                          {pattern.descripcion}
+                        </div>
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          paddingTop: 12,
+                          borderTop: "1px solid #F1F5F9",
+                        }}>
+                          <div style={{
+                            fontSize: 11,
+                            color: "#64748B",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}>
+                            💡 {pattern.recomendacion}
+                          </div>
+                          <div style={{
+                            fontFamily: "monospace",
+                            fontSize: 16,
+                            fontWeight: 700,
+                            color: "#EF4444",
+                          }}>
+                            {fmt(pattern.impacto_pesos)}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                ))}
+              </>
+            )}
+
+            {/* Sección Alertas activas */}
+            <div style={{
+              fontFamily: "monospace",
+              fontSize: 9,
+              letterSpacing: 3,
+              color: "#94A3B8",
+              textTransform: "uppercase",
+              marginBottom: 16,
+              marginTop: 24,
+            }}>
+              // ALERTAS ACTIVAS
+            </div>
+
+            {alertas.length === 0 ? (
+              <div
+                onClick={() => openModal({
+                  title: "Sin anomalías detectadas",
+                  text: "Tu negocio opera dentro del rango esperado hoy. NICOLE no detectó patrones fuera de lo normal. Esto es una buena señal."
+                })}
+                style={{
+                  background: "white",
+                  borderRadius: 16,
+                  padding: 20,
+                  border: "1px solid #E0E7F1",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{
+                      display: "inline-block",
+                      background: "#00C48C15",
+                      color: "#00C48C",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: "4px 8px",
+                      borderRadius: 6,
+                      marginBottom: 8,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}>
+                      Todo ok
+                    </div>
+                    <div style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#0A1628",
+                      marginBottom: 4,
+                    }}>
+                      Sin anomalías detectadas
+                    </div>
+                    <div style={{
+                      fontSize: 12,
+                      color: "#64748B",
+                    }}>
+                      Tu negocio opera dentro del rango esperado.
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "#00C48C",
+                  }}>
+                    En orden ✓
+                  </div>
                 </div>
-              ))}
-            </>
-          )}
+              </div>
+            ) : (
+              alertas.map((a, i) => {
+                const variant = alertVariant(a.prioridad);
+                const tag = alertTag(a.prioridad);
+                const bgColor = variant === "crit" ? "#EF444415" : variant === "warn" ? "#F59E0B15" : "#00C48C15";
+                const textColor = variant === "crit" ? "#EF4444" : variant === "warn" ? "#F59E0B" : "#00C48C";
 
-          <StatRow>
-            <StatCard
-              label="Calidad datos"
-              value={dq != null ? `${Math.round(dq)}%` : "—"}
-              color={dq == null ? "blue" : dq >= 70 ? "blue" : dq >= 40 ? "yellow" : "red"}
-            />
-            <div onClick={() => openModal({
-              title: "Alertas hoy",
-              text: "Cantidad de inconsistencias operativas detectadas hoy. NICOLE requiere mínimo 2 señales simultáneas para generar una alerta, lo que reduce los falsos positivos.",
-              actionButton: { text: "Ver alertas →", href: "/alertas" }
-            })} style={{ cursor: "pointer" }}>
-              <StatCard
-                label="Alertas hoy"
-                value={String(critCount)}
-                color={critCount > 0 ? "yellow" : "green"}
-              />
-            </div>
-            <div onClick={() => openModal({
-              title: "Score",
-              text: "El score resume el nivel de inconsistencia operativa del negocio. Se calcula combinando ticket promedio, ratio efectivo/digital y volumen por turno. Sin datos suficientes aparece como —."
-            })} style={{ cursor: "pointer" }}>
-              <StatCard
-                label="Score"
-                value={analisis?.score != null ? String(analisis.score) : "—"}
-                color="blue"
-              />
-            </div>
-          </StatRow>
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      background: "white",
+                      borderRadius: 16,
+                      padding: 20,
+                      border: "1px solid #E0E7F1",
+                      marginBottom: 12,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                    }}
+                  >
+                    <div style={{
+                      display: "inline-block",
+                      background: bgColor,
+                      color: textColor,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: "4px 8px",
+                      borderRadius: 6,
+                      marginBottom: 8,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}>
+                      {tag}
+                    </div>
+                    <div style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#0A1628",
+                      marginBottom: 4,
+                    }}>
+                      {a.mensaje}
+                    </div>
+                    <div style={{
+                      fontSize: 12,
+                      color: "#64748B",
+                      marginBottom: 8,
+                    }}>
+                      {a.accion}
+                    </div>
+                    {a.timestamp && (
+                      <div style={{
+                        fontSize: 11,
+                        color: "#94A3B8",
+                        fontFamily: "monospace",
+                      }}>
+                        {new Date(a.timestamp).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
 
-          <SectionTitle>Alertas activas</SectionTitle>
-
-          {alertas.length === 0 ? (
-            <div onClick={() => openModal({
-              title: "Sin anomalías detectadas",
-              text: "Tu negocio opera dentro del rango esperado hoy. NICOLE no detectó patrones fuera de lo normal. Esto es una buena señal."
-            })} style={{ cursor: "pointer" }}>
-              <AlertCard
-                variant="ok"
-                tag="Todo ok"
-                title="Sin anomalías detectadas"
-                desc="Tu negocio opera dentro del rango esperado."
-                amount="En orden ✓"
-                positive
-              />
-            </div>
-          ) : (
-            alertas.map((a, i) => (
-              <AlertCard
-                key={i}
-                variant={alertVariant(a.prioridad)}
-                tag={alertTag(a.prioridad)}
-                title={a.mensaje}
-                desc={a.accion}
-                time={a.timestamp
-                  ? new Date(a.timestamp).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
-                  : undefined}
-              />
-            ))
-          )}
-        </>
-      )}
-
-      <Nav />
-    </main>
+        <Nav />
+      </main>
     </>
   );
 }
