@@ -124,7 +124,23 @@ export default function Nav() {
                 marginTop: -24,
                 boxShadow: "0 4px 16px rgba(0,122,255,0.5)",
               }}>
-                <span style={{ fontSize: 28, color: "white" }}>⭐</span>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <line x1="5" y1="22" x2="5" y2="6" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
+                  <line x1="5" y1="6" x2="23" y2="22" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
+                  <line x1="23" y1="6" x2="23" y2="22" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
+                  <circle cx="5" cy="6" r="2" fill="white"/>
+                  <circle cx="5" cy="22" r="2" fill="white"/>
+                  <circle cx="23" cy="6" r="2" fill="white"/>
+                  <circle cx="23" cy="22" r="2" fill="white"/>
+                  <circle cx="5" cy="14" r="1.5" fill="white" opacity="0.7"/>
+                  <circle cx="23" cy="14" r="1.5" fill="white" opacity="0.7"/>
+                  <circle cx="9" cy="10" r="1.5" fill="white" opacity="0.9"/>
+                  <circle cx="13" cy="14" r="1.5" fill="white" opacity="0.6"/>
+                  <circle cx="17" cy="18" r="1.5" fill="white" opacity="0.9"/>
+                  <circle cx="11" cy="7" r="1" fill="white" opacity="0.5"/>
+                  <circle cx="17" cy="11" r="1" fill="white" opacity="0.5"/>
+                  <circle cx="21" cy="19" r="1" fill="white" opacity="0.5"/>
+                </svg>
               </div>
               <span style={{
                 fontSize: 10,
