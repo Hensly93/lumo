@@ -105,6 +105,7 @@ export default function Login() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (localStorage.getItem("lumo_token")) router.replace("/");
   }, []);
 

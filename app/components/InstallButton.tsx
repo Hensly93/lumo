@@ -41,6 +41,8 @@ export default function InstallButton() {
   const [cerrado, setCerrado] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     if (estaEnStandalone()) { setInstalada(true); return; }
 
     if (esIOS() && esSafari()) {

@@ -356,7 +356,10 @@ function SecMP({ token }: { token: string }) {
     finally { setImportando(false); }
   }
 
-  function conectar() { window.location.href = `${API}/api/mp/conectar?token=${token}`; }
+  function conectar() {
+    if (typeof window === "undefined") return;
+    window.location.href = `${API}/api/mp/conectar?token=${token}`;
+  }
 
   if (!mp) return <div style={{ color: "var(--muted)", fontSize: 13 }}>Verificando...</div>;
 
