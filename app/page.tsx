@@ -467,7 +467,7 @@ function HomeContent() {
             <div style={{ fontSize: 11, color: "#94A3B8", letterSpacing: 3, textTransform: "uppercase" }}>Cargando...</div>
           </div>
         ) : (
-          <div style={{ padding: "16px 16px 0" }}>
+          <div style={{ padding: "0 16px" }}>
 
             {/* Hero Card */}
             <div
@@ -476,10 +476,10 @@ function HomeContent() {
                 text: "NICOLE proyecta tus ventas de hoy en base a tu historial de transacciones. Cuantos más datos tenga, más precisa será la proyección. El número se actualiza cada vez que registrás una venta."
               })}
               style={{
-                background: "linear-gradient(135deg, #0055CC 0%, #007AFF 50%, #00A8E8 100%)",
+                background: "#003A8C",
                 borderRadius: 20,
                 padding: 24,
-                marginBottom: 16,
+                margin: "16px 0 16px 0",
                 cursor: "pointer",
                 boxShadow: "0 8px 24px rgba(0,122,255,0.25)",
               }}
@@ -487,19 +487,19 @@ function HomeContent() {
               <div style={{
                 fontSize: 13,
                 fontWeight: 600,
-                color: "rgba(255,255,255,0.85)",
+                color: "rgba(255,255,255,0.8)",
                 marginBottom: 8,
                 letterSpacing: 0.5,
+                textTransform: "uppercase",
               }}>
                 Facturación estimada hoy
               </div>
 
               <div style={{
-                fontFamily: "'Syne', sans-serif",
-                fontSize: 42,
+                fontFamily: "Arial, Helvetica, sans-serif",
+                fontSize: 44,
                 fontWeight: 800,
-                color: "white",
-                textShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                color: "#FFFFFF",
                 marginBottom: 16,
                 lineHeight: 1,
               }}>
