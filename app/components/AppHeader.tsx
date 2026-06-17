@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
@@ -8,41 +9,6 @@ import ConfirmDeleteAccountModal from "./ConfirmDeleteAccountModal";
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
 type Perfil = { negocio: string; nombre: string; email?: string; logo?: string | null };
-
-function BizAvatar({ negocio, logo }: { negocio: string; logo?: string | null }) {
-  const letters = negocio.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("") || "L";
-
-  if (logo) {
-    return (
-      <img
-        src={logo}
-        alt={negocio}
-        style={{
-          width: 28, height: 28,
-          borderRadius: 8,
-          objectFit: "cover",
-          flexShrink: 0,
-        }}
-      />
-    );
-  }
-  return (
-    <div style={{
-      width: 28, height: 28,
-      borderRadius: 8,
-      background: "linear-gradient(135deg,#007AFF,#00C2FF)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontFamily: "'Syne', sans-serif",
-      fontWeight: 800,
-      fontSize: 10,
-      color: "#fff",
-      flexShrink: 0,
-      boxShadow: "0 3px 8px #007AFF25",
-    }}>
-      {letters}
-    </div>
-  );
-}
 
 export default function AppHeader() {
   const router = useRouter();
@@ -56,25 +22,14 @@ export default function AppHeader() {
     if (raw) {
       try {
         const u = JSON.parse(raw);
-        setPerfil({
-          negocio: u.negocio ?? "",
-          nombre: u.nombre ?? "",
-          email: u.email ?? "",
-          logo: null,
-        });
-      } catch { /* */ }
+        setPerfil({ negocio: u.negocio ?? "", nombre: u.nombre ?? "", email: u.email ?? "", logo: null });
+      } catch {}
     }
     if (!token) return;
     fetch(`${API}/api/usuario/perfil`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => {
-        if (d.negocio)
-          setPerfil({
-            negocio: d.negocio,
-            nombre: d.nombre,
-            email: d.email,
-            logo: d.logo ?? null,
-          });
+        if (d.negocio) setPerfil({ negocio: d.negocio, nombre: d.nombre, email: d.email, logo: d.logo ?? null });
       })
       .catch(() => {});
   }, [token]);
@@ -84,246 +39,122 @@ export default function AppHeader() {
     router.replace("/login");
   };
 
+  const initials = perfil?.negocio
+    ? perfil.negocio.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("")
+    : "L";
+
   return (
     <>
-    <header
-      style={{
-        background: "rgba(255,255,255,0.92)",
-        borderBottom: "1px solid var(--border)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "6px 16px 12px",
-      }}
-    >
-      {/* Izquierda: ojo + sep + avatar + nombre */}
-      <button
-        onClick={() => router.push("/configuracion")}
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: 0,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <LumoEyeIcon size={20} />
-
-        {/* Separador */}
-        <div
-          style={{
-            width: 1,
-            height: 12,
-            background: "var(--border)",
-            flexShrink: 0,
-          }}
-        />
-
-        {perfil && (
-          <>
-            <BizAvatar negocio={perfil.negocio} logo={perfil.logo} />
-            <div style={{ textAlign: "left" }}>
-              <div
-                style={{
-                  fontFamily: "'Syne', sans-serif",
-                  fontWeight: 700,
-                  fontSize: 12,
-                  color: "var(--text)",
-                  lineHeight: 1.1,
-                }}
-              >
-                {perfil.negocio}
-              </div>
-              <div
-                style={{
-                  fontSize: 9,
-                  color: "var(--muted)",
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                }}
-              >
-                LUMO · BETA
-              </div>
+      <header style={{
+        background: "linear-gradient(135deg, #007AFF 0%, #00C2FF 100%)",
+        padding: "20px 20px 24px",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", top: -40, right: -40,
+          width: 160, height: 160, borderRadius: "50%",
+          background: "rgba(255,255,255,0.06)", pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", bottom: -20, left: -20,
+          width: 100, height: 100, borderRadius: "50%",
+          background: "rgba(255,255,255,0.04)", pointerEvents: "none",
+        }} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{
+              background: "rgba(255,255,255,0.15)",
+              borderRadius: 16, padding: 10,
+              backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255,255,255,0.25)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <LumoEyeIcon size={36} />
             </div>
-          </>
-        )}
-      </button>
-
-      {/* Derecha: Avatar dropdown */}
-      <div style={{ position: "relative" }}>
-        <button
-          onClick={() => setShowDropdown(!showDropdown)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 32,
-            height: 32,
-            borderRadius: 8,
-            transition: "background 0.2s",
-            backgroundColor: showDropdown ? "var(--border)" : "transparent",
-          }}
-          onMouseOver={(e) =>
-            !showDropdown &&
-            (e.currentTarget.style.backgroundColor = "var(--border)")
-          }
-          onMouseOut={(e) =>
-            !showDropdown &&
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
-        >
-          <div
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: "50%",
-              background: "var(--emerald)",
-              boxShadow: "0 0 8px #00C48C60",
-            }}
-          />
-        </button>
-
-        {/* Dropdown Menu */}
-        {showDropdown && (
-          <div
-            style={{
-              position: "absolute",
-              top: 40,
-              right: 0,
-              background: "var(--card2)",
-              border: "1px solid var(--border)",
-              borderRadius: 12,
-              boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-              zIndex: 1000,
-              minWidth: 260,
-              overflow: "hidden",
-              animation: "slideDown 0.2s ease-out",
-            }}
-          >
-            <style>{`
-              @keyframes slideDown {
-                from { opacity: 0; transform: translateY(-8px); }
-                to { opacity: 1; transform: translateY(0); }
-              }
-            `}</style>
-
-            {/* Header: Email */}
-            <div
-              style={{
-                padding: "12px 16px",
-                borderBottom: "1px solid var(--border)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--muted)",
-                  marginBottom: 4,
-                }}
-              >
-                Email
+            <div>
+              <div style={{
+                fontSize: 11, color: "rgba(255,255,255,0.75)",
+                letterSpacing: "0.5px", marginBottom: 2,
+                fontFamily: "'DM Sans', sans-serif",
+              }}>
+                Hola 👋
               </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "var(--text)",
-                  wordBreak: "break-all",
-                }}
-              >
-                {perfil?.email || "—"}
+              <div style={{
+                fontFamily: "'Syne', sans-serif",
+                fontWeight: 800, fontSize: 20,
+                color: "#FFFFFF", lineHeight: 1.1, letterSpacing: "-0.3px",
+              }}>
+                {perfil?.negocio || "Lumo"}
               </div>
-            </div>
-
-            {/* Links */}
-            <div style={{ padding: "8px 0" }}>
-              <button
-                onClick={() => {
-                  router.push("/ajustes");
-                  setShowDropdown(false);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  border: "none",
-                  background: "transparent",
-                  color: "var(--text)",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "background 0.15s",
-                }}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "var(--border)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-              >
-                ⚙️ Ajustes
-              </button>
-
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setShowDropdown(false);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  border: "none",
-                  background: "transparent",
-                  color: "#3B82F6",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "background 0.15s",
-                }}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "var(--border)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-              >
-                🚪 Salir
-              </button>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Click outside to close */}
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              style={{
+                background: "rgba(255,255,255,0.2)",
+                border: "1px solid rgba(255,255,255,0.3)",
+                borderRadius: 14, width: 44, height: 44,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", fontFamily: "'Syne', sans-serif",
+                fontWeight: 800, fontSize: 14, color: "#FFFFFF",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              {initials}
+            </button>
+            {showDropdown && (
+              <div style={{
+                position: "absolute", top: 52, right: 0,
+                background: "#FFFFFF", border: "1px solid #E8EDF5",
+                borderRadius: 16, boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
+                zIndex: 1000, minWidth: 260, overflow: "hidden",
+              }}>
+                <div style={{ padding: "14px 16px", borderBottom: "1px solid #E8EDF5" }}>
+                  <div style={{ fontSize: 10, color: "#6B8099", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Cuenta</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#0A1628", wordBreak: "break-all" }}>{perfil?.email || "—"}</div>
+                </div>
+                <div style={{ padding: "8px 0" }}>
+                  <button
+                    onClick={() => { router.push("/configuracion"); setShowDropdown(false); }}
+                    style={{ width: "100%", padding: "12px 16px", border: "none", background: "transparent", color: "#0A1628", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}
+                  >⚙️ Configuración</button>
+                  <button
+                    onClick={() => { router.push("/ajustes"); setShowDropdown(false); }}
+                    style={{ width: "100%", padding: "12px 16px", border: "none", background: "transparent", color: "#0A1628", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}
+                  >📋 Ajustes</button>
+                  <button
+                    onClick={() => { handleLogout(); setShowDropdown(false); }}
+                    style={{ width: "100%", padding: "12px 16px", border: "none", background: "transparent", color: "#EF4444", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}
+                  >🚪 Cerrar sesión</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div style={{
+          marginTop: 16, display: "flex", alignItems: "center", gap: 8,
+          position: "relative", zIndex: 1,
+        }}>
+          <div style={{
+            width: 7, height: 7, borderRadius: "50%",
+            background: "#00C48C", boxShadow: "0 0 8px #00C48C", flexShrink: 0,
+          }} />
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans', sans-serif" }}>
+            Motor activo · NICOLE monitoreando
+          </span>
+        </div>
+      </header>
       {showDropdown && (
-        <div
-          onClick={() => setShowDropdown(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 999,
-          }}
+        <div onClick={() => setShowDropdown(false)} style={{ position: "fixed", inset: 0, zIndex: 999 }} />
+      )}
+      {showDeleteModal && (
+        <ConfirmDeleteAccountModal
+          onClose={() => setShowDeleteModal(false)}
+          onSuccess={() => { localStorage.clear(); router.replace("/login"); }}
         />
       )}
-    </header>
-
-    {/* Delete Account Modal */}
-    {showDeleteModal && (
-      <ConfirmDeleteAccountModal
-        onClose={() => setShowDeleteModal(false)}
-        onSuccess={() => {
-          localStorage.clear();
-          router.replace("/login");
-        }}
-      />
-    )}
-  </>
-);
+    </>
+  );
 }
