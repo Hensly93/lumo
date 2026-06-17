@@ -101,6 +101,7 @@ function HomeContent() {
   const [wowModalData, setWowModalData] = useState<WowModalData | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (params.get("mp_conectado") === "true") {
       setToast({ msg: "Mercado Pago conectado", ok: true });
       window.history.replaceState({}, "", "/");

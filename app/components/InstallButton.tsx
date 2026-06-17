@@ -19,14 +19,17 @@ const T = {
 };
 
 function esIOS() {
+  if (typeof window === "undefined") return false;
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
 function esSafari() {
+  if (typeof window === "undefined") return false;
   return /safari/i.test(navigator.userAgent) && !/chrome|chromium|crios/i.test(navigator.userAgent);
 }
 
 function estaEnStandalone() {
+  if (typeof window === "undefined") return false;
   return window.matchMedia("(display-mode: standalone)").matches ||
     ("standalone" in window.navigator && (window.navigator as { standalone?: boolean }).standalone === true);
 }
