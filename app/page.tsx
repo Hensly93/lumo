@@ -496,12 +496,13 @@ function HomeContent() {
               </div>
 
               <div style={{
-                fontFamily: "Impact, Arial, sans-serif",
-                fontSize: 44,
-                fontWeight: 800,
+                fontSize: 48,
+                fontWeight: 900,
                 color: "#FFFFFF",
-                marginBottom: 16,
+                fontFamily: "Georgia, serif",
                 lineHeight: 1,
+                marginBottom: 8,
+                marginTop: 8,
               }}>
                 {facturacion != null ? fmt(facturacion) : "—"}
               </div>
@@ -574,12 +575,11 @@ function HomeContent() {
                   Críticas
                 </div>
                 <div style={{
-                  fontFamily: "Impact, Arial, sans-serif",
-                  fontVariantNumeric: "normal",
-                  fontFeatureSettings: "'tnum' 0",
-                  fontSize: 28,
-                  fontWeight: 800,
+                  fontSize: 32,
+                  fontWeight: 700,
                   color: "#0A1628",
+                  fontFamily: "Verdana, Geneva, sans-serif",
+                  lineHeight: 1,
                 }}>
                   {critCount}
                 </div>
@@ -612,12 +612,11 @@ function HomeContent() {
                   Atención
                 </div>
                 <div style={{
-                  fontFamily: "Impact, Arial, sans-serif",
-                  fontVariantNumeric: "normal",
-                  fontFeatureSettings: "'tnum' 0",
-                  fontSize: 28,
-                  fontWeight: 800,
+                  fontSize: 32,
+                  fontWeight: 700,
                   color: "#0A1628",
+                  fontFamily: "Verdana, Geneva, sans-serif",
+                  lineHeight: 1,
                 }}>
                   {warnCount}
                 </div>
@@ -649,12 +648,11 @@ function HomeContent() {
                   Score
                 </div>
                 <div style={{
-                  fontFamily: "Impact, Arial, sans-serif",
-                  fontVariantNumeric: "normal",
-                  fontFeatureSettings: "'tnum' 0",
-                  fontSize: 28,
-                  fontWeight: 800,
+                  fontSize: 32,
+                  fontWeight: 700,
                   color: "#0A1628",
+                  fontFamily: "Verdana, Geneva, sans-serif",
+                  lineHeight: 1,
                 }}>
                   {analisis?.score != null ? String(analisis.score) : "—"}
                 </div>

@@ -70,7 +70,16 @@ export default function AppHeader() {
               border: "2px solid rgba(255,255,255,0.6)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <LumoEyeIcon size={36} />
+              <svg width="32" height="32" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 26 C4 26 14 14 26 14 C38 14 48 26 48 26 C48 26 38 38 26 38 C14 38 4 26 4 26Z" stroke="white" strokeWidth="2" fill="none"/>
+                <circle cx="26" cy="26" r="7" stroke="white" strokeWidth="1.5" fill="none"/>
+                <circle cx="26" cy="26" r="3" fill="white"/>
+                <circle cx="24.5" cy="24.5" r="1" fill="rgba(255,255,255,0.6)"/>
+                <line x1="26" y1="4" x2="26" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
+                <line x1="26" y1="42" x2="26" y2="48" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
+                <line x1="4" y1="26" x2="10" y2="26" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>
+                <line x1="42" y1="26" x2="48" y2="26" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>
+              </svg>
             </div>
             <div>
               <div style={{
