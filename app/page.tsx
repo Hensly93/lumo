@@ -476,7 +476,7 @@ function HomeContent() {
                 text: "NICOLE proyecta tus ventas de hoy en base a tu historial de transacciones. Cuantos más datos tenga, más precisa será la proyección. El número se actualiza cada vez que registrás una venta."
               })}
               style={{
-                background: "#003A8C",
+                background: "#1a1a2e",
                 borderRadius: 20,
                 padding: 24,
                 margin: "16px 0 16px 0",
@@ -496,7 +496,7 @@ function HomeContent() {
               </div>
 
               <div style={{
-                fontFamily: "Arial, Helvetica, sans-serif",
+                fontFamily: "Impact, Arial, sans-serif",
                 fontSize: 44,
                 fontWeight: 800,
                 color: "#FFFFFF",
@@ -574,7 +574,7 @@ function HomeContent() {
                   Críticas
                 </div>
                 <div style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "Impact, Arial, sans-serif",
                   fontVariantNumeric: "normal",
                   fontFeatureSettings: "'tnum' 0",
                   fontSize: 28,
@@ -612,7 +612,7 @@ function HomeContent() {
                   Atención
                 </div>
                 <div style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "Impact, Arial, sans-serif",
                   fontVariantNumeric: "normal",
                   fontFeatureSettings: "'tnum' 0",
                   fontSize: 28,
@@ -649,7 +649,7 @@ function HomeContent() {
                   Score
                 </div>
                 <div style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "Impact, Arial, sans-serif",
                   fontVariantNumeric: "normal",
                   fontFeatureSettings: "'tnum' 0",
                   fontSize: 28,

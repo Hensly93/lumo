@@ -100,6 +100,44 @@ export default function Nav() {
     }}>
       {links.map(l => {
         const active = path === l.href || (l.href !== "/" && path.startsWith(l.href));
+        const isNicole = l.href === "/nicole";
+
+        if (isNicole) {
+          return (
+            <Link
+              key={l.href}
+              href={l.href}
+              style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                textDecoration: "none",
+                position: "relative",
+              }}
+            >
+              <div style={{
+                background: "linear-gradient(135deg, #007AFF, #00C2FF)",
+                borderRadius: "50%",
+                width: 56,
+                height: 56,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginTop: -24,
+                boxShadow: "0 4px 16px rgba(0,122,255,0.5)",
+              }}>
+                <span style={{ fontSize: 28, color: "white" }}>⭐</span>
+              </div>
+              <span style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#007AFF",
+                marginTop: 4,
+              }}>
+                {l.label}
+              </span>
+            </Link>
+          );
+        }
+
         return (
           <Link
             key={l.href}

@@ -64,10 +64,10 @@ export default function AppHeader() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{
-              background: "rgba(255,255,255,0.15)",
+              background: "rgba(255,255,255,0.3)",
               borderRadius: 16, padding: 10,
               backdropFilter: "blur(8px)",
-              border: "1px solid rgba(255,255,255,0.25)",
+              border: "2px solid rgba(255,255,255,0.6)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <LumoEyeIcon size={36} />
