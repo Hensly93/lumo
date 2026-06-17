@@ -476,7 +476,7 @@ function HomeContent() {
                 text: "NICOLE proyecta tus ventas de hoy en base a tu historial de transacciones. Cuantos más datos tenga, más precisa será la proyección. El número se actualiza cada vez que registrás una venta."
               })}
               style={{
-                background: "linear-gradient(135deg, #007AFF 0%, #00C2FF 100%)",
+                background: "linear-gradient(135deg, #0055CC 0%, #007AFF 50%, #00A8E8 100%)",
                 borderRadius: 20,
                 padding: 24,
                 marginBottom: 16,
@@ -499,6 +499,7 @@ function HomeContent() {
                 fontSize: 42,
                 fontWeight: 800,
                 color: "white",
+                textShadow: "0 2px 8px rgba(0,0,0,0.2)",
                 marginBottom: 16,
                 lineHeight: 1,
               }}>
@@ -508,23 +509,18 @@ function HomeContent() {
               <div style={{ display: "flex", gap: 8 }}>
                 {perdidaMes != null && (
                   <div style={{
-                    background: "rgba(255,255,255,0.15)",
+                    background: "rgba(0,0,0,0.2)",
                     borderRadius: 12,
-                    padding: "8px 12px",
-                    fontSize: 12,
-                    color: "white",
-                    fontWeight: 600,
+                    padding: "10px 14px",
                   }}>
-                    Pérdida est. mes: {fmt(perdidaMes)}
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginBottom: 4 }}>Pérdida est. mes</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "white" }}>{fmt(perdidaMes)}</div>
                   </div>
                 )}
                 <div style={{
-                  background: "rgba(255,255,255,0.15)",
+                  background: "rgba(0,0,0,0.2)",
                   borderRadius: 12,
-                  padding: "8px 12px",
-                  fontSize: 12,
-                  color: "white",
-                  fontWeight: 600,
+                  padding: "10px 14px",
                   display: "flex",
                   alignItems: "center",
                   gap: 6,
@@ -536,7 +532,10 @@ function HomeContent() {
                     background: dqColor,
                     display: "inline-block",
                   }} />
-                  Calidad datos: {dq != null ? `${Math.round(dq)}%` : "—"}
+                  <div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginBottom: 4 }}>Calidad datos</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "white" }}>{dq != null ? `${Math.round(dq)}%` : "—"}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -575,7 +574,9 @@ function HomeContent() {
                   Críticas
                 </div>
                 <div style={{
-                  fontFamily: "'Syne', sans-serif",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontVariantNumeric: "normal",
+                  fontFeatureSettings: "'tnum' 0",
                   fontSize: 28,
                   fontWeight: 800,
                   color: "#0A1628",
@@ -611,7 +612,9 @@ function HomeContent() {
                   Atención
                 </div>
                 <div style={{
-                  fontFamily: "'Syne', sans-serif",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontVariantNumeric: "normal",
+                  fontFeatureSettings: "'tnum' 0",
                   fontSize: 28,
                   fontWeight: 800,
                   color: "#0A1628",
@@ -646,7 +649,9 @@ function HomeContent() {
                   Score
                 </div>
                 <div style={{
-                  fontFamily: "'Syne', sans-serif",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontVariantNumeric: "normal",
+                  fontFeatureSettings: "'tnum' 0",
                   fontSize: 28,
                   fontWeight: 800,
                   color: "#0A1628",
