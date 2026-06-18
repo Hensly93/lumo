@@ -476,7 +476,7 @@ function HomeContent() {
                 text: "NICOLE proyecta tus ventas de hoy en base a tu historial de transacciones. Cuantos más datos tenga, más precisa será la proyección. El número se actualiza cada vez que registrás una venta."
               })}
               style={{
-                background: "#1a1a2e",
+                background: "linear-gradient(135deg, #0055CC 0%, #007AFF 100%)",
                 borderRadius: 20,
                 padding: 24,
                 margin: "16px 0 16px 0",
@@ -496,13 +496,13 @@ function HomeContent() {
               </div>
 
               <div style={{
-                fontSize: 48,
+                fontSize: 56,
                 fontWeight: 900,
                 color: "#FFFFFF",
-                fontFamily: "Georgia, serif",
+                fontFamily: "system-ui, -apple-system, sans-serif",
                 lineHeight: 1,
-                marginBottom: 8,
-                marginTop: 8,
+                marginTop: 12,
+                marginBottom: 12,
               }}>
                 {facturacion != null ? fmt(facturacion) : "—"}
               </div>
@@ -510,7 +510,7 @@ function HomeContent() {
               <div style={{ display: "flex", gap: 8 }}>
                 {perdidaMes != null && (
                   <div style={{
-                    background: "rgba(0,0,0,0.2)",
+                    background: "rgba(0,0,0,0.15)",
                     borderRadius: 12,
                     padding: "10px 14px",
                   }}>
@@ -519,7 +519,7 @@ function HomeContent() {
                   </div>
                 )}
                 <div style={{
-                  background: "rgba(0,0,0,0.2)",
+                  background: "rgba(0,0,0,0.15)",
                   borderRadius: 12,
                   padding: "10px 14px",
                   display: "flex",
