@@ -504,7 +504,7 @@ function HomeContent() {
                 marginTop: 12,
                 marginBottom: 12,
               }}>
-                {facturacion != null ? fmt(facturacion) : "—"}
+                {facturacion != null ? fmt(facturacion) : <span style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: 56, fontWeight: 900, color: "white", lineHeight: 1 }}>—</span>}
               </div>
 
               <div style={{ display: "flex", gap: 8 }}>
