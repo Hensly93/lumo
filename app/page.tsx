@@ -496,7 +496,7 @@ function HomeContent() {
               </div>
 
               <div style={{
-                fontSize: 56,
+                fontSize: facturacion != null ? 56 : 28,
                 fontWeight: 900,
                 color: "#FFFFFF",
                 fontFamily: "system-ui, -apple-system, sans-serif",
@@ -504,7 +504,7 @@ function HomeContent() {
                 marginTop: 12,
                 marginBottom: 12,
               }}>
-                {facturacion != null ? fmt(facturacion) : <span style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: 56, fontWeight: 900, color: "white", lineHeight: 1 }}>—</span>}
+                {facturacion != null ? fmt(facturacion) : "Sin datos"}
               </div>
 
               <div style={{ display: "flex", gap: 8 }}>
@@ -577,7 +577,7 @@ function HomeContent() {
                 <div style={{
                   fontSize: 32,
                   fontWeight: 700,
-                  color: "#0A1628",
+                  color: critCount > 0 ? "#FF3B30" : "#34C759",
                   fontFamily: "Verdana, Geneva, sans-serif",
                   lineHeight: 1,
                 }}>
@@ -614,7 +614,7 @@ function HomeContent() {
                 <div style={{
                   fontSize: 32,
                   fontWeight: 700,
-                  color: "#0A1628",
+                  color: warnCount > 0 ? "#FF9500" : "#34C759",
                   fontFamily: "Verdana, Geneva, sans-serif",
                   lineHeight: 1,
                 }}>
@@ -650,7 +650,7 @@ function HomeContent() {
                 <div style={{
                   fontSize: 32,
                   fontWeight: 700,
-                  color: "#0A1628",
+                  color: "#007AFF",
                   fontFamily: "Verdana, Geneva, sans-serif",
                   lineHeight: 1,
                 }}>
