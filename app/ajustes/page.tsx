@@ -17,7 +17,7 @@ type SubscriptionInfo = {
 };
 
 export default function AjustesPage() {
-  const { token, user } = useAuth();
+  const { token, user, ready } = useAuth();
   const router = useRouter();
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +26,7 @@ export default function AjustesPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
+    if (!ready) return;
     if (!token) {
       router.replace("/login");
       return;
@@ -48,7 +49,7 @@ export default function AjustesPage() {
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  }, [token, router]);
+  }, [token, ready, router]);
 
   if (loading) {
     return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import LumoEyeIcon from "./LumoEyeIcon";
@@ -16,6 +16,22 @@ export default function AppHeader() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showDropdown) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDropdown]);
 
   useEffect(() => {
     const raw = localStorage.getItem("lumo_usuario");
@@ -49,7 +65,6 @@ export default function AppHeader() {
         background: "linear-gradient(135deg, #007AFF 0%, #00C2FF 100%)",
         padding: "20px 20px 24px",
         position: "relative",
-        overflow: "hidden",
       }}>
         <div style={{
           position: "absolute", top: -40, right: -40,
@@ -114,7 +129,7 @@ export default function AppHeader() {
               {initials}
             </button>
             {showDropdown && (
-              <div style={{
+              <div ref={dropdownRef} style={{
                 position: "absolute", top: 52, right: 0,
                 background: "#FFFFFF", border: "1px solid #E8EDF5",
                 borderRadius: 16, boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
@@ -155,9 +170,6 @@ export default function AppHeader() {
           </span>
         </div>
       </header>
-      {showDropdown && (
-        <div onClick={() => setShowDropdown(false)} style={{ position: "fixed", inset: 0, zIndex: 999 }} />
-      )}
       {showDeleteModal && (
         <ConfirmDeleteAccountModal
           onClose={() => setShowDeleteModal(false)}
