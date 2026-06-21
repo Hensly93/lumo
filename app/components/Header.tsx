@@ -140,7 +140,7 @@ export default function Header() {
 
         {/* 2. Gear icon */}
         <button
-          onClick={() => router.push("/configuracion")}
+          onClick={() => router.push("/ajustes")}
           style={{
             fontSize: 20,
             color: "#9CA3AF",

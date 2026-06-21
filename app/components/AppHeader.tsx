@@ -141,14 +141,6 @@ export default function AppHeader() {
                 </div>
                 <div style={{ padding: "8px 0" }}>
                   <button
-                    onClick={() => { router.push("/configuracion"); setShowDropdown(false); }}
-                    style={{ width: "100%", padding: "12px 16px", border: "none", background: "transparent", color: "#0A1628", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}
-                  >⚙️ Configuración</button>
-                  <button
-                    onClick={() => { router.push("/ajustes"); setShowDropdown(false); }}
-                    style={{ width: "100%", padding: "12px 16px", border: "none", background: "transparent", color: "#0A1628", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}
-                  >📋 Ajustes</button>
-                  <button
                     onClick={() => { handleLogout(); setShowDropdown(false); }}
                     style={{ width: "100%", padding: "12px 16px", border: "none", background: "transparent", color: "#EF4444", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}
                   >🚪 Cerrar sesión</button>
