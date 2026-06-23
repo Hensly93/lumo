@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Nav from "../components/Nav";
+import { useSucursal } from "../hooks/useSucursal";
 import { HeroCard, PageHeader, PredCard, AlertCard } from "../components/ui";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -108,6 +109,7 @@ type ModalData = {
 
 export default function Predicciones() {
   const router = useRouter();
+  const { sucursalId } = useSucursal();
   const [token, setToken] = useState<string | null>(null);
   const [data, setData] = useState<RespuestaPredicciones | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,7 +119,7 @@ export default function Predicciones() {
     const t = localStorage.getItem("lumo_token");
     if (!t) { router.replace("/login"); return; }
     setToken(t);
-    fetch(`${API}/api/predicciones`, { headers: { Authorization: `Bearer ${t}` } })
+    fetch(`${API}/api/predicciones${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers: { Authorization: `Bearer ${t}` } })
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));

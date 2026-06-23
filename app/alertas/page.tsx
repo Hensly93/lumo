@@ -3,6 +3,7 @@ import Nav from "../components/Nav";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
+import { useSucursal } from "../hooks/useSucursal";
 import { PageHeader, FilterChips, StatRow, StatCard, AlertCard, SectionTitle } from "../components/ui";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -82,6 +83,7 @@ type ModalData = {
 export default function Alertas() {
   const router = useRouter();
   const { token, ready } = useAuth();
+  const { sucursalId } = useSucursal();
   const [alertasResp, setAlertasResp] = useState<AlertasResp | null>(null);
   const [recomendaciones, setRecomendaciones] = useState<Recomendacion[]>([]);
   const [filtro, setFiltro] = useState<Filtro>("Todas");
@@ -94,8 +96,8 @@ export default function Alertas() {
     if (!token) { router.replace("/login"); return; }
     const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
-      fetch(`${API}/api/alertas`, { headers }).then(r => r.json()).catch(() => null),
-      fetch(`${API}/api/recomendaciones`, { headers }).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/alertas${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers }).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/recomendaciones${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers }).then(r => r.json()).catch(() => null),
     ]).then(([al, rec]) => {
       setAlertasResp(al);
       setRecomendaciones(rec?.recomendaciones || []);

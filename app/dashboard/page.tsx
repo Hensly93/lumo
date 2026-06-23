@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { darkTheme as T } from "../theme";
 import { useAuth } from "../hooks/useAuth";
+import { useSucursal } from "../hooks/useSucursal";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -54,6 +55,7 @@ type ModalContent = {
 export default function Dashboard() {
   const router = useRouter();
   const { token, ready } = useAuth();
+  const { sucursalId } = useSucursal();
   const [perfil, setPerfil] = useState<PerfilNegocio | null>(null);
   const [pred, setPred] = useState<Prediccion | null>(null);
   const [ventas7d, setVentas7d] = useState<DiaSemana[]>([]);
@@ -73,8 +75,8 @@ export default function Dashboard() {
 
     Promise.all([
       fetch(`${API}/api/negocio/perfil`, { headers }).then(r => r.json()).catch(() => null),
-      fetch(`${API}/api/predicciones`, { headers }).then(r => r.json()).catch(() => null),
-      fetch(`${API}/api/ventas-diarias?dias=14`, { headers }).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/predicciones${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers }).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/ventas-diarias?dias=14${sucursalId ? `&sucursal_id=${sucursalId}` : ""}`, { headers }).then(r => r.json()).catch(() => null),
     ]).then(([p, pr, vd]) => {
       setPerfil(p);
       setPred(pr);

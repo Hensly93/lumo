@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import LumoEyeIcon from "./LumoEyeIcon";
 import ConfirmDeleteAccountModal from "./ConfirmDeleteAccountModal";
+import SucursalSelector from "./SucursalSelector";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -161,6 +162,7 @@ export default function AppHeader() {
             Motor activo · NICOLE monitoreando
           </span>
         </div>
+        <SucursalSelector />
       </header>
       {showDeleteModal && (
         <ConfirmDeleteAccountModal
