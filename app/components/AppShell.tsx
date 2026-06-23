@@ -1,8 +1,8 @@
 "use client";
 import { usePathname } from "next/navigation";
 import AppHeader from "./AppHeader";
+import PushRegistrar from "./PushRegistrar";
 
-// Rutas donde NO aparece el header (auth, landing, vista empleado)
 const SIN_HEADER = ["/landing", "/login", "/empleado", "/reset-password", "/onboarding"];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -12,6 +12,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       {showHeader && <AppHeader />}
+      <PushRegistrar />
       {children}
     </>
   );

@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Nav from "../components/Nav";
-import { usePush } from "../hooks/usePush";
 import { HeroCard, PageHeader, PredCard, AlertCard } from "../components/ui";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -113,8 +112,6 @@ export default function Predicciones() {
   const [data, setData] = useState<RespuestaPredicciones | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalData, setModalData] = useState<ModalData | null>(null);
-
-  usePush(token);
 
   useEffect(() => {
     const t = localStorage.getItem("lumo_token");
