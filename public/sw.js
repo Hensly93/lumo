@@ -1,5 +1,5 @@
 // Lumo Service Worker — PWA S11 + Push Notifications S9
-const CACHE = "lumo-v3";
+const CACHE = "lumo-vBUILD_TIME_PLACEHOLDER";
 const SHELL = [
   "/",
   "/landing",
