@@ -247,7 +247,7 @@ export default function Onboarding() {
                   borderRadius: "12px",
                   cursor: "pointer",
                   textAlign: "center",
-                  color: tipoNegocio === label ? "white" : "rgba(255,255,255,0.7)",
+                  color: tipoNegocio === label ? "white" : "var(--text)",
                   fontSize: "13px",
                   fontWeight: 600
                 }}
