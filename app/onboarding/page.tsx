@@ -108,7 +108,7 @@ export default function Onboarding() {
   const progreso = pantalla === "registro" ? 33 : pantalla === "nicole" ? 66 : 0;
 
   return (
-    <div style={{ background: "#0D1520", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.8;transform:scale(1.05)} }
         @keyframes float-0 { 0%{transform:translateY(0px)} 100%{transform:translateY(-4px)} }
@@ -127,20 +127,20 @@ export default function Onboarding() {
       `}</style>
 
       {pantalla === "bienvenida" && (
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", background: "var(--bg)" }}>
           <div style={{ marginBottom: "32px" }}>
             <svg width="72" height="72" viewBox="0 0 72 72" style={{ margin: "0 auto", display: "block" }}>
               <ellipse cx="36" cy="36" rx="20" ry="13" fill="#007AFF" />
               <circle cx="36" cy="36" r="8" fill="white" />
-              <circle cx="36" cy="36" r="5" fill="#0D1520" />
+              <circle cx="36" cy="36" r="5" fill="var(--bg)" />
             </svg>
           </div>
 
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "28px", color: "white", marginBottom: "8px", textAlign: "center", lineHeight: "1.2" }}>
+          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "28px", color: "var(--text)", marginBottom: "8px", textAlign: "center", lineHeight: "1.2" }}>
             Iluminamos lo que<br/>tu negocio pierde.
           </h1>
 
-          <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: "14px", color: "rgba(255,255,255,0.5)", marginBottom: "48px", textAlign: "center" }}>
+          <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: "14px", color: "var(--muted)", marginBottom: "48px", textAlign: "center" }}>
             Con NICOLE detectás fugas en tiempo real
           </p>
 
@@ -153,7 +153,7 @@ export default function Onboarding() {
                 borderRadius: "14px",
                 fontSize: "16px",
                 fontWeight: 700,
-                color: "white",
+                color: "var(--text)",
                 width: "100%",
                 border: "none",
                 marginBottom: "12px",
@@ -168,9 +168,9 @@ export default function Onboarding() {
               onClick={() => router.replace("/login")}
               style={{
                 background: "transparent",
-                border: "1px solid rgba(255,255,255,0.2)",
+                border: "1px solid var(--border)",
                 borderRadius: "14px",
-                color: "rgba(255,255,255,0.6)",
+                color: "var(--muted)",
                 fontSize: "14px",
                 fontWeight: 600,
                 width: "100%",
@@ -185,8 +185,8 @@ export default function Onboarding() {
       )}
 
       {pantalla === "registro" && (
-        <div style={{ background: "#0D1520", padding: "24px", paddingTop: "32px", minHeight: "100vh" }}>
-          <div style={{ height: "3px", background: "rgba(255,255,255,0.08)", borderRadius: "999px", overflow: "hidden", marginBottom: "8px" }}>
+        <div style={{ background: "var(--bg)", padding: "24px", paddingTop: "32px", minHeight: "100vh" }}>
+          <div style={{ height: "3px", background: "var(--border)", borderRadius: "999px", overflow: "hidden", marginBottom: "8px" }}>
             <div style={{ height: "100%", width: `${progreso}%`, background: "#007AFF", transition: "width 0.5s" }} />
           </div>
 
@@ -194,15 +194,15 @@ export default function Onboarding() {
             Tu NICOLE está al {progreso}% de su potencial
           </p>
 
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "22px", color: "white", marginBottom: "4px" }}>
+          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", marginBottom: "4px" }}>
             Contanos sobre tu negocio
           </h1>
 
-          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", marginBottom: "28px" }}>
+          <p style={{ fontSize: "13px", color: "var(--muted)", marginBottom: "28px" }}>
             60 segundos y listo
           </p>
 
-          <label style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", display: "block", marginBottom: "8px" }}>
+          <label style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "var(--muted)", display: "block", marginBottom: "8px" }}>
             NOMBRE DEL NEGOCIO
           </label>
 
@@ -214,10 +214,10 @@ export default function Onboarding() {
             style={{
               width: "100%",
               padding: "14px 16px",
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.15)",
+              background: "var(--card)",
+              border: "1px solid var(--border)",
               borderRadius: "12px",
-              color: "white",
+              color: "var(--text)",
               fontSize: "15px",
               outline: "none",
               marginBottom: "20px",
@@ -225,7 +225,7 @@ export default function Onboarding() {
             }}
           />
 
-          <label style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", display: "block", marginBottom: "8px" }}>
+          <label style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "var(--muted)", display: "block", marginBottom: "8px" }}>
             TIPO DE NEGOCIO
           </label>
 
@@ -243,7 +243,7 @@ export default function Onboarding() {
                 style={{
                   padding: "14px 10px",
                   background: tipoNegocio === label ? "rgba(0,122,255,0.2)" : "rgba(255,255,255,0.05)",
-                  border: tipoNegocio === label ? "1px solid #007AFF" : "1px solid rgba(255,255,255,0.1)",
+                  border: tipoNegocio === label ? "1px solid #007AFF" : "1px solid var(--border)",
                   borderRadius: "12px",
                   cursor: "pointer",
                   textAlign: "center",
@@ -257,7 +257,7 @@ export default function Onboarding() {
             ))}
           </div>
 
-          <label style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", display: "block", marginBottom: "8px" }}>
+          <label style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "var(--muted)", display: "block", marginBottom: "8px" }}>
             ZONA
           </label>
 
@@ -267,10 +267,10 @@ export default function Onboarding() {
             style={{
               width: "100%",
               padding: "14px 16px",
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.15)",
+              background: "var(--card)",
+              border: "1px solid var(--border)",
               borderRadius: "12px",
-              color: "white",
+              color: "var(--text)",
               fontSize: "14px",
               outline: "none",
               marginBottom: "28px",
@@ -300,7 +300,7 @@ export default function Onboarding() {
               borderRadius: "12px",
               fontSize: "15px",
               fontWeight: 700,
-              color: "white",
+              color: "var(--text)",
               border: "none",
               cursor: nombreNegocio && tipoNegocio ? "pointer" : "not-allowed",
               opacity: nombreNegocio && tipoNegocio ? 1 : 0.5
@@ -312,8 +312,8 @@ export default function Onboarding() {
       )}
 
       {pantalla === "nicole" && (
-        <div style={{ background: "#0D1520", padding: "24px", paddingTop: "32px", minHeight: "100vh" }}>
-          <div style={{ height: "3px", background: "rgba(255,255,255,0.08)", borderRadius: "999px", overflow: "hidden", marginBottom: "8px" }}>
+        <div style={{ background: "var(--bg)", padding: "24px", paddingTop: "32px", minHeight: "100vh" }}>
+          <div style={{ height: "3px", background: "var(--border)", borderRadius: "999px", overflow: "hidden", marginBottom: "8px" }}>
             <div style={{ height: "100%", width: `${progreso}%`, background: "#007AFF", transition: "width 0.5s" }} />
           </div>
 
@@ -321,15 +321,15 @@ export default function Onboarding() {
             Tu NICOLE está al {progreso}% de su potencial
           </p>
 
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "22px", color: "white", marginBottom: "4px" }}>
+          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", marginBottom: "4px" }}>
             Despertá a NICOLE
           </h1>
 
-          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", marginBottom: "24px" }}>
+          <p style={{ fontSize: "14px", color: "var(--muted)", marginBottom: "24px" }}>
             Sin tus ventas no puede ver nada
           </p>
 
-          <div style={{ background: "rgba(0,122,255,0.06)", border: "1px solid rgba(0,122,255,0.15)", borderRadius: "16px", padding: "24px", marginBottom: "20px", overflow: "hidden", position: "relative" }}>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "16px", padding: "24px", marginBottom: "20px", overflow: "hidden", position: "relative" }}>
             <svg width="100%" height="160" viewBox="0 0 300 160" style={{ display: "block" }}>
               <line x1="30" y1="80" x2="60" y2="30" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 2s infinite alternate" }} />
               <line x1="60" y1="30" x2="90" y2="120" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 2.5s infinite alternate" }} />
@@ -357,7 +357,7 @@ export default function Onboarding() {
             <p style={{ color: "#007AFF", fontSize: "10px", letterSpacing: "4px", textAlign: "center", marginTop: "8px", fontWeight: 600 }}>
               NICOLE
             </p>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px", textAlign: "center", marginTop: "4px" }}>
+            <p style={{ color: "var(--muted)", fontSize: "13px", textAlign: "center", marginTop: "4px" }}>
               Necesito tus ventas para arrancar...
             </p>
           </div>
@@ -381,8 +381,8 @@ export default function Onboarding() {
               💳
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "white" }}>Conectar Mercado Pago</div>
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Ve todo en tiempo real</div>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--text)" }}>Conectar Mercado Pago</div>
+              <div style={{ fontSize: "12px", color: "var(--muted)" }}>Ve todo en tiempo real</div>
             </div>
             <div style={{ color: "#007AFF", fontSize: "24px", marginLeft: "auto" }}>›</div>
           </button>
@@ -396,7 +396,7 @@ export default function Onboarding() {
               width: "100%",
               padding: "18px 20px",
               background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid var(--border)",
               borderRadius: "14px",
               marginBottom: "10px",
               cursor: "pointer"
@@ -406,20 +406,20 @@ export default function Onboarding() {
               📄
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "white" }}>Subir mis ventas</div>
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Excel o CSV</div>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--text)" }}>Subir mis ventas</div>
+              <div style={{ fontSize: "12px", color: "var(--muted)" }}>Excel o CSV</div>
             </div>
-            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "24px", marginLeft: "auto" }}>›</div>
+            <div style={{ color: "#94A3B8", fontSize: "24px", marginLeft: "auto" }}>›</div>
           </button>
 
-          <p onClick={terminar} style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", textAlign: "center", marginTop: "20px", cursor: "pointer" }}>
+          <p onClick={terminar} style={{ fontSize: "12px", color: "#94A3B8", textAlign: "center", marginTop: "20px", cursor: "pointer" }}>
             o lo hago después — NICOLE no podrá analizar tu negocio
           </p>
         </div>
       )}
 
       {pantalla === "procesando" && (
-        <div style={{ background: "#0D1520", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+        <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }}>
           <div style={{
             width: "100px",
             height: "100px",
@@ -438,11 +438,11 @@ export default function Onboarding() {
             </svg>
           </div>
 
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "22px", color: "white", textAlign: "center", marginBottom: "8px" }}>
+          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", textAlign: "center", marginBottom: "8px" }}>
             NICOLE está revisando tu negocio
           </h1>
 
-          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", textAlign: "center", marginBottom: "40px" }}>
+          <p style={{ fontSize: "14px", color: "var(--muted)", textAlign: "center", marginBottom: "40px" }}>
             Ya casi. En unos segundos te contamos lo que encontramos.
           </p>
 
@@ -477,7 +477,7 @@ export default function Onboarding() {
       )}
 
       {pantalla === "wow" && (
-        <div style={{ background: "#0D1520", minHeight: "100vh", padding: "48px 24px 32px", display: "flex", flexDirection: "column" }}>
+        <div style={{ background: "var(--bg)", minHeight: "100vh", padding: "48px 24px 32px", display: "flex", flexDirection: "column" }}>
           <p style={{ fontSize: "11px", letterSpacing: "3px", color: "#007AFF", textTransform: "uppercase", textAlign: "center", marginBottom: "32px", fontWeight: 600 }}>
             NICOLE DETECTÓ ALGO
           </p>
@@ -486,11 +486,11 @@ export default function Onboarding() {
             $47.200
           </div>
 
-          <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.8)", textAlign: "center", lineHeight: "1.5", marginBottom: "16px" }}>
-            Es lo que perdió <span style={{ fontWeight: 700, color: "white" }}>{nombreNegocio || "tu negocio"}</span> en el turno tarde durante el último mes.
+          <p style={{ fontSize: "16px", color: "var(--text)", textAlign: "center", lineHeight: "1.5", marginBottom: "16px" }}>
+            Es lo que perdió <span style={{ fontWeight: 700, color: "var(--text)" }}>{nombreNegocio || "tu negocio"}</span> en el turno tarde durante el último mes.
           </p>
 
-          <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.08)", margin: "20px 0" }} />
+          <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "20px 0" }} />
 
           <div style={{ marginTop: "auto", paddingTop: "32px" }}>
             <button
@@ -502,7 +502,7 @@ export default function Onboarding() {
                 borderRadius: "14px",
                 fontSize: "16px",
                 fontWeight: 700,
-                color: "white",
+                color: "var(--text)",
                 border: "none",
                 marginBottom: "12px",
                 cursor: "pointer",
@@ -516,9 +516,9 @@ export default function Onboarding() {
               onClick={terminar}
               style={{
                 background: "transparent",
-                border: "1px solid rgba(255,255,255,0.2)",
+                border: "1px solid var(--border)",
                 borderRadius: "14px",
-                color: "rgba(255,255,255,0.6)",
+                color: "var(--muted)",
                 fontSize: "14px",
                 fontWeight: 600,
                 width: "100%",
