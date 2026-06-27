@@ -106,7 +106,10 @@ export default function Login() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (localStorage.getItem("lumo_token")) router.replace("/");
+    if (localStorage.getItem("lumo_token")) {
+      const u = JSON.parse(localStorage.getItem("lumo_usuario") || "{}");
+      router.replace(u.onboarding_done ? "/" : "/onboarding");
+    }
   }, []);
 
   function set(k: string) {
@@ -129,7 +132,7 @@ export default function Login() {
       if (!resp.ok) throw new Error(data.error || "Error al conectar");
       localStorage.setItem("lumo_token", data.token);
       localStorage.setItem("lumo_usuario", JSON.stringify(data.usuario));
-      router.replace("/");
+      router.replace(data.usuario.onboarding_done ? "/" : "/onboarding");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Error desconocido");
     } finally { setLoading(false); }
