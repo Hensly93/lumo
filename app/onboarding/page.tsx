@@ -59,7 +59,7 @@ export default function Onboarding() {
   };
 
   const handleMPConnect = () => {
-    window.location.href = `${API}/api/mp/auth`;
+    window.location.href = `${API}/api/mp/conectar?token=${token}`;
   };
 
   const handleSubirArchivo = () => {
