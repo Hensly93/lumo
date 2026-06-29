@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
-export default function Onboarding() {
+export default function Onboarding({ searchParams }: { searchParams: { mp_conectado?: string } }) {
   const router = useRouter();
   const [pantalla, setPantalla] = useState<"bienvenida"|"registro"|"nicole"|"procesando"|"wow">("bienvenida");
   const [nombreNegocio, setNombreNegocio] = useState("");
@@ -33,6 +33,11 @@ export default function Onboarding() {
       } catch (e) {
         console.error("Error parseando usuario:", e);
       }
+    }
+
+    if (searchParams?.mp_conectado === "true") {
+      setPantalla("wow");
+      return;
     }
   }, [router]);
 
