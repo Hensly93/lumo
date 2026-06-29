@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
-export default function Onboarding({ searchParams }: { searchParams: { mp_conectado?: string } }) {
+export default function Onboarding() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [pantalla, setPantalla] = useState<"bienvenida"|"registro"|"nicole"|"procesando"|"wow">("bienvenida");
   const [nombreNegocio, setNombreNegocio] = useState("");
   const [tipoNegocio, setTipoNegocio] = useState("");
@@ -35,7 +36,7 @@ export default function Onboarding({ searchParams }: { searchParams: { mp_conect
       }
     }
 
-    if (searchParams?.mp_conectado === "true") {
+    if (searchParams?.get("mp_conectado") === "true") {
       setPantalla("wow");
       return;
     }
