@@ -40,7 +40,7 @@ export default function Onboarding() {
       setPantalla("wow");
       return;
     }
-  }, [router]);
+  }, [router, searchParams]);
 
   const guardarRegistro = async () => {
     if (!nombreNegocio || !tipoNegocio) {
