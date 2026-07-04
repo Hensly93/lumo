@@ -488,9 +488,6 @@ function OnboardingInner() {
             NICOLE DETECTÓ ALGO
           </p>
 
-          <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "72px", color: "#FF9500", textAlign: "center", lineHeight: 1, marginBottom: "20px" }}>
-            $47.200
-          </div>
 
           <p style={{ fontSize: "16px", color: "var(--text)", textAlign: "center", lineHeight: "1.5", marginBottom: "16px" }}>
             Es lo que perdió <span style={{ fontWeight: 700, color: "var(--text)" }}>{nombreNegocio || "tu negocio"}</span> en el turno tarde durante el último mes.
