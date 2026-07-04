@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
-export default function Onboarding() {
+function OnboardingInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pantalla, setPantalla] = useState<"bienvenida"|"registro"|"nicole"|"procesando"|"wow">("bienvenida");
@@ -538,5 +538,13 @@ export default function Onboarding() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Onboarding() {
+  return (
+    <Suspense fallback={null}>
+      <OnboardingInner />
+    </Suspense>
   );
 }
