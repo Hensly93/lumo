@@ -489,9 +489,10 @@ function OnboardingInner() {
           </p>
 
 
-          <p style={{ fontSize: "16px", color: "var(--text)", textAlign: "center", lineHeight: "1.5", marginBottom: "16px" }}>
-            Es lo que perdió <span style={{ fontWeight: 700, color: "var(--text)" }}>{nombreNegocio || "tu negocio"}</span> en el turno tarde durante el último mes.
-          </p>
+            <div style={{ textAlign: "center", marginBottom: "20px", padding: "24px", background: "rgba(0,122,255,0.08)", borderRadius: "16px" }}>
+              <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)", marginBottom: "8px" }}>NICOLE está analizando tu negocio</div>
+              <div style={{ fontSize: "14px", color: "var(--muted)" }}>{nombreNegocio || "Tu negocio"} va a tener su primer reporte personalizado en las próximas horas.</div>
+            </div>
 
           <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "20px 0" }} />
 
