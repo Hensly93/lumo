@@ -60,7 +60,7 @@ export default function Empleados() {
       fetch(`${API}/api/caja/empleados/${uid}`, { headers }).then(r => r.json()).catch(() => ({ empleados: [] })),
       fetch(`${API}/api/caja/patrones/${uid}`, { headers }).then(r => r.json()).catch(() => null),
       ...TIPOS_TURNO.map(t =>
-        fetch(`${API}/api/caja/ranking/${uid}/${t}`, { headers })
+        fetch(`${API}/api/caja/ranking/${t}`, { headers })
           .then(r => r.json()).then(d => ({ tipo: t, data: d.ranking || [] }))
           .catch(() => ({ tipo: t, data: [] }))
       ),
