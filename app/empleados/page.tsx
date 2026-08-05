@@ -23,7 +23,7 @@ type Patron = {
   turno_mas_problematico: string | null;
   tasa_inconsistencia_global: number;
   turnos_analizados: number;
-  racha_limpia: number;
+  racha_limpia_actual: number;
   goteo?: { detectado: boolean; total_brechas: number; promedio_por_turno: number; acelerando: boolean };
 };
 
@@ -130,8 +130,8 @@ export default function Empleados() {
               <StatCard label="Turnos" value={String(patrones.turnos_analizados)} color="blue" />
               <StatCard
                 label="Racha limpia"
-                value={String(patrones.racha_limpia)}
-                color={patrones.racha_limpia >= 7 ? "green" : "yellow"}
+                value={String(patrones.racha_limpia_actual)}
+                color={patrones.racha_limpia_actual >= 7 ? "green" : "yellow"}
               />
             </StatRow>
           )}
