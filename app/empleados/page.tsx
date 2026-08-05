@@ -27,6 +27,20 @@ type Patron = {
   goteo?: { detectado: boolean; total_brechas: number; promedio_por_turno: number; acelerando: boolean };
 };
 
+type EmpleadoERM = {
+  empleado: string;
+  score: number | null;
+  nivel: string;
+  señales: { tipo: string; descripcion: string; peso: number }[];
+  confianza?: { señales_disponibles: number; señales_totales: number };
+};
+
+type ERMNegocio = {
+  empleados: EmpleadoERM[];
+  resumen: { total: number; rojos: number; amarillos: number; verdes: number; sin_datos: number };
+  alerta_equipo: string | null;
+};
+
 const TIPOS_TURNO = ["MANANA", "TARDE", "NOCHE"] as const;
 const LABEL_TURNO: Record<string, string> = { MANANA: "Mañana", TARDE: "Tarde", NOCHE: "Noche" };
 const EAV_VARIANT = ["a", "b", "c"] as const;
@@ -40,12 +54,20 @@ function nivelBadge(nivel: string): { text: string; variant: "ok" | "warn" } {
   return { text: nivel.charAt(0).toUpperCase() + nivel.slice(1), variant: "warn" };
 }
 
+function nivelBadgeERM(nivel: string): { text: string; variant: "ok" | "warn" } {
+  if (nivel === "rojo") return { text: "Alto riesgo", variant: "warn" };
+  if (nivel === "amarillo") return { text: "Atención", variant: "warn" };
+  if (nivel === "verde") return { text: "Normal", variant: "ok" };
+  return { text: "Sin datos", variant: "ok" };
+}
+
 export default function Empleados() {
   const router = useRouter();
   const { token, ready } = useAuth();
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
   const [rankings, setRankings] = useState<Record<string, RankingItem[]>>({});
   const [patrones, setPatrones] = useState<Patron | null>(null);
+  const [erm, setErm] = useState<ERMNegocio | null>(null);
   const [turnoActivo, setTurnoActivo] = useState<string>("MANANA");
   const [loading, setLoading] = useState(true);
 
@@ -59,14 +81,16 @@ export default function Empleados() {
     Promise.all([
       fetch(`${API}/api/caja/empleados/${uid}`, { headers }).then(r => r.json()).catch(() => ({ empleados: [] })),
       fetch(`${API}/api/caja/patrones/${uid}`, { headers }).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/erm`, { headers }).then(r => r.json()).catch(() => null),
       ...TIPOS_TURNO.map(t =>
         fetch(`${API}/api/caja/ranking/${t}`, { headers })
           .then(r => r.json()).then(d => ({ tipo: t, data: d.ranking || [] }))
           .catch(() => ({ tipo: t, data: [] }))
       ),
-    ]).then(([emps, pats, ...ranks]) => {
+    ]).then(([emps, pats, ermData, ...ranks]) => {
       setEmpleados((emps as { empleados: Empleado[] }).empleados || []);
       setPatrones(pats as Patron);
+      setErm(ermData as ERMNegocio | null);
       const rankMap: Record<string, RankingItem[]> = {};
       (ranks as { tipo: string; data: RankingItem[] }[]).forEach(r => { rankMap[r.tipo] = r.data; });
       setRankings(rankMap);
@@ -110,6 +134,32 @@ export default function Empleados() {
                 color={patrones.racha_limpia >= 7 ? "green" : "yellow"}
               />
             </StatRow>
+          )}
+
+          {erm && Array.isArray(erm.empleados) && erm.empleados.length > 0 && (
+            <>
+              <SectionTitle>Riesgo del equipo</SectionTitle>
+              <StatRow>
+                <StatCard label="Rojo" value={String(erm.resumen.rojos)} color="red" />
+                <StatCard label="Atención" value={String(erm.resumen.amarillos)} color="yellow" />
+                <StatCard label="Normal" value={String(erm.resumen.verdes)} color="green" />
+              </StatRow>
+              {erm.alerta_equipo && (
+                <AlertCard variant="crit" tag="Alerta de equipo" title={erm.alerta_equipo} desc="" />
+              )}
+              {erm.empleados.map((e, i) => (
+                <EmployeeCard
+                  key={e.empleado}
+                  initials={iniciales(e.empleado)}
+                  colorVariant={EAV_VARIANT[i % 3]}
+                  name={e.empleado}
+                  sub={e.score !== null && e.señales.length > 0 ? e.señales[0].descripcion : e.score === null ? "Datos insuficientes" : "Sin señales activas"}
+                  amount={e.score !== null ? `Riesgo ${e.score}` : "—"}
+                  badge={nivelBadgeERM(e.nivel)}
+                />
+              ))}
+              <Divider />
+            </>
           )}
 
           <FilterChips chips={chips} />
