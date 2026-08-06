@@ -80,7 +80,7 @@ export default function Empleados() {
     const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
       fetch(`${API}/api/caja/empleados/${uid}`, { headers }).then(r => r.json()).catch(() => ({ empleados: [] })),
-      fetch(`${API}/api/caja/patrones/${uid}`, { headers }).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/caja/patrones`, { headers }).then(r => r.json()).catch(() => null),
       fetch(`${API}/api/erm`, { headers }).then(r => r.json()).catch(() => null),
       ...TIPOS_TURNO.map(t =>
         fetch(`${API}/api/caja/ranking/${t}`, { headers })
