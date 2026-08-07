@@ -79,7 +79,7 @@ export default function Empleados() {
     if (!uid) { setLoading(false); return; }
     const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
-      fetch(`${API}/api/caja/empleados/${uid}`, { headers }).then(r => r.json()).catch(() => ({ empleados: [] })),
+      fetch(`${API}/api/caja/empleados`, { headers }).then(r => r.json()).catch(() => ({ empleados: [] })),
       fetch(`${API}/api/caja/patrones`, { headers }).then(r => r.json()).catch(() => null),
       fetch(`${API}/api/erm`, { headers }).then(r => r.json()).catch(() => null),
       ...TIPOS_TURNO.map(t =>
@@ -124,8 +124,8 @@ export default function Empleados() {
             <StatRow>
               <StatCard
                 label="Inconsistencias"
-                value={`${Math.round(patrones.tasa_inconsistencia_global * 100)}%`}
-                color={patrones.tasa_inconsistencia_global > 0.3 ? "red" : patrones.tasa_inconsistencia_global > 0.15 ? "yellow" : "green"}
+                value={`${Math.round(patrones.tasa_inconsistencia_global)}%`}
+                color={patrones.tasa_inconsistencia_global > 30 ? "red" : patrones.tasa_inconsistencia_global > 15 ? "yellow" : "green"}
               />
               <StatCard label="Turnos" value={String(patrones.turnos_analizados)} color="blue" />
               <StatCard
