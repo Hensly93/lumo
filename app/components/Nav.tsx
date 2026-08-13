@@ -97,6 +97,9 @@ export default function Nav() {
       WebkitBackdropFilter: "blur(12px)",
       position: "fixed", bottom: 0, left: 0, right: 0,
       zIndex: 50,
+      overflowX: "auto",
+      overflowY: "hidden",
+      WebkitOverflowScrolling: "smooth",
     }}>
       {links.map(l => {
         const active = path === l.href || (l.href !== "/" && path.startsWith(l.href));
@@ -159,10 +162,10 @@ export default function Nav() {
             key={l.href}
             href={l.href}
             style={{
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-              padding: "4px 6px", borderRadius: 10, textDecoration: "none",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+              padding: "4px 3px", borderRadius: 10, textDecoration: "none",
               background: active ? "linear-gradient(135deg,#007AFF12,#00C2FF08)" : "transparent",
-              minWidth: 40,
+              minWidth: 34,
             }}
           >
             {l.icon(active)}
