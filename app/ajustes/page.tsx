@@ -176,10 +176,14 @@ function SecNegocio({ token, perfil, onSave }: { token: string; perfil: Perfil; 
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
-      const uRaw = localStorage.getItem("lumo_usuario");
-      if (uRaw) {
-        const u = JSON.parse(uRaw);
-        localStorage.setItem("lumo_usuario", JSON.stringify({ ...u, nombre: data.nombre, negocio: data.negocio }));
+      try {
+        const uRaw = localStorage.getItem("lumo_usuario");
+        if (uRaw) {
+          const u = JSON.parse(uRaw);
+          localStorage.setItem("lumo_usuario", JSON.stringify({ ...u, nombre: data.nombre, negocio: data.negocio }));
+        }
+      } catch (e) {
+        // Silent fail si localStorage bloqueado en mobile/PWA
       }
       onSave(data); setLogoFile(null); toast("Guardado ✓", true);
     } catch (e: unknown) {
@@ -734,7 +738,11 @@ export default function AjustesPage() {
   }, [authToken, ready, router]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    try {
+      localStorage.clear();
+    } catch (e) {
+      // Silent fail si localStorage bloqueado en mobile/PWA
+    }
     router.replace("/login");
   };
 
@@ -837,7 +845,11 @@ export default function AjustesPage() {
         <ConfirmDeleteAccountModal
           onClose={() => setShowDeleteModal(false)}
           onSuccess={() => {
-            localStorage.clear();
+            try {
+              localStorage.clear();
+            } catch (e) {
+              // Silent fail si localStorage bloqueado en mobile/PWA
+            }
             router.replace("/login");
           }}
         />
