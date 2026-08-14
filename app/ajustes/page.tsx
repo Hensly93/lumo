@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
+import { subscribePush } from "../hooks/usePush";
 import ConfirmCancelSubscriptionModal from "../components/ConfirmCancelSubscriptionModal";
 import ConfirmDeleteAccountModal from "../components/ConfirmDeleteAccountModal";
 
@@ -553,11 +554,23 @@ function SecSuscripcion({ perfil, onCancelSubscription }: { perfil: Perfil; onCa
 function SecNotificaciones({ token }: { token: string }) {
   const [toggles, setToggles] = useState({ alertas_criticas: true, alertas_medias: true, resumen_diario: false, conteos_perdidos: true });
   const [saving, setSaving] = useState(false);
+  const [pushStatus, setPushStatus] = useState<"unknown" | "granted" | "denied" | "default">("unknown");
+  const [subscribing, setSubscribing] = useState(false);
+  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => {
     fetch(`${API}/api/usuario/notificaciones`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(d => setToggles(t => ({ ...t, ...d }))).catch(() => {});
   }, [token]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("Notification" in window)) {
+      setPushStatus("denied");
+      return;
+    }
+    setPushStatus(Notification.permission);
+  }, []);
 
   async function guardar(key: string, value: boolean) {
     setToggles(t => ({ ...t, [key]: value })); setSaving(true);
@@ -570,10 +583,91 @@ function SecNotificaciones({ token }: { token: string }) {
     } catch { /* silent */ } finally { setSaving(false); }
   }
 
+  async function activarNotificaciones() {
+    setSubscribing(true);
+    try {
+      const success = await subscribePush(token);
+      if (success) {
+        setPushStatus("granted");
+        setMsg({ text: "Notificaciones activadas ✓", ok: true });
+      } else {
+        setMsg({ text: "No se pudo activar", ok: false });
+      }
+    } catch (e) {
+      setMsg({ text: "Error al activar", ok: false });
+    } finally {
+      setSubscribing(false);
+      setTimeout(() => setMsg(null), 3000);
+    }
+  }
+
   function set(k: string) { return (v: boolean) => guardar(k, v); }
 
   return (
     <div>
+      {msg && <Toast msg={msg.text} ok={msg.ok} />}
+
+      {pushStatus === "default" && (
+        <div style={{
+          background: "linear-gradient(135deg,#007AFF12,#00C2FF08)",
+          border: "1px solid #007AFF25",
+          borderRadius: 12,
+          padding: "14px 16px",
+          marginBottom: 16
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>
+            Activá las notificaciones push para recibir alertas en tiempo real
+          </div>
+          <button
+            onClick={activarNotificaciones}
+            disabled={subscribing}
+            style={{
+              width: "100%",
+              padding: "12px",
+              background: "linear-gradient(135deg,#007AFF,#00C2FF)",
+              border: "none",
+              borderRadius: 10,
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: subscribing ? "not-allowed" : "pointer",
+              opacity: subscribing ? 0.6 : 1
+            }}
+          >
+            {subscribing ? "Activando..." : "🔔 Activar notificaciones"}
+          </button>
+        </div>
+      )}
+
+      {pushStatus === "granted" && (
+        <div style={{
+          background: "#00C48C12",
+          border: "1px solid #00C48C30",
+          borderRadius: 12,
+          padding: "12px 16px",
+          marginBottom: 16,
+          fontSize: 13,
+          color: "var(--emerald)"
+        }}>
+          ✓ Notificaciones push activadas
+        </div>
+      )}
+
+      {pushStatus === "denied" && (
+        <div style={{
+          background: "#EF444412",
+          border: "1px solid #EF444430",
+          borderRadius: 12,
+          padding: "12px 16px",
+          marginBottom: 16,
+          fontSize: 12,
+          color: "var(--red)",
+          lineHeight: 1.5
+        }}>
+          ⚠️ Permisos de notificaciones denegados. Para activarlas, andá a Settings → Site settings → lumo-psi.vercel.app → Notifications → Allow
+        </div>
+      )}
+
       <ToggleRow on={toggles.alertas_criticas} onChange={set("alertas_criticas")} label="Alertas críticas" sub="Inconsistencias con z-score > 3.0" />
       <ToggleRow on={toggles.alertas_medias} onChange={set("alertas_medias")} label="Alertas de atención" sub="Patrones repetidos y brechas moderadas" />
       <ToggleRow on={toggles.conteos_perdidos} onChange={set("conteos_perdidos")} label="Conteos no respondidos" sub="Cuando un empleado no responde en 15 min" />
