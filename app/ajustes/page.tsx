@@ -557,8 +557,16 @@ function SecNotificaciones({ token }: { token: string }) {
   const [pushStatus, setPushStatus] = useState<"unknown" | "granted" | "denied" | "default">("unknown");
   const [subscribing, setSubscribing] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
-  console.log("🔍 [SecNotificaciones] Render - pushStatus actual:", pushStatus);
+  const addLog = (msg: string) => {
+    setDebugLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
+    console.log(msg);
+  };
+
+  useEffect(() => {
+    addLog("🔍 [SecNotificaciones] Render - pushStatus actual: " + pushStatus);
+  }, [pushStatus]);
 
   useEffect(() => {
     fetch(`${API}/api/usuario/notificaciones`, { headers: { Authorization: `Bearer ${token}` } })
@@ -566,49 +574,49 @@ function SecNotificaciones({ token }: { token: string }) {
   }, [token]);
 
   useEffect(() => {
-    console.log("🔍 [useEffect pushStatus] INICIO");
+    addLog("🔍 [useEffect pushStatus] INICIO");
 
     if (typeof window === "undefined") {
-      console.log("🔍 [useEffect] window undefined - saliendo");
+      addLog("🔍 [useEffect] window undefined - saliendo");
       return;
     }
 
     if (!("Notification" in window)) {
-      console.log("🔍 [useEffect] Notification API no disponible → denied");
+      addLog("🔍 [useEffect] Notification API no disponible → denied");
       setPushStatus("denied");
       return;
     }
 
     const perm = Notification.permission;
-    console.log("🔍 [useEffect] Notification.permission =", perm);
+    addLog("🔍 [useEffect] Notification.permission = " + perm);
 
     if (perm === "granted") {
-      console.log("🔍 [useEffect] perm === granted, verificando suscripción...");
+      addLog("🔍 [useEffect] perm === granted, verificando suscripción...");
       // Verificar si existe suscripción real
       if ("serviceWorker" in navigator && "PushManager" in window) {
-        console.log("🔍 [useEffect] SW y PushManager disponibles, esperando ready...");
+        addLog("🔍 [useEffect] SW y PushManager disponibles, esperando ready...");
         navigator.serviceWorker.ready.then(async (reg) => {
           const sub = await reg.pushManager.getSubscription();
-          console.log("🔍 [useEffect] Suscripción existente:", !!sub);
+          addLog("🔍 [useEffect] Suscripción existente: " + !!sub);
           if (sub) {
-            console.log("🔍 [useEffect] → setPushStatus('granted')");
+            addLog("🔍 [useEffect] → setPushStatus('granted')");
             setPushStatus("granted"); // Permission granted Y suscripción existe
           } else {
-            console.log("🔍 [useEffect] → setPushStatus('default') - granted sin sub");
+            addLog("🔍 [useEffect] → setPushStatus('default') - granted sin sub");
             setPushStatus("default"); // Permission granted PERO sin suscripción
           }
         }).catch((err) => {
-          console.log("🔍 [useEffect] Error verificando suscripción:", err);
-          console.log("🔍 [useEffect] → setPushStatus('default') - error");
+          addLog("🔍 [useEffect] Error verificando suscripción: " + err);
+          addLog("🔍 [useEffect] → setPushStatus('default') - error");
           setPushStatus("default");
         });
       } else {
-        console.log("🔍 [useEffect] SW o PushManager NO disponibles → setPushStatus('default')");
+        addLog("🔍 [useEffect] SW o PushManager NO disponibles → setPushStatus('default')");
         setPushStatus("default");
       }
     } else {
       // "denied" o "default" se asignan directamente
-      console.log("🔍 [useEffect] perm !== granted → setPushStatus('" + perm + "')");
+      addLog("🔍 [useEffect] perm !== granted → setPushStatus('" + perm + "')");
       setPushStatus(perm);
     }
   }, []);
@@ -644,17 +652,40 @@ function SecNotificaciones({ token }: { token: string }) {
 
   function set(k: string) { return (v: boolean) => guardar(k, v); }
 
-  console.log("🔍 [SecNotificaciones] Pre-return - pushStatus:", pushStatus);
-  console.log("🔍 [SecNotificaciones] ¿Mostrar banner? (pushStatus === 'default'):", pushStatus === "default");
+  const shouldShowBanner = pushStatus === "default";
+
+  useEffect(() => {
+    addLog("🔍 [Pre-return] pushStatus: " + pushStatus);
+    addLog("🔍 [Pre-return] shouldShowBanner: " + shouldShowBanner);
+  }, [pushStatus, shouldShowBanner]);
 
   return (
     <div>
       {msg && <Toast msg={msg.text} ok={msg.ok} />}
 
-      {(() => {
-        const shouldShow = pushStatus === "default";
-        console.log("🔍 [JSX Banner] pushStatus:", pushStatus, "| shouldShow:", shouldShow);
-        return shouldShow ? (
+      {/* Panel de debug visual */}
+      <div style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        maxHeight: "30vh",
+        overflowY: "auto",
+        background: "#000",
+        color: "#0f0",
+        fontSize: 10,
+        fontFamily: "monospace",
+        padding: "8px",
+        zIndex: 9999,
+        borderTop: "2px solid #0f0"
+      }}>
+        <div style={{ fontWeight: "bold", marginBottom: 4, color: "#fff" }}>🔍 DEBUG LOGS:</div>
+        {debugLogs.map((log, i) => (
+          <div key={i} style={{ marginBottom: 2 }}>{log}</div>
+        ))}
+      </div>
+
+      {shouldShowBanner ? (
           <div style={{
             background: "linear-gradient(135deg,#007AFF12,#00C2FF08)",
             border: "1px solid #007AFF25",
@@ -684,8 +715,7 @@ function SecNotificaciones({ token }: { token: string }) {
               {subscribing ? "Activando..." : "🔔 Activar notificaciones"}
             </button>
           </div>
-        ) : null;
-      })()}
+        ) : null}
 
       {pushStatus === "granted" && (
         <div style={{
