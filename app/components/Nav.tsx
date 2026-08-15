@@ -99,7 +99,7 @@ export default function Nav() {
       zIndex: 50,
       overflowX: "auto",
       overflowY: "hidden",
-      WebkitOverflowScrolling: "smooth",
+      WebkitOverflowScrolling: "touch",
     }}>
       {links.map(l => {
         const active = path === l.href || (l.href !== "/" && path.startsWith(l.href));
