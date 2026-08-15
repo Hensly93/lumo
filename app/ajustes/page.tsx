@@ -569,7 +569,29 @@ function SecNotificaciones({ token }: { token: string }) {
       setPushStatus("denied");
       return;
     }
-    setPushStatus(Notification.permission);
+
+    const perm = Notification.permission;
+
+    if (perm === "granted") {
+      // Verificar si existe suscripción real
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+        navigator.serviceWorker.ready.then(async (reg) => {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            setPushStatus("granted"); // Permission granted Y suscripción existe
+          } else {
+            setPushStatus("default"); // Permission granted PERO sin suscripción
+          }
+        }).catch(() => {
+          setPushStatus("default");
+        });
+      } else {
+        setPushStatus("default");
+      }
+    } else {
+      // "denied" o "default" se asignan directamente
+      setPushStatus(perm);
+    }
   }, []);
 
   async function guardar(key: string, value: boolean) {
