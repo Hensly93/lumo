@@ -558,38 +558,57 @@ function SecNotificaciones({ token }: { token: string }) {
   const [subscribing, setSubscribing] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
+  console.log("🔍 [SecNotificaciones] Render - pushStatus actual:", pushStatus);
+
   useEffect(() => {
     fetch(`${API}/api/usuario/notificaciones`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(d => setToggles(t => ({ ...t, ...d }))).catch(() => {});
   }, [token]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    console.log("🔍 [useEffect pushStatus] INICIO");
+
+    if (typeof window === "undefined") {
+      console.log("🔍 [useEffect] window undefined - saliendo");
+      return;
+    }
+
     if (!("Notification" in window)) {
+      console.log("🔍 [useEffect] Notification API no disponible → denied");
       setPushStatus("denied");
       return;
     }
 
     const perm = Notification.permission;
+    console.log("🔍 [useEffect] Notification.permission =", perm);
 
     if (perm === "granted") {
+      console.log("🔍 [useEffect] perm === granted, verificando suscripción...");
       // Verificar si existe suscripción real
       if ("serviceWorker" in navigator && "PushManager" in window) {
+        console.log("🔍 [useEffect] SW y PushManager disponibles, esperando ready...");
         navigator.serviceWorker.ready.then(async (reg) => {
           const sub = await reg.pushManager.getSubscription();
+          console.log("🔍 [useEffect] Suscripción existente:", !!sub);
           if (sub) {
+            console.log("🔍 [useEffect] → setPushStatus('granted')");
             setPushStatus("granted"); // Permission granted Y suscripción existe
           } else {
+            console.log("🔍 [useEffect] → setPushStatus('default') - granted sin sub");
             setPushStatus("default"); // Permission granted PERO sin suscripción
           }
-        }).catch(() => {
+        }).catch((err) => {
+          console.log("🔍 [useEffect] Error verificando suscripción:", err);
+          console.log("🔍 [useEffect] → setPushStatus('default') - error");
           setPushStatus("default");
         });
       } else {
+        console.log("🔍 [useEffect] SW o PushManager NO disponibles → setPushStatus('default')");
         setPushStatus("default");
       }
     } else {
       // "denied" o "default" se asignan directamente
+      console.log("🔍 [useEffect] perm !== granted → setPushStatus('" + perm + "')");
       setPushStatus(perm);
     }
   }, []);
@@ -625,41 +644,48 @@ function SecNotificaciones({ token }: { token: string }) {
 
   function set(k: string) { return (v: boolean) => guardar(k, v); }
 
+  console.log("🔍 [SecNotificaciones] Pre-return - pushStatus:", pushStatus);
+  console.log("🔍 [SecNotificaciones] ¿Mostrar banner? (pushStatus === 'default'):", pushStatus === "default");
+
   return (
     <div>
       {msg && <Toast msg={msg.text} ok={msg.ok} />}
 
-      {pushStatus === "default" && (
-        <div style={{
-          background: "linear-gradient(135deg,#007AFF12,#00C2FF08)",
-          border: "1px solid #007AFF25",
-          borderRadius: 12,
-          padding: "14px 16px",
-          marginBottom: 16
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>
-            Activá las notificaciones push para recibir alertas en tiempo real
+      {(() => {
+        const shouldShow = pushStatus === "default";
+        console.log("🔍 [JSX Banner] pushStatus:", pushStatus, "| shouldShow:", shouldShow);
+        return shouldShow ? (
+          <div style={{
+            background: "linear-gradient(135deg,#007AFF12,#00C2FF08)",
+            border: "1px solid #007AFF25",
+            borderRadius: 12,
+            padding: "14px 16px",
+            marginBottom: 16
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>
+              Activá las notificaciones push para recibir alertas en tiempo real
+            </div>
+            <button
+              onClick={activarNotificaciones}
+              disabled={subscribing}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "linear-gradient(135deg,#007AFF,#00C2FF)",
+                border: "none",
+                borderRadius: 10,
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: subscribing ? "not-allowed" : "pointer",
+                opacity: subscribing ? 0.6 : 1
+              }}
+            >
+              {subscribing ? "Activando..." : "🔔 Activar notificaciones"}
+            </button>
           </div>
-          <button
-            onClick={activarNotificaciones}
-            disabled={subscribing}
-            style={{
-              width: "100%",
-              padding: "12px",
-              background: "linear-gradient(135deg,#007AFF,#00C2FF)",
-              border: "none",
-              borderRadius: 10,
-              color: "#fff",
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: subscribing ? "not-allowed" : "pointer",
-              opacity: subscribing ? 0.6 : 1
-            }}
-          >
-            {subscribing ? "Activando..." : "🔔 Activar notificaciones"}
-          </button>
-        </div>
-      )}
+        ) : null;
+      })()}
 
       {pushStatus === "granted" && (
         <div style={{
