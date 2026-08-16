@@ -557,16 +557,6 @@ function SecNotificaciones({ token }: { token: string }) {
   const [pushStatus, setPushStatus] = useState<"unknown" | "granted" | "denied" | "default">("unknown");
   const [subscribing, setSubscribing] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
-  const [debugLogs, setDebugLogs] = useState<string[]>([]);
-
-  const addLog = (msg: string) => {
-    setDebugLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
-    console.log(msg);
-  };
-
-  useEffect(() => {
-    addLog("🔍 [SecNotificaciones] Render - pushStatus actual: " + pushStatus);
-  }, [pushStatus]);
 
   useEffect(() => {
     fetch(`${API}/api/usuario/notificaciones`, { headers: { Authorization: `Bearer ${token}` } })
@@ -574,49 +564,33 @@ function SecNotificaciones({ token }: { token: string }) {
   }, [token]);
 
   useEffect(() => {
-    addLog("🔍 [useEffect pushStatus] INICIO");
-
-    if (typeof window === "undefined") {
-      addLog("🔍 [useEffect] window undefined - saliendo");
-      return;
-    }
+    if (typeof window === "undefined") return;
 
     if (!("Notification" in window)) {
-      addLog("🔍 [useEffect] Notification API no disponible → denied");
       setPushStatus("denied");
       return;
     }
 
     const perm = Notification.permission;
-    addLog("🔍 [useEffect] Notification.permission = " + perm);
 
     if (perm === "granted") {
-      addLog("🔍 [useEffect] perm === granted, verificando suscripción...");
       // Verificar si existe suscripción real
       if ("serviceWorker" in navigator && "PushManager" in window) {
-        addLog("🔍 [useEffect] SW y PushManager disponibles, esperando ready...");
         navigator.serviceWorker.ready.then(async (reg) => {
           const sub = await reg.pushManager.getSubscription();
-          addLog("🔍 [useEffect] Suscripción existente: " + !!sub);
           if (sub) {
-            addLog("🔍 [useEffect] → setPushStatus('granted')");
             setPushStatus("granted"); // Permission granted Y suscripción existe
           } else {
-            addLog("🔍 [useEffect] → setPushStatus('default') - granted sin sub");
             setPushStatus("default"); // Permission granted PERO sin suscripción
           }
-        }).catch((err) => {
-          addLog("🔍 [useEffect] Error verificando suscripción: " + err);
-          addLog("🔍 [useEffect] → setPushStatus('default') - error");
+        }).catch(() => {
           setPushStatus("default");
         });
       } else {
-        addLog("🔍 [useEffect] SW o PushManager NO disponibles → setPushStatus('default')");
         setPushStatus("default");
       }
     } else {
       // "denied" o "default" se asignan directamente
-      addLog("🔍 [useEffect] perm !== granted → setPushStatus('" + perm + "')");
       setPushStatus(perm);
     }
   }, []);
@@ -654,36 +628,9 @@ function SecNotificaciones({ token }: { token: string }) {
 
   const shouldShowBanner = pushStatus === "default";
 
-  useEffect(() => {
-    addLog("🔍 [Pre-return] pushStatus: " + pushStatus);
-    addLog("🔍 [Pre-return] shouldShowBanner: " + shouldShowBanner);
-  }, [pushStatus, shouldShowBanner]);
-
   return (
     <div>
       {msg && <Toast msg={msg.text} ok={msg.ok} />}
-
-      {/* Panel de debug visual */}
-      <div style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        maxHeight: "30vh",
-        overflowY: "auto",
-        background: "#000",
-        color: "#0f0",
-        fontSize: 10,
-        fontFamily: "monospace",
-        padding: "8px",
-        zIndex: 9999,
-        borderTop: "2px solid #0f0"
-      }}>
-        <div style={{ fontWeight: "bold", marginBottom: 4, color: "#fff" }}>🔍 DEBUG LOGS:</div>
-        {debugLogs.map((log, i) => (
-          <div key={i} style={{ marginBottom: 2 }}>{log}</div>
-        ))}
-      </div>
 
       {shouldShowBanner ? (
           <div style={{
@@ -750,10 +697,11 @@ function SecNotificaciones({ token }: { token: string }) {
       <ToggleRow on={toggles.alertas_medias} onChange={set("alertas_medias")} label="Alertas de atención" sub="Patrones repetidos y brechas moderadas" />
       <ToggleRow on={toggles.conteos_perdidos} onChange={set("conteos_perdidos")} label="Conteos no respondidos" sub="Cuando un empleado no responde en 15 min" />
       <ToggleRow on={toggles.resumen_diario} onChange={set("resumen_diario")} label="Resumen diario" sub="Un resumen cada noche con lo del día" />
-      <div style={{ marginTop: 12, fontSize: 11, color: "var(--muted)", lineHeight: 1.5 }}>
-        Las notificaciones push requieren que la app esté instalada como PWA.
-        {saving && <span style={{ color: "var(--cyan)", marginLeft: 8 }}>Guardando...</span>}
-      </div>
+      {saving && (
+        <div style={{ marginTop: 12, fontSize: 11, color: "var(--cyan)" }}>
+          Guardando...
+        </div>
+      )}
     </div>
   );
 }
