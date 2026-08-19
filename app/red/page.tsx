@@ -48,7 +48,10 @@ export default function Red() {
   const [loading, setLoading] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [nombre, setNombre] = useState("");
-  const [direccion, setDireccion] = useState("");
+  const [calle, setCalle] = useState("");
+  const [numero, setNumero] = useState("");
+  const [localidad, setLocalidad] = useState("");
+  const [provincia, setProvincia] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<Sucursal | null>(null);
@@ -79,10 +82,16 @@ export default function Red() {
       const resp = await fetch(`${API}/api/multilocal/sucursal`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ nombre: nombre.trim(), direccion: direccion.trim() || null }),
+        body: JSON.stringify({
+          nombre: nombre.trim(),
+          calle: calle.trim() || null,
+          numero: numero.trim() || null,
+          localidad: localidad.trim() || null,
+          provincia: provincia.trim() || null
+        }),
       });
       if (!resp.ok) throw new Error((await resp.json()).error || "Error");
-      setNombre(""); setDireccion(""); setMostrarForm(false); await cargar();
+      setNombre(""); setCalle(""); setNumero(""); setLocalidad(""); setProvincia(""); setMostrarForm(false); await cargar();
     } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error"); }
     finally { setGuardando(false); }
   }
@@ -151,7 +160,10 @@ export default function Red() {
               <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, color: "var(--cyan)", textTransform: "uppercase", marginBottom: 14 }}>// Nuevo local</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
                 <input placeholder="Nombre del local *" value={nombre} onChange={e => { setNombre(e.target.value); setError(""); }} style={inp()} autoFocus />
-                <input placeholder="Dirección (opcional)" value={direccion} onChange={e => setDireccion(e.target.value)} style={inp()} />
+                <input placeholder="Calle" value={calle} onChange={e => setCalle(e.target.value)} style={inp()} />
+                <input placeholder="Número" value={numero} onChange={e => setNumero(e.target.value)} style={inp()} />
+                <input placeholder="Localidad" value={localidad} onChange={e => setLocalidad(e.target.value)} style={inp()} />
+                <input placeholder="Provincia" value={provincia} onChange={e => setProvincia(e.target.value)} style={inp()} />
               </div>
               {error && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 12 }}>{error}</div>}
               <button type="submit" disabled={guardando} style={{ width: "100%", padding: 13, background: "linear-gradient(135deg,#007AFF,#00C2FF)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, cursor: guardando ? "not-allowed" : "pointer", opacity: guardando ? 0.7 : 1 }}>
