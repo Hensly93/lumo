@@ -152,7 +152,7 @@ export default function EmpleadoPage() {
       const r = await fetch(`${API}/api/caja/validar-pin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario_id: negocioId, nombre_empleado: empleadoSel, pin }),
+        body: JSON.stringify({ negocio_id: negocioId, nombre_empleado: empleadoSel, pin }),
       });
       const d = await r.json();
       if (!r.ok) { setError(d.error); return; }
@@ -178,7 +178,7 @@ export default function EmpleadoPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          usuario_id: negocioId,
+          negocio_id: negocioId,
           nombre_empleado: empleadoSel,
           pin,
           caja_apertura: parseFloat(aperturaEfectivo),
