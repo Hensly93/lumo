@@ -11,6 +11,13 @@ type Sucursal = {
   id: number;
   nombre: string;
   direccion: string | null;
+  calle: string | null;
+  numero: string | null;
+  localidad: string | null;
+  provincia: string | null;
+  latitud: number | null;
+  longitud: number | null;
+  geocoding_status: string | null;
   ventas_mes: number;
   tx_mes: number;
   brecha_promedio: number;
@@ -56,7 +63,10 @@ export default function Red() {
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<Sucursal | null>(null);
   const [editNombre, setEditNombre] = useState("");
-  const [editDireccion, setEditDireccion] = useState("");
+  const [editCalle, setEditCalle] = useState("");
+  const [editNumero, setEditNumero] = useState("");
+  const [editLocalidad, setEditLocalidad] = useState("");
+  const [editProvincia, setEditProvincia] = useState("");
   const [editGuardando, setEditGuardando] = useState(false);
 
   useEffect(() => {
@@ -104,7 +114,13 @@ export default function Red() {
       await fetch(`${API}/api/multilocal/sucursal/${editando.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ nombre: editNombre.trim(), direccion: editDireccion.trim() || null }),
+        body: JSON.stringify({
+          nombre: editNombre.trim(),
+          calle: editCalle.trim() || null,
+          numero: editNumero.trim() || null,
+          localidad: editLocalidad.trim() || null,
+          provincia: editProvincia.trim() || null
+        }),
       });
       setEditando(null); await cargar();
     } finally { setEditGuardando(false); }
@@ -178,7 +194,10 @@ export default function Red() {
               <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, color: "var(--muted)", textTransform: "uppercase", marginBottom: 14 }}>// Editar local</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
                 <input placeholder="Nombre del local *" value={editNombre} onChange={e => setEditNombre(e.target.value)} style={inp()} autoFocus />
-                <input placeholder="Dirección (opcional)" value={editDireccion} onChange={e => setEditDireccion(e.target.value)} style={inp()} />
+                <input placeholder="Calle" value={editCalle} onChange={e => setEditCalle(e.target.value)} style={inp()} />
+                <input placeholder="Número" value={editNumero} onChange={e => setEditNumero(e.target.value)} style={inp()} />
+                <input placeholder="Localidad" value={editLocalidad} onChange={e => setEditLocalidad(e.target.value)} style={inp()} />
+                <input placeholder="Provincia" value={editProvincia} onChange={e => setEditProvincia(e.target.value)} style={inp()} />
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button type="button" onClick={() => setEditando(null)} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: 12, color: "var(--muted)", fontSize: 13, cursor: "pointer" }}>Cancelar</button>
@@ -208,7 +227,15 @@ export default function Red() {
                     </div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: semColor }} />
-                      <button onClick={() => { setEditando(s); setEditNombre(s.nombre); setEditDireccion(s.direccion || ""); setMostrarForm(false); }} style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer" }}>Editar</button>
+                      <button onClick={() => {
+                        setEditando(s);
+                        setEditNombre(s.nombre);
+                        setEditCalle(s.calle || "");
+                        setEditNumero(s.numero || "");
+                        setEditLocalidad(s.localidad || "");
+                        setEditProvincia(s.provincia || "");
+                        setMostrarForm(false);
+                      }} style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer" }}>Editar</button>
                       <button onClick={() => eliminar(s.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 14, cursor: "pointer" }}>×</button>
                     </div>
                   </div>
