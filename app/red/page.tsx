@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Nav from "../components/Nav";
 import { useAuth } from "../hooks/useAuth";
 import { PageHeader, HeroCard, SectionTitle, StatRow, StatCard, AlertCard } from "../components/ui";
+import { PROVINCIAS } from "../provincias";
+import LocalidadAutocomplete from "../components/LocalidadAutocomplete";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -15,6 +17,8 @@ type Sucursal = {
   numero: string | null;
   localidad: string | null;
   provincia: string | null;
+  provincia_id: string | null;
+  localidad_id: string | null;
   latitud: number | null;
   longitud: number | null;
   geocoding_status: string | null;
@@ -59,6 +63,8 @@ export default function Red() {
   const [numero, setNumero] = useState("");
   const [localidad, setLocalidad] = useState("");
   const [provincia, setProvincia] = useState("");
+  const [provinciaId, setProvinciaId] = useState<string | null>(null);
+  const [localidadId, setLocalidadId] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<Sucursal | null>(null);
@@ -67,6 +73,8 @@ export default function Red() {
   const [editNumero, setEditNumero] = useState("");
   const [editLocalidad, setEditLocalidad] = useState("");
   const [editProvincia, setEditProvincia] = useState("");
+  const [editProvinciaId, setEditProvinciaId] = useState<string | null>(null);
+  const [editLocalidadId, setEditLocalidadId] = useState<string | null>(null);
   const [editGuardando, setEditGuardando] = useState(false);
 
   useEffect(() => {
@@ -97,11 +105,15 @@ export default function Red() {
           calle: calle.trim() || null,
           numero: numero.trim() || null,
           localidad: localidad.trim() || null,
-          provincia: provincia.trim() || null
+          provincia: provincia.trim() || null,
+          provincia_id: provinciaId,
+          localidad_id: localidadId
         }),
       });
       if (!resp.ok) throw new Error((await resp.json()).error || "Error");
-      setNombre(""); setCalle(""); setNumero(""); setLocalidad(""); setProvincia(""); setMostrarForm(false); await cargar();
+      setNombre(""); setCalle(""); setNumero(""); setLocalidad(""); setProvincia("");
+      setProvinciaId(null); setLocalidadId(null);
+      setMostrarForm(false); await cargar();
     } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error"); }
     finally { setGuardando(false); }
   }
@@ -119,7 +131,9 @@ export default function Red() {
           calle: editCalle.trim() || null,
           numero: editNumero.trim() || null,
           localidad: editLocalidad.trim() || null,
-          provincia: editProvincia.trim() || null
+          provincia: editProvincia.trim() || null,
+          provincia_id: editProvinciaId,
+          localidad_id: editLocalidadId
         }),
       });
       setEditando(null); await cargar();
@@ -178,8 +192,39 @@ export default function Red() {
                 <input placeholder="Nombre del local *" value={nombre} onChange={e => { setNombre(e.target.value); setError(""); }} style={inp()} autoFocus />
                 <input placeholder="Calle" value={calle} onChange={e => setCalle(e.target.value)} style={inp()} />
                 <input placeholder="Número" value={numero} onChange={e => setNumero(e.target.value)} style={inp()} />
-                <input placeholder="Localidad" value={localidad} onChange={e => setLocalidad(e.target.value)} style={inp()} />
-                <input placeholder="Provincia" value={provincia} onChange={e => setProvincia(e.target.value)} style={inp()} />
+                <select
+                  value={provinciaId || ""}
+                  onChange={e => {
+                    const id = e.target.value;
+                    const prov = PROVINCIAS.find(p => p.id === id);
+                    if (prov) {
+                      setProvinciaId(prov.id);
+                      setProvincia(prov.nombre);
+                    } else {
+                      setProvinciaId(null);
+                      setProvincia("");
+                    }
+                  }}
+                  style={inp()}
+                >
+                  <option value="" disabled>Elegí una provincia</option>
+                  {PROVINCIAS.map(p => (
+                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                  ))}
+                </select>
+                <LocalidadAutocomplete
+                  provinciaId={provinciaId}
+                  value={localidad}
+                  onSelect={(loc) => {
+                    if (loc) {
+                      setLocalidad(loc.nombre);
+                      setLocalidadId(loc.id);
+                    } else {
+                      setLocalidad("");
+                      setLocalidadId(null);
+                    }
+                  }}
+                />
               </div>
               {error && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 12 }}>{error}</div>}
               <button type="submit" disabled={guardando} style={{ width: "100%", padding: 13, background: "linear-gradient(135deg,#007AFF,#00C2FF)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, cursor: guardando ? "not-allowed" : "pointer", opacity: guardando ? 0.7 : 1 }}>
@@ -196,8 +241,39 @@ export default function Red() {
                 <input placeholder="Nombre del local *" value={editNombre} onChange={e => setEditNombre(e.target.value)} style={inp()} autoFocus />
                 <input placeholder="Calle" value={editCalle} onChange={e => setEditCalle(e.target.value)} style={inp()} />
                 <input placeholder="Número" value={editNumero} onChange={e => setEditNumero(e.target.value)} style={inp()} />
-                <input placeholder="Localidad" value={editLocalidad} onChange={e => setEditLocalidad(e.target.value)} style={inp()} />
-                <input placeholder="Provincia" value={editProvincia} onChange={e => setEditProvincia(e.target.value)} style={inp()} />
+                <select
+                  value={editProvinciaId || ""}
+                  onChange={e => {
+                    const id = e.target.value;
+                    const prov = PROVINCIAS.find(p => p.id === id);
+                    if (prov) {
+                      setEditProvinciaId(prov.id);
+                      setEditProvincia(prov.nombre);
+                    } else {
+                      setEditProvinciaId(null);
+                      setEditProvincia("");
+                    }
+                  }}
+                  style={inp()}
+                >
+                  <option value="" disabled>Elegí una provincia</option>
+                  {PROVINCIAS.map(p => (
+                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                  ))}
+                </select>
+                <LocalidadAutocomplete
+                  provinciaId={editProvinciaId}
+                  value={editLocalidad}
+                  onSelect={(loc) => {
+                    if (loc) {
+                      setEditLocalidad(loc.nombre);
+                      setEditLocalidadId(loc.id);
+                    } else {
+                      setEditLocalidad("");
+                      setEditLocalidadId(null);
+                    }
+                  }}
+                />
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button type="button" onClick={() => setEditando(null)} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid var(--border)", borderRadius: 12, color: "var(--muted)", fontSize: 13, cursor: "pointer" }}>Cancelar</button>
@@ -234,6 +310,8 @@ export default function Red() {
                         setEditNumero(s.numero || "");
                         setEditLocalidad(s.localidad || "");
                         setEditProvincia(s.provincia || "");
+                        setEditProvinciaId(s.provincia_id || null);
+                        setEditLocalidadId(s.localidad_id || null);
                         setMostrarForm(false);
                       }} style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer" }}>Editar</button>
                       <button onClick={() => eliminar(s.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 14, cursor: "pointer" }}>×</button>

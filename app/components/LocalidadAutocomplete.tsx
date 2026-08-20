@@ -40,9 +40,15 @@ export default function LocalidadAutocomplete({ provinciaId, value, onSelect, pl
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isFirstRender = useRef(true);
 
   // Limpiar cuando cambia provinciaId
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return; // no limpiar en el montaje inicial, respetar el value que llegó por props
+    }
+
     setInputValue("");
     setSugerencias([]);
     setMostrarLista(false);
