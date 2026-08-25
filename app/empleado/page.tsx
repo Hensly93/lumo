@@ -53,6 +53,7 @@ export default function EmpleadoPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [tick, setTick] = useState(0);
+  const [carrito, setCarrito] = useState<{ items: any[]; total: number } | null>(null);
 
   // Reloj para duración + polling conteo
   useEffect(() => {
@@ -85,6 +86,19 @@ export default function EmpleadoPage() {
         if (!d.error) setTurno(d);
       } catch { /* silencioso */ }
     }, 60000);
+    return () => clearInterval(id);
+  }, [paso, turno?.id]);
+
+  // Polling del carrito de LumoScan cada 2s
+  useEffect(() => {
+    if (paso !== "activo" || !turno?.id) return;
+    const id = setInterval(async () => {
+      try {
+        const r = await fetch(`${API}/api/scanner/carrito/${turno.id}`);
+        const d = await r.json();
+        if (!d.error) setCarrito(d);
+      } catch { /* silencioso */ }
+    }, 2000);
     return () => clearInterval(id);
   }, [paso, turno?.id]);
 
@@ -748,6 +762,54 @@ export default function EmpleadoPage() {
               </div>
             )}
           </div>
+
+          {/* Carrito LumoScan */}
+          {carrito && carrito.items.length > 0 && (
+            <div style={{
+              background: C.bg,
+              border: `2px solid ${C.cardBorder}`,
+              borderRadius: 20,
+              padding: '20px',
+              marginBottom: 24,
+            }}>
+              <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 14, letterSpacing: 0.5 }}>
+                CARRITO ACTUAL · {carrito.items.length} {carrito.items.length === 1 ? 'ITEM' : 'ITEMS'}
+              </div>
+              {carrito.items.map((item: any) => (
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.cardBorder}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>{item.agregado_por === 'camara_celu' ? '📱' : '🔫'}</span>
+                    <div>
+                      <div style={{ fontSize: 14, color: C.text }}>{item.producto_nombre}</div>
+                      <div style={{ fontSize: 12, color: C.muted }}>{item.cantidad} x {fmt(parseFloat(item.precio_unitario))}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 15, color: C.text }}>
+                      {fmt(item.cantidad * parseFloat(item.precio_unitario))}
+                    </span>
+                    <span
+                      onClick={async () => {
+                        try {
+                          await fetch(`${API}/api/scanner/carrito/${turno.id}/${item.id}`, { method: 'DELETE' });
+                          const r = await fetch(`${API}/api/scanner/carrito/${turno.id}`);
+                          const d = await r.json();
+                          if (!d.error) setCarrito(d);
+                        } catch { /* silencioso */ }
+                      }}
+                      style={{ fontSize: 18, color: C.muted, cursor: 'pointer', padding: 4 }}
+                    >
+                      ✕
+                    </span>
+                  </div>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16 }}>
+                <span style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>Total</span>
+                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, color: C.text }}>{fmt(carrito.total)}</span>
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <PrimaryButton label="💰 Declaración mid-turno" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.yellow} icon="" />
