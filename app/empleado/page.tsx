@@ -54,6 +54,7 @@ export default function EmpleadoPage() {
   const [loading, setLoading] = useState(false);
   const [tick, setTick] = useState(0);
   const [carrito, setCarrito] = useState<{ items: any[]; total: number } | null>(null);
+  const [scanBuffer, setScanBuffer] = useState("");
 
   // Reloj para duración + polling conteo
   useEffect(() => {
@@ -708,6 +709,42 @@ export default function EmpleadoPage() {
         </div>
 
         <div style={{ padding: 24 }}>
+          <input
+            id="scan-input"
+            type="text"
+            value={scanBuffer}
+            onChange={(e) => setScanBuffer(e.target.value)}
+            onKeyDown={async (e) => {
+              if (e.key !== 'Enter') return;
+              const codigo = scanBuffer.trim();
+              setScanBuffer("");
+              if (!codigo || !turno?.id) return;
+              try {
+                const r = await fetch(`${API}/api/scanner/producto?turno_id=${turno.id}&codigo=${encodeURIComponent(codigo)}`);
+                const d = await r.json();
+                if (d.existe) {
+                  await fetch(`${API}/api/scanner/carrito`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ turno_id: turno.id, producto_id: d.producto.id, cantidad: 1, agregado_por: 'pistola_compu' }),
+                  });
+                  const r2 = await fetch(`${API}/api/scanner/carrito/${turno.id}`);
+                  const d2 = await r2.json();
+                  if (!d2.error) setCarrito(d2);
+                } else {
+                  setError(`Código ${codigo} no encontrado`);
+                }
+              } catch { /* silencioso */ }
+            }}
+            autoFocus
+            style={{
+              position: 'absolute',
+              opacity: 0,
+              height: 1,
+              width: 1,
+              pointerEvents: 'none',
+            }}
+          />
           {/* Conteo pendiente alert */}
           {conteoPend && (
             <div style={{
