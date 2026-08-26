@@ -55,6 +55,7 @@ export default function EmpleadoPage() {
   const [tick, setTick] = useState(0);
   const [carrito, setCarrito] = useState<{ items: any[]; total: number } | null>(null);
   const [scanBuffer, setScanBuffer] = useState("");
+  const [scanFocused, setScanFocused] = useState(false);
 
   // Reloj para duración + polling conteo
   useEffect(() => {
@@ -714,6 +715,8 @@ export default function EmpleadoPage() {
             type="text"
             value={scanBuffer}
             onChange={(e) => setScanBuffer(e.target.value)}
+            onFocus={() => setScanFocused(true)}
+            onBlur={() => setScanFocused(false)}
             onKeyDown={async (e) => {
               if (e.key !== 'Enter') return;
               const codigo = scanBuffer.trim();
