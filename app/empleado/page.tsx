@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
+import { QRCodeSVG } from "qrcode.react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const C = {
@@ -56,6 +57,8 @@ export default function EmpleadoPage() {
   const [carrito, setCarrito] = useState<{ items: any[]; total: number } | null>(null);
   const [scanBuffer, setScanBuffer] = useState("");
   const [scanFocused, setScanFocused] = useState(false);
+  const [scanQR, setScanQR] = useState<{ url: string; expira_en: string } | null>(null);
+  const [scanQRLoading, setScanQRLoading] = useState(false);
 
   // Reloj para duración + polling conteo
   useEffect(() => {
@@ -881,6 +884,78 @@ export default function EmpleadoPage() {
                 >
                   📲 MP
                 </button>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={async () => {
+              if (!turno?.id) return;
+              setScanQRLoading(true);
+              try {
+                const r = await fetch(`${API}/api/scanner/sesion`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ turno_id: turno.id }),
+                });
+                const d = await r.json();
+                if (!d.error) {
+                  const url = `${window.location.origin}/scan/${d.token}`;
+                  setScanQR({ url, expira_en: d.expira_en });
+                }
+              } catch { /* silencioso */ }
+              setScanQRLoading(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '14px',
+              borderRadius: 14,
+              border: `2px solid ${C.primary}`,
+              background: 'transparent',
+              color: C.primary,
+              fontSize: 15,
+              fontWeight: 700,
+              fontFamily: 'Syne, sans-serif',
+              cursor: 'pointer',
+              marginBottom: 24,
+            }}
+          >
+            {scanQRLoading ? 'Generando...' : '📷 Escanear con el celu'}
+          </button>
+
+          {scanQR && (
+            <div
+              onClick={() => setScanQR(null)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0,0,0,0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 100,
+                padding: 24,
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: 20,
+                  padding: 32,
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 18, color: C.text, marginBottom: 16 }}>
+                  Escaneá con la cámara del celu
+                </div>
+                <QRCodeSVG value={scanQR.url} size={220} />
+                <div
+                  onClick={() => setScanQR(null)}
+                  style={{ marginTop: 20, fontSize: 14, color: C.muted, cursor: 'pointer' }}
+                >
+                  Cerrar
+                </div>
               </div>
             </div>
           )}
