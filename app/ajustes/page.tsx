@@ -21,7 +21,7 @@ type Perfil = {
   subscription_end_date: string | null;
   plan_id: string | null;
 };
-type Empleado = { id: number; nombre: string; sucursal_id: number | null; sucursal_nombre: string | null };
+type Empleado = { id: number; nombre: string; sucursal_id: number | null; sucursal_nombre: string | null; puede_cargar_productos: boolean };
 
 // ── Helpers ───────────────────────────────────────────────────────
 function inp(extra: React.CSSProperties = {}): React.CSSProperties {
@@ -249,7 +249,7 @@ function SecEmpleados({ token }: { token: string }) {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ nombre: "", pin: "", pinConfirm: "" });
   const [editando, setEditando] = useState<Empleado | null>(null);
-  const [editForm, setEditForm] = useState({ nombre: "", pin: "", pinConfirm: "" });
+  const [editForm, setEditForm] = useState({ nombre: "", pin: "", pinConfirm: "", puedeCargarProductos: false });
   const [guardando, setGuardando] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
@@ -293,7 +293,7 @@ function SecEmpleados({ token }: { token: string }) {
     if (editForm.pin && editForm.pin.length !== 4) { toast("PIN debe tener 4 dígitos", false); return; }
     setGuardando(true);
     try {
-      const body: Record<string, string> = {};
+      const body: Record<string, string | boolean> = { puede_cargar_productos: editForm.puedeCargarProductos };
       if (editForm.nombre.trim()) body.nombre = editForm.nombre.trim();
       if (editForm.pin) body.pin = editForm.pin;
       await fetch(`${API}/api/usuario/empleados/${editando.id}`, {
@@ -330,6 +330,10 @@ function SecEmpleados({ token }: { token: string }) {
                   <input style={inp()} placeholder={`Nuevo nombre (actual: ${e.nombre})`} value={editForm.nombre} onChange={ev => setEditForm(f => ({ ...f, nombre: ev.target.value }))} />
                   <PINInput value={editForm.pin} onChange={v => setEditForm(f => ({ ...f, pin: v }))} placeholder="Nuevo PIN (vacío = no cambiar)" />
                   {editForm.pin.length > 0 && <PINInput value={editForm.pinConfirm} onChange={v => setEditForm(f => ({ ...f, pinConfirm: v }))} placeholder="Confirmar PIN" />}
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text)", cursor: "pointer" }}>
+                    <input type="checkbox" checked={editForm.puedeCargarProductos} onChange={ev => setEditForm(f => ({ ...f, puedeCargarProductos: ev.target.checked }))} style={{ width: 16, height: 16 }} />
+                    Puede cargar productos nuevos
+                  </label>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => setEditando(null)} style={{ flex: 1, padding: "10px", background: "none", border: "1px solid var(--border)", borderRadius: 10, color: "var(--muted)", fontSize: 13, cursor: "pointer" }}>Cancelar</button>
                     <button onClick={guardarEdicion} disabled={guardando} style={{ flex: 2, padding: "10px", background: "linear-gradient(135deg,#007AFF12,#00C2FF08)", border: "1px solid #007AFF25", borderRadius: 10, color: "var(--cyan)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
@@ -344,7 +348,7 @@ function SecEmpleados({ token }: { token: string }) {
                     {e.sucursal_nombre && <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{e.sucursal_nombre}</div>}
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => { setEditando(e); setEditForm({ nombre: "", pin: "", pinConfirm: "" }); }} style={{ padding: "6px 12px", background: "none", border: "1px solid var(--border)", borderRadius: 8, color: "var(--muted)", fontSize: 12, cursor: "pointer" }}>Editar</button>
+                    <button onClick={() => { setEditando(e); setEditForm({ nombre: "", pin: "", pinConfirm: "", puedeCargarProductos: e.puede_cargar_productos }); }} style={{ padding: "6px 12px", background: "none", border: "1px solid var(--border)", borderRadius: 8, color: "var(--muted)", fontSize: 12, cursor: "pointer" }}>Editar</button>
                     <button onClick={() => eliminar(e.id, e.nombre)} style={{ padding: "6px 10px", background: "none", border: "1px solid #EF444430", borderRadius: 8, color: "var(--red)", fontSize: 12, cursor: "pointer" }}>×</button>
                   </div>
                 </div>
