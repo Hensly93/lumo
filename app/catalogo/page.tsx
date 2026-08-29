@@ -756,6 +756,62 @@ export default function Catalogo() {
             </div>
           )}
 
+          {/* Card de códigos escaneados pendientes de completar */}
+          {pendientes.length > 0 && (
+            <div style={{ padding: "0 16px 4px" }}>
+              <div style={{
+                background: "rgba(0,212,255,0.07)", border: "1px solid rgba(0,212,255,0.25)",
+                borderRadius: 14, padding: "14px 16px",
+              }}>
+                <div
+                  onClick={() => setShowPendientesPanel(s => !s)}
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
+                >
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.accent, marginBottom: 3 }}>
+                      {pendientes.length} código{pendientes.length !== 1 ? "s" : ""} escaneado{pendientes.length !== 1 ? "s" : ""} sin completar
+                    </div>
+                    <div style={{ fontSize: 11, color: T.textSec }}>
+                      Completá nombre y precio para sumarlos al catálogo. Tap para ver.
+                    </div>
+                  </div>
+                  <span style={{ color: T.accent, fontSize: 16 }}>{showPendientesPanel ? "▲" : "▼"}</span>
+                </div>
+                {showPendientesPanel && (
+                  <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+                    {pendientes.map(p => (
+                      <div key={p.id} style={{ background: T.bgSecondary, borderRadius: 10, padding: 12 }}>
+                        <div style={{ fontSize: 11, color: T.textMuted, fontFamily: "monospace", marginBottom: 8 }}>{p.codigo_barras}</div>
+                        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                          <input
+                            placeholder="Nombre del producto"
+                            value={pendienteForms[p.id]?.nombre ?? ""}
+                            onChange={e => setPendienteForms(f => ({ ...f, [p.id]: { nombre: e.target.value, precio_venta: f[p.id]?.precio_venta ?? "" } }))}
+                            style={{ ...inp(), flex: 2, padding: "8px 10px", fontSize: 13 }}
+                          />
+                          <input
+                            type="number"
+                            placeholder="Precio"
+                            value={pendienteForms[p.id]?.precio_venta ?? ""}
+                            onChange={e => setPendienteForms(f => ({ ...f, [p.id]: { nombre: f[p.id]?.nombre ?? "", precio_venta: e.target.value } }))}
+                            style={{ ...inp(), flex: 1, padding: "8px 10px", fontSize: 13 }}
+                          />
+                        </div>
+                        <button
+                          onClick={() => completarPendiente(p.id, p.codigo_barras)}
+                          disabled={completandoId === p.id}
+                          style={{ width: "100%", padding: 8, background: T.accentDim, border: `1px solid ${T.accent}`, borderRadius: 8, color: T.accent, fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                        >
+                          {completandoId === p.id ? "Guardando..." : "Agregar al catálogo"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Card de precios desactualizados — punto 6 */}
           {stalePrecios.length > 0 && (
             <div style={{ padding: "0 16px 4px" }}>
