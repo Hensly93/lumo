@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Nav from "../components/Nav";
+import { QRCodeSVG } from "qrcode.react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -258,6 +259,8 @@ export default function Catalogo() {
   const [guardandoManual, setGuardandoManual] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [scanQR, setScanQR] = useState<{ url: string; expira_en: string } | null>(null);
+  const [scanQRLoading, setScanQRLoading] = useState(false);
   const [stalePrecios, setStalePrecios] = useState<PrecioStale[]>([]);
   const [cruceTicket, setCruceTicket] = useState<CruceTicket | null>(null);
   const [showStalePanel, setShowStalePanel] = useState(false);
@@ -451,6 +454,59 @@ export default function Catalogo() {
         >
           <div style={{ fontSize: 14, fontWeight: 600, color: T.textSec }}>+ Agregar producto uno por uno</div>
         </button>
+
+        {/* Método 4: Escanear con el celu */}
+        <button
+          onClick={async () => {
+            setScanQRLoading(true);
+            try {
+              const r = await fetch(`${API}/api/scanner-dueno/sesion`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token!}` },
+              });
+              const d = await r.json();
+              if (!d.error) {
+                const url = `${window.location.origin}/scan-dueno/${d.token}`;
+                setScanQR({ url, expira_en: d.expira_en });
+              }
+            } catch { /* silencioso */ }
+            setScanQRLoading(false);
+          }}
+          style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 16, padding: "24px 20px", textAlign: "left", cursor: "pointer" }}
+        >
+          <div style={{ fontSize: 28, marginBottom: 12 }}>📷</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 6 }}>
+            {scanQRLoading ? "Generando..." : "Escanear con el celu"}
+          </div>
+          <div style={{ fontSize: 13, color: T.textSec, lineHeight: 1.6 }}>
+            Escaneá los códigos de barras de tu mercadería con la cámara del celu. Después completás nombre y precio.
+          </div>
+        </button>
+
+        {scanQR && (
+          <div
+            onClick={() => setScanQR(null)}
+            style={{
+              position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 100,
+              display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 20, padding: 32, textAlign: "center" }}
+            >
+              <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 16 }}>
+                Escaneá con la cámara del celu
+              </div>
+              <div style={{ background: "#fff", padding: 16, borderRadius: 12, display: "inline-block" }}>
+                <QRCodeSVG value={scanQR.url} size={220} />
+              </div>
+              <div onClick={() => setScanQR(null)} style={{ marginTop: 20, fontSize: 14, color: T.textSec, cursor: "pointer" }}>
+                Cerrar
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <Nav />
     </main>
