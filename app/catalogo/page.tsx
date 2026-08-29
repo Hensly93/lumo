@@ -264,6 +264,10 @@ export default function Catalogo() {
   const [stalePrecios, setStalePrecios] = useState<PrecioStale[]>([]);
   const [cruceTicket, setCruceTicket] = useState<CruceTicket | null>(null);
   const [showStalePanel, setShowStalePanel] = useState(false);
+  const [pendientes, setPendientes] = useState<{ id: number; codigo_barras: string; creado_en: string }[]>([]);
+  const [showPendientesPanel, setShowPendientesPanel] = useState(false);
+  const [pendienteForms, setPendienteForms] = useState<Record<number, { nombre: string; precio_venta: string }>>({});
+  const [completandoId, setCompletandoId] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const fotoRef = useRef<HTMLInputElement>(null);
 
@@ -282,10 +286,11 @@ export default function Catalogo() {
   async function cargarProductos(t: string) {
     setLoadingLista(true);
     try {
-      const [prods, cats, alertas] = await Promise.all([
+      const [prods, cats, alertas, pend] = await Promise.all([
         fetch(`${API}/api/productos`, { headers: { Authorization: `Bearer ${t}` } }).then(r => r.json()),
         fetch(`${API}/api/productos/categorias`, { headers: { Authorization: `Bearer ${t}` } }).then(r => r.json()),
         fetch(`${API}/api/productos/precios-alertas`, { headers: { Authorization: `Bearer ${t}` } }).then(r => r.json()).catch(() => null),
+        fetch(`${API}/api/scanner-dueno/pendientes`, { headers: { Authorization: `Bearer ${t}` } }).then(r => r.json()).catch(() => []),
       ]);
       setProductos(Array.isArray(prods) ? prods : []);
       setCategorias(Array.isArray(cats) ? cats : []);
@@ -293,6 +298,7 @@ export default function Catalogo() {
         setStalePrecios(Array.isArray(alertas.stale) ? alertas.stale : []);
         setCruceTicket(alertas.cruce ?? null);
       }
+      setPendientes(Array.isArray(pend) ? pend : []);
     } catch { /* silencioso */ }
     setLoadingLista(false);
   }
@@ -367,6 +373,35 @@ export default function Catalogo() {
       showToast(e instanceof Error ? e.message : "Error", false);
     } finally {
       setGuardandoManual(false);
+    }
+  }
+
+  async function completarPendiente(pendienteId: number, codigo_barras: string) {
+    const form = pendienteForms[pendienteId];
+    if (!form?.nombre?.trim()) { showToast("El nombre es obligatorio", false); return; }
+    setCompletandoId(pendienteId);
+    try {
+      const r = await fetch(`${API}/api/productos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token!}` },
+        body: JSON.stringify({
+          nombre: form.nombre.trim(),
+          precio_venta: parseFloat(form.precio_venta) || null,
+          codigo_barras,
+        }),
+      });
+      if (!r.ok) throw new Error((await r.json()).error);
+      await fetch(`${API}/api/scanner-dueno/pendientes/${pendienteId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token!}` },
+      });
+      setPendientes(p => p.filter(x => x.id !== pendienteId));
+      showToast("Producto agregado ✓", true);
+      await cargarProductos(token!);
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : "Error", false);
+    } finally {
+      setCompletandoId(null);
     }
   }
 
