@@ -179,11 +179,12 @@ function EditModal({
   onSave: (p: Producto) => void; onClose: () => void;
 }) {
   const [form, setForm] = useState({
-    nombre:       producto.nombre,
-    categoria:    producto.categoria ?? "",
-    precio_venta: producto.precio_venta?.toString() ?? "",
-    precio_costo: producto.precio_costo?.toString() ?? "",
-    unidad:       producto.unidad,
+    nombre:        producto.nombre,
+    categoria:     producto.categoria ?? "",
+    precio_venta:  producto.precio_venta?.toString() ?? "",
+    precio_costo:  producto.precio_costo?.toString() ?? "",
+    unidad:        producto.unidad,
+    codigo_barras: (producto as any).codigo_barras ?? "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -193,11 +194,12 @@ function EditModal({
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
-        nombre:       form.nombre.trim() || undefined,
-        categoria:    form.categoria.trim() || null,
-        precio_venta: parseFloat(form.precio_venta) || null,
-        precio_costo: parseFloat(form.precio_costo) || null,
-        unidad:       form.unidad.trim() || "unidad",
+        nombre:        form.nombre.trim() || undefined,
+        categoria:     form.categoria.trim() || null,
+        precio_venta:  parseFloat(form.precio_venta) || null,
+        precio_costo:  parseFloat(form.precio_costo) || null,
+        unidad:        form.unidad.trim() || "unidad",
+        codigo_barras: form.codigo_barras.trim() || null,
       }),
     });
     const data = await r.json();
@@ -223,6 +225,7 @@ function EditModal({
           <input style={inp()} type="number" placeholder="Precio de venta ($)" value={form.precio_venta} onChange={e => setForm(f => ({ ...f, precio_venta: e.target.value }))} />
           <input style={inp()} type="number" placeholder="Precio de costo (opcional)" value={form.precio_costo} onChange={e => setForm(f => ({ ...f, precio_costo: e.target.value }))} />
           <input style={inp()} placeholder="Unidad (unidad, kg, litro...)" value={form.unidad} onChange={e => setForm(f => ({ ...f, unidad: e.target.value }))} />
+          <input style={inp()} placeholder="Código de barras (opcional)" value={form.codigo_barras} onChange={e => setForm(f => ({ ...f, codigo_barras: e.target.value }))} />
         </div>
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           <button onClick={onClose} style={{ flex: 1, padding: "13px", background: "transparent", border: `1px solid ${T.border}`, borderRadius: 12, color: T.textSec, fontSize: 14, cursor: "pointer" }}>
@@ -251,7 +254,7 @@ export default function Catalogo() {
   const [previewMeta, setPreviewMeta] = useState<{ metodo: string; total: number } | null>(null);
   const [cargandoMsg, setCargandoMsg] = useState("");
   const [editando, setEditando] = useState<Producto | null>(null);
-  const [manualForm, setManualForm] = useState({ nombre: "", categoria: "", precio_venta: "", precio_costo: "", unidad: "unidad" });
+  const [manualForm, setManualForm] = useState({ nombre: "", categoria: "", precio_venta: "", precio_costo: "", unidad: "unidad", codigo_barras: "" });
   const [guardandoManual, setGuardandoManual] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -344,15 +347,16 @@ export default function Catalogo() {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token!}` },
         body: JSON.stringify({
-          nombre:       manualForm.nombre.trim(),
-          categoria:    manualForm.categoria.trim() || null,
-          precio_venta: parseFloat(manualForm.precio_venta) || null,
-          precio_costo: parseFloat(manualForm.precio_costo) || null,
-          unidad:       manualForm.unidad.trim() || "unidad",
+          nombre:        manualForm.nombre.trim(),
+          categoria:     manualForm.categoria.trim() || null,
+          precio_venta:  parseFloat(manualForm.precio_venta) || null,
+          precio_costo:  parseFloat(manualForm.precio_costo) || null,
+          unidad:        manualForm.unidad.trim() || "unidad",
+          codigo_barras: manualForm.codigo_barras.trim() || null,
         }),
       });
       if (!r.ok) throw new Error((await r.json()).error);
-      setManualForm({ nombre: "", categoria: "", precio_venta: "", precio_costo: "", unidad: "unidad" });
+      setManualForm({ nombre: "", categoria: "", precio_venta: "", precio_costo: "", unidad: "unidad", codigo_barras: "" });
       showToast("Producto agregado ✓", true);
       await cargarProductos(token!);
       setVista("catalogo");
@@ -573,6 +577,7 @@ export default function Catalogo() {
           <input style={inp()} type="number" placeholder="Precio de venta ($)" value={manualForm.precio_venta} onChange={e => setManualForm(f => ({ ...f, precio_venta: e.target.value }))} />
           <input style={inp()} type="number" placeholder="Precio de costo (opcional)" value={manualForm.precio_costo} onChange={e => setManualForm(f => ({ ...f, precio_costo: e.target.value }))} />
           <input style={inp()} placeholder="Unidad (unidad, kg, litro...)" value={manualForm.unidad} onChange={e => setManualForm(f => ({ ...f, unidad: e.target.value }))} />
+          <input style={inp()} placeholder="Código de barras (opcional)" value={manualForm.codigo_barras} onChange={e => setManualForm(f => ({ ...f, codigo_barras: e.target.value }))} />
         </div>
         <button onClick={guardarManual} disabled={guardandoManual}
           style={{ width: "100%", marginTop: 16, padding: "14px", background: T.accentDim, border: `1px solid ${T.accent}`, borderRadius: 12, color: T.accent, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
