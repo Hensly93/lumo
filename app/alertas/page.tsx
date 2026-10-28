@@ -136,6 +136,7 @@ export default function Alertas() {
   const openModal = (data: ModalData) => setModalData(data);
   const closeModal = () => setModalData(null);
 
+  const nControl = recomendaciones.filter(r => r.categoria === "inconsistencia_operativa" && (r.prioridad === "critica" || r.prioridad === "alta")).length;
   return (
     <>
       {modalData && (
@@ -328,10 +329,10 @@ export default function Alertas() {
 
           {filtradas.length === 0 ? (
             <AlertCard
-              variant="ok"
-              tag="Todo ok"
-              title="Sin alertas en esta categoría"
-              desc="Todo dentro del rango esperado."
+              variant={nControl > 0 ? recVariant("alta") : "ok"}
+              tag={nControl > 0 ? "Revisar" : "Todo ok"}
+              title={nControl > 0 ? `${nControl} ${nControl === 1 ? "posible inconsistencia" : "posibles inconsistencias"} de caja para revisar` : "Sin alertas en esta categoría"}
+              desc={nControl > 0 ? "Las ventas están dentro de lo esperado, pero NICOLE encontró patrones en los cierres de caja. Mirá las recomendaciones de abajo." : "Todo dentro del rango esperado."}
             />
           ) : (
             filtradas.map((a, i) => {
