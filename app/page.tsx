@@ -4,6 +4,7 @@ import EnVivoCard from "./components/EnVivoCard";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
+import { useSucursal } from "./hooks/useSucursal";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -98,6 +99,7 @@ function HomeContent() {
   const [modalData, setModalData] = useState<ModalData | null>(null);
   const [wowPatterns, setWowPatterns] = useState<WowPattern[]>([]);
   const [wowModalData, setWowModalData] = useState<WowModalData | null>(null);
+  const { sucursalId } = useSucursal();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -117,18 +119,16 @@ function HomeContent() {
     if (!token) { router.replace("/landing"); return; }
     const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
-      fetch(`${API}/api/analisis`, { headers }).then(r => r.json()).catch(() => null),
-      fetch(`${API}/api/alertas`, { headers }).then(r => r.json()).catch(() => null),
-      fetch(`${API}/api/predicciones`, { headers }).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/inicio${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers }).then(r => r.json()).catch(() => null),
       fetch(`${API}/api/negocio/wow-moment`, { headers }).then(r => r.json()).catch(() => null),
-    ]).then(([an, al, pr, wow]) => {
-      setAnalisis(an);
-      setAlertas(al?.alertas || []);
-      setPred(pr);
+    ]).then(([ini, wow]) => {
+      setAnalisis(ini?.analisis ?? null);
+      setAlertas(ini?.revisar?.items || []);
+      setPred(ini?.hoy?.disponible ? { disponible: true, facturacion: { disponible: true, venta_diaria_esperada: ini.hoy.esperado_dia, confianza: { pct: ini.hoy.confianza_pct } } } as any : null);
       setWowPatterns(wow?.patrones || []);
       setLoading(false);
     });
-  }, [ready, token]);
+  }, [ready, token, sucursalId]);
 
   const dq = dqScore(analisis?.data_quality_score);
   const critCount = alertas.filter(a => ["critico", "inconsistencia"].includes(a.prioridad)).length;
@@ -471,7 +471,7 @@ function HomeContent() {
           <div style={{ padding: "0 16px" }}>
 
             {/* Tu Negocio en Vivo */}
-            <EnVivoCard />
+            <EnVivoCard sucursalId={sucursalId} />
 
             {/* Hero Card */}
             <div

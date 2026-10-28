@@ -49,7 +49,7 @@ function badge(f: Fila) {
 
 // Tu Negocio en Vivo: cuánto llevás vendido hoy en cada local contra lo que NICOLE
 // esperaba a esta hora. Se actualiza solo cada minuto.
-export default function EnVivoCard() {
+export default function EnVivoCard({ sucursalId }: { sucursalId?: number | string | null }) {
   const [data, setData] = useState<Respuesta | null>(null);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function EnVivoCard() {
     const cargar = () => {
       const t = localStorage.getItem("lumo_token");
       if (!t) return;
-      fetch(`${API}/api/multilocal/en-vivo`, { headers: { Authorization: `Bearer ${t}` } })
+      fetch(`${API}/api/multilocal/en-vivo${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers: { Authorization: `Bearer ${t}` } })
         .then(r => (r.ok ? r.json() : null))
         .then(d => { if (vivo && d) setData(d); })
         .catch(() => {});
@@ -65,7 +65,7 @@ export default function EnVivoCard() {
     cargar();
     const id = setInterval(cargar, 60_000);
     return () => { vivo = false; clearInterval(id); };
-  }, []);
+  }, [sucursalId]);
 
   if (!data || !data.sucursales.length) return null;
   const { ahora, sucursales, total } = data;
