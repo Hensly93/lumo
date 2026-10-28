@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import { subscribePush } from "../hooks/usePush";
 import ConfirmCancelSubscriptionModal from "../components/ConfirmCancelSubscriptionModal";
 import ConfirmDeleteAccountModal from "../components/ConfirmDeleteAccountModal";
+import CapacidadCajas from "../components/CapacidadCajas";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -912,6 +913,11 @@ export default function AjustesPage() {
             {s.content}
           </Section>
         ))}
+
+        {/* Capacidad de caja (NICOLE la usa para recomendar cuándo abrir otra caja) */}
+        <Section open={open === "capacidad"} toggle={() => toggle("capacidad")} label="Capacidad de caja" tag="NICOLE">
+          <CapacidadCajas />
+        </Section>
 
         {/* Botones finales */}
         <button
