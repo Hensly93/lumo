@@ -82,11 +82,16 @@ export default function EnVivoCard() {
         <span style={{ fontSize: 11, color: "#94A3B8" }}>{hora} · se actualiza solo</span>
       </div>
 
-      {varias && total && total.esperado_hasta_ahora != null && (
+      {varias && total && total.esperado_dia != null && (
         <div style={{ fontSize: 13, color: "#0A1628", marginBottom: 14, lineHeight: 1.5 }}>
-          Hoy llevás <strong>{fmt(total.ventas)}</strong> en {total.tickets} ventas. A esta hora lo normal es{" "}
-          <strong>{fmt(total.esperado_hasta_ahora)}</strong>
-          {total.esperado_dia != null && <> (día completo: {fmt(total.esperado_dia)})</>}.
+          {sucursales.every(f => f.estado === "cerrado" || f.estado === "sin_prediccion") && total.ventas > 0 ? (
+            <>Hoy cerraste con <strong>{fmt(total.ventas)}</strong> en {total.tickets} ventas, contra <strong>{fmt(total.esperado_dia)}</strong> esperados.</>
+          ) : !total.esperado_hasta_ahora && !total.ventas ? (
+            <>Todavía no empezó el día de ventas. Hoy se esperan <strong>{fmt(total.esperado_dia)}</strong>.</>
+          ) : (
+            <>Hoy llevás <strong>{fmt(total.ventas)}</strong> en {total.tickets} ventas. A esta hora lo normal es{" "}
+            <strong>{fmt(total.esperado_hasta_ahora ?? 0)}</strong> (día completo: {fmt(total.esperado_dia)}).</>
+          )}
         </div>
       )}
 
