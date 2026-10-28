@@ -103,7 +103,7 @@ export default function Alertas() {
       setRecomendaciones(rec?.recomendaciones || []);
       setLoading(false);
     });
-  }, [ready, token]);
+  }, [ready, token, sucursalId]);
 
   async function darFeedback(idInterno: string, confirmada: boolean) {
     setFeedbacks(f => ({ ...f, [idInterno]: confirmada ? "confirmada" : "descartada" }));
