@@ -1,5 +1,6 @@
 "use client";
 import Nav from "./components/Nav";
+import EnVivoCard from "./components/EnVivoCard";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
@@ -468,6 +469,9 @@ function HomeContent() {
           </div>
         ) : (
           <div style={{ padding: "0 16px" }}>
+
+            {/* Tu Negocio en Vivo */}
+            <EnVivoCard />
 
             {/* Hero Card */}
             <div
