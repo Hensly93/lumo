@@ -718,13 +718,25 @@ export default function EmpleadoPage() {
         </div>
 
         <div style={{ padding: 24 }}>
+          <div onClick={() => document.getElementById('scan-input')?.focus()} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: scanFocused ? C.green : C.muted, marginBottom: 12, cursor: 'pointer' }}>
+            <span style={{ width: 10, height: 10, borderRadius: 5, background: scanFocused ? C.green : '#CBD5E1', display: 'inline-block', boxShadow: scanFocused ? '0 0 0 4px rgba(0,196,140,0.18)' : 'none' }} />
+            {scanFocused ? 'Listo para escanear' : 'Tocá acá para escanear'}
+          </div>
           <input
             id="scan-input"
             type="text"
             value={scanBuffer}
             onChange={(e) => setScanBuffer(e.target.value)}
             onFocus={() => setScanFocused(true)}
-            onBlur={() => setScanFocused(false)}
+            onBlur={() => {
+              setScanFocused(false);
+              // Recuperar el foco para la pistola, salvo que el empleado esté escribiendo en otro campo
+              setTimeout(() => {
+                const a = document.activeElement as HTMLElement | null;
+                if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return;
+                document.getElementById('scan-input')?.focus();
+              }, 150);
+            }}
             onKeyDown={async (e) => {
               if (e.key !== 'Enter') return;
               const codigo = scanBuffer.trim();
