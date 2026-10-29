@@ -114,7 +114,7 @@ export default function EmpleadoPage() {
 
   // Cargar negocio_id desde localStorage al inicio
   useEffect(() => {
-    const saved = localStorage.getItem("lumo_negocio_id");
+    const saved = localStorage.getItem("lumo_negocio_codigo");
     if (saved) {
       setNegocioId(saved);
       cargarSucursales(saved);
@@ -128,7 +128,7 @@ export default function EmpleadoPage() {
       const r = await fetch(`${API}/api/multilocal/sucursales-publicas/${nid}`);
       const d = await r.json();
       if (!Array.isArray(d)) { setError("Código de negocio incorrecto"); return; }
-      localStorage.setItem("lumo_negocio_id", nid);
+      localStorage.setItem("lumo_negocio_codigo", nid);
       setSucursales(d);
       if (d.length === 1) {
         // Un solo local — lo selecciona automáticamente
@@ -475,10 +475,11 @@ export default function EmpleadoPage() {
         </div>
         <ErrorBox />
         <input
-          type="number"
-          inputMode="numeric"
+          type="text"
+          autoCapitalize="characters"
+          autoComplete="off"
           value={negocioId}
-          onChange={e => { setNegocioId(e.target.value); setError(""); }}
+          onChange={e => { setNegocioId(e.target.value.toUpperCase()); setError(""); }}
           placeholder="Código de negocio"
           style={{
             width: '100%',
@@ -537,7 +538,7 @@ export default function EmpleadoPage() {
           ))}
         </div>
         <div style={{ marginTop: 24 }}>
-          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_id"); setPaso("codigo"); }} />
+          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_codigo"); setPaso("codigo"); }} />
         </div>
       </div>
     </main>
@@ -584,7 +585,7 @@ export default function EmpleadoPage() {
         </div>
         <div style={{ marginTop: 24 }}>
           {sucursales.length > 1 && <TextButton label="← Cambiar local" onPress={() => { setSucursalSel(null); setPaso("sucursal"); }} />}
-          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_id"); setPaso("codigo"); }} />
+          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_codigo"); setPaso("codigo"); }} />
         </div>
       </div>
     </main>

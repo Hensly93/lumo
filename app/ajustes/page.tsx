@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import { subscribePush } from "../hooks/usePush";
 import ConfirmCancelSubscriptionModal from "../components/ConfirmCancelSubscriptionModal";
 import ConfirmDeleteAccountModal from "../components/ConfirmDeleteAccountModal";
+import CodigoAcceso from "../components/CodigoAcceso";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -885,6 +886,7 @@ export default function AjustesPage() {
   const sections = [
     { id: "negocio",        tag: "01", label: "Mi negocio",     content: <SecNegocio token={token} perfil={perfil} onSave={p => setPerfil(p)} /> },
     { id: "empleados",      tag: "02", label: "Empleados",      content: <SecEmpleados token={token} /> },
+    { id: "acceso",         tag: "02", label: "Código de empleados", content: <CodigoAcceso token={token} /> },
     { id: "mp",             tag: "03", label: "Mercado Pago",   content: <SecMP token={token} /> },
     { id: "facturacion",    tag: "04", label: "Facturación",    content: <SecFacturacion token={token} perfil={perfil} onSave={p => setPerfil(p)} /> },
     { id: "suscripcion",    tag: "05", label: "Mi Suscripción", content: <SecSuscripcion perfil={perfil} onCancelSubscription={() => setShowCancelModal(true)} /> },
