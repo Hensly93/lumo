@@ -55,7 +55,9 @@ function Variacion({ v, invertir = false, sufijo = "" }: { v: number | null | un
   if (v == null) return <span style={{ color: "var(--muted)" }}>sin dato{sufijo}</span>;
   const bueno = invertir ? v < 0 : v > 0;
   const color = v === 0 ? "var(--muted)" : bueno ? "var(--emerald)" : "var(--red, #E5484D)";
-  return <span style={{ color, fontWeight: 700 }}>{v > 0 ? "▲ +" : v < 0 ? "▼ " : ""}{v.toLocaleString("es-AR")}%{sufijo}</span>;
+  // Variaciones enormes (base casi vacía) se leen mejor como "×18" que como "+1.690%"
+  const texto = v >= 300 ? `×${(1 + v / 100).toLocaleString("es-AR", { maximumFractionDigits: 1 })}` : `${v > 0 ? "+" : ""}${v.toLocaleString("es-AR")}%`;
+  return <span style={{ color, fontWeight: 700 }}>{v > 0 ? "▲ " : v < 0 ? "▼ " : ""}{texto}{sufijo}</span>;
 }
 
 function LineaComparacion({ c, campo, campoReal, invertir }: { c: Comparacion | null; campo: keyof Variacion; campoReal?: keyof Variacion; invertir?: boolean }) {
@@ -64,7 +66,7 @@ function LineaComparacion({ c, campo, campoReal, invertir }: { c: Comparacion | 
   return (
     <div style={{ fontSize: 12, color: "var(--text)", marginTop: 4, lineHeight: 1.5 }}>
       vs {c.etiqueta}: <Variacion v={c.variacion[campo]} invertir={invertir} />
-      {campoReal && c.variacion[campoReal] != null && <> · <Variacion v={c.variacion[campoReal]} invertir={invertir} sufijo=" real" /></>}
+      {campoReal && c.variacion[campoReal] != null && c.variacion[campoReal] !== c.variacion[campo] && <> · <Variacion v={c.variacion[campoReal]} invertir={invertir} sufijo=" real" /></>}
     </div>
   );
 }
@@ -130,11 +132,16 @@ export default function PeriodosPage() {
     setLoading(true); setError("");
     const q = new URLSearchParams({ periodo });
     if (sucursalId) q.set("sucursal_id", String(sucursalId));
-    fetch(`${API}/api/periodos?${q}`, { headers: { Authorization: `Bearer ${t}` } })
+    // Si cambia el local o el período antes de que llegue la respuesta, la vieja se descarta
+    // (si no, la consulta de "todos los locales" puede llegar última y pisar la del local elegido).
+    let vigente = true;
+    const ctrl = new AbortController();
+    fetch(`${API}/api/periodos?${q}`, { headers: { Authorization: `Bearer ${t}` }, signal: ctrl.signal })
       .then(r => r.json())
-      .then((d: Respuesta) => { if (d?.actual) setData(d); else setError(d?.error || "No se pudo cargar el período"); })
-      .catch(() => setError("Sin conexión"))
-      .finally(() => setLoading(false));
+      .then((d: Respuesta) => { if (!vigente) return; if (d?.actual) setData(d); else setError(d?.error || "No se pudo cargar el período"); })
+      .catch(() => { if (vigente) setError("Sin conexión"); })
+      .finally(() => { if (vigente) setLoading(false); });
+    return () => { vigente = false; ctrl.abort(); };
   }, [periodo, sucursalId, router]);
 
   const a = data?.actual;
