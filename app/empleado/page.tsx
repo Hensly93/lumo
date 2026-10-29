@@ -3,6 +3,11 @@ import { useEffect, useState, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
+
+// Sesión del turno: token aleatorio que entrega el servidor al validar el PIN o abrir el turno.
+let SESION_TOKEN = "";
+const fetchT = (url: string, opts: RequestInit = {}) =>
+  fetch(url, { ...opts, headers: { ...((opts.headers as Record<string, string>) || {}), "x-turno-token": SESION_TOKEN } });
 const C = {
   bg: "#FFFFFF",
   primary: "#007AFF",
@@ -71,7 +76,7 @@ export default function EmpleadoPage() {
   const checkConteo = useCallback(async () => {
     if (!turno?.id) return;
     try {
-      const r = await fetch(`${API}/api/caja/conteo-pendiente/${turno.id}`);
+      const r = await fetchT(`${API}/api/caja/conteo-pendiente/${turno.id}`);
       const d = await r.json();
       setConteoPend(d.pendiente ? d : null);
     } catch { /* silencioso */ }
@@ -86,7 +91,7 @@ export default function EmpleadoPage() {
     if (paso !== "activo" || !turno?.id) return;
     const id = setInterval(async () => {
       try {
-        const r = await fetch(`${API}/api/caja/turno/${turno.id}`);
+        const r = await fetchT(`${API}/api/caja/turno/${turno.id}`);
         const d = await r.json();
         if (!d.error) setTurno(d);
       } catch { /* silencioso */ }
@@ -99,7 +104,7 @@ export default function EmpleadoPage() {
     if (paso !== "activo" || !turno?.id) return;
     const id = setInterval(async () => {
       try {
-        const r = await fetch(`${API}/api/scanner/carrito/${turno.id}`);
+        const r = await fetchT(`${API}/api/scanner/carrito/${turno.id}`);
         const d = await r.json();
         if (!d.error) setCarrito(d);
       } catch { /* silencioso */ }
@@ -168,7 +173,7 @@ export default function EmpleadoPage() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${API}/api/caja/validar-pin`, {
+      const r = await fetchT(`${API}/api/caja/validar-pin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ negocio_id: negocioId, nombre_empleado: empleadoSel, pin }),
@@ -176,7 +181,7 @@ export default function EmpleadoPage() {
       const d = await r.json();
       if (!r.ok) { setError(d.error); return; }
       if (d.turno_activo) {
-        setTurno(d.turno_activo);
+        SESION_TOKEN = d.sesion_token || ""; setTurno(d.turno_activo);
         setPaso("activo");
       } else {
         setPaso("apertura");
@@ -193,7 +198,7 @@ export default function EmpleadoPage() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${API}/api/caja/apertura`, {
+      const r = await fetchT(`${API}/api/caja/apertura`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -206,7 +211,7 @@ export default function EmpleadoPage() {
       });
       const d = await r.json();
       if (!r.ok) { setError(d.error); return; }
-      setTurno({ ...d.turno, duracion_minutos: 0, total_egresos: 0 });
+      SESION_TOKEN = d.sesion_token || ""; setTurno({ ...d.turno, duracion_minutos: 0, total_egresos: 0 });
       setPaso("activo");
     } catch {
       setError("Error de conexión");
@@ -220,7 +225,7 @@ export default function EmpleadoPage() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${API}/api/caja/egreso`, {
+      const r = await fetchT(`${API}/api/caja/egreso`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ turno_id: turno.id, monto: parseFloat(egresoMonto), motivo: egresoMotivo }),
@@ -243,7 +248,7 @@ export default function EmpleadoPage() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${API}/api/caja/conteo`, {
+      const r = await fetchT(`${API}/api/caja/conteo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ turno_id: turno.id, monto_declarado: parseFloat(conteoMonto), numero_conteo: conteoPend?.numero_conteo || 1 }),
@@ -265,7 +270,7 @@ export default function EmpleadoPage() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${API}/api/caja/cierre`, {
+      const r = await fetchT(`${API}/api/caja/cierre`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ turno_id: turno.id, caja_cierre: parseFloat(cierreMonto) }),
@@ -285,7 +290,7 @@ export default function EmpleadoPage() {
     setPaso(sucursales.length > 1 ? "sucursal" : "empleado");
     setPin("");
     setEmpleadoSel("");
-    setTurno(null);
+    SESION_TOKEN = ""; setTurno(null);
     setConteoPend(null);
     setAperturaEfectivo("");
     setCierreMonto("");
@@ -726,15 +731,15 @@ export default function EmpleadoPage() {
               setScanBuffer("");
               if (!codigo || !turno?.id) return;
               try {
-                const r = await fetch(`${API}/api/scanner/producto?turno_id=${turno.id}&codigo=${encodeURIComponent(codigo)}`);
+                const r = await fetchT(`${API}/api/scanner/producto?turno_id=${turno.id}&codigo=${encodeURIComponent(codigo)}`);
                 const d = await r.json();
                 if (d.existe) {
-                  await fetch(`${API}/api/scanner/carrito`, {
+                  await fetchT(`${API}/api/scanner/carrito`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ turno_id: turno.id, producto_id: d.producto.id, cantidad: 1, agregado_por: 'pistola_compu' }),
                   });
-                  const r2 = await fetch(`${API}/api/scanner/carrito/${turno.id}`);
+                  const r2 = await fetchT(`${API}/api/scanner/carrito/${turno.id}`);
                   const d2 = await r2.json();
                   if (!d2.error) setCarrito(d2);
                 } else {
@@ -834,8 +839,8 @@ export default function EmpleadoPage() {
                     <span
                       onClick={async () => {
                         try {
-                          await fetch(`${API}/api/scanner/carrito/${turno.id}/${item.id}`, { method: 'DELETE' });
-                          const r = await fetch(`${API}/api/scanner/carrito/${turno.id}`);
+                          await fetchT(`${API}/api/scanner/carrito/${turno.id}/${item.id}`, { method: 'DELETE' });
+                          const r = await fetchT(`${API}/api/scanner/carrito/${turno.id}`);
                           const d = await r.json();
                           if (!d.error) setCarrito(d);
                         } catch { /* silencioso */ }
@@ -855,7 +860,7 @@ export default function EmpleadoPage() {
                 <button
                   onClick={async () => {
                     try {
-                      const r = await fetch(`${API}/api/scanner/finalizar-venta`, {
+                      const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ turno_id: turno.id, metodo_pago: 'efectivo' }),
@@ -871,7 +876,7 @@ export default function EmpleadoPage() {
                 <button
                   onClick={async () => {
                     try {
-                      const r = await fetch(`${API}/api/scanner/finalizar-venta`, {
+                      const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ turno_id: turno.id, metodo_pago: 'mp' }),
@@ -893,7 +898,7 @@ export default function EmpleadoPage() {
               if (!turno?.id) return;
               setScanQRLoading(true);
               try {
-                const r = await fetch(`${API}/api/scanner/sesion`, {
+                const r = await fetchT(`${API}/api/scanner/sesion`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ turno_id: turno.id }),

@@ -5,9 +5,15 @@ import { BrowserMultiFormatReader } from "@zxing/browser";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
+// Sesión del celular: el token del QR (uuid con vencimiento) autoriza los pedidos del escáner.
+let SCANNER_TOKEN = "";
+const fetchS = (url: string, opts: RequestInit = {}) =>
+  fetch(url, { ...opts, headers: { ...((opts.headers as Record<string, string>) || {}), "x-scanner-token": SCANNER_TOKEN } });
+
 export default function ScanPage() {
   const params = useParams();
   const token = params.token as string;
+  SCANNER_TOKEN = token;
 
   const [sesion, setSesion] = useState<any>(null);
   const [error, setError] = useState("");
@@ -19,7 +25,7 @@ export default function ScanPage() {
   useEffect(() => {
     async function validarSesion() {
       try {
-        const r = await fetch(`${API}/api/scanner/sesion/${token}`);
+        const r = await fetchS(`${API}/api/scanner/sesion/${token}`);
         const d = await r.json();
         if (!r.ok || !d.valida) {
           setError(d.error || "Sesión inválida");
@@ -55,10 +61,10 @@ export default function ScanPage() {
     if (!sesion?.turno_id) return;
     setUltimoEscaneo(`Buscando ${codigo}...`);
     try {
-      const r = await fetch(`${API}/api/scanner/producto?turno_id=${sesion.turno_id}&codigo=${encodeURIComponent(codigo)}`);
+      const r = await fetchS(`${API}/api/scanner/producto?turno_id=${sesion.turno_id}&codigo=${encodeURIComponent(codigo)}`);
       const d = await r.json();
       if (d.existe) {
-        await fetch(`${API}/api/scanner/carrito`, {
+        await fetchS(`${API}/api/scanner/carrito`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
