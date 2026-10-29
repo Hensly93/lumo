@@ -1,6 +1,7 @@
 "use client";
 import Nav from "./components/Nav";
 import EnVivoCard from "./components/EnVivoCard";
+import PeriodoMesCard from "./components/PeriodoMesCard";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
@@ -472,6 +473,7 @@ function HomeContent() {
 
             {/* Tu Negocio en Vivo */}
             <EnVivoCard sucursalId={sucursalId} />
+            <PeriodoMesCard sucursalId={sucursalId} />
 
             {/* Hero Card */}
             <div
