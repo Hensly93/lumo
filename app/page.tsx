@@ -392,7 +392,7 @@ function HomeContent() {
                   💡 Recomendación
                 </div>
                 <div style={{ fontSize: 13, color: "#0A1628", lineHeight: 1.5 }}>
-                  {wowModalData.pattern.recomendacion}
+                  {textoRecomendacion(wowModalData.pattern.recomendacion)}
                 </div>
               </div>
 
@@ -743,7 +743,7 @@ function HomeContent() {
                             alignItems: "center",
                             gap: 6,
                           }}>
-                            💡 {pattern.recomendacion}
+                            💡 {textoRecomendacion(pattern.recomendacion)}
                           </div>
                           <div style={{
                             fontFamily: "monospace",
@@ -898,6 +898,14 @@ function HomeContent() {
       </main>
     </>
   );
+}
+
+// Una recomendación puede venir como texto o como objeto {descripcion, contexto, accion_recomendada, texto_completo}
+function textoRecomendacion(r: unknown): string {
+  if (r == null) return "";
+  if (typeof r === "string" || typeof r === "number") return String(r);
+  const o = r as { texto_completo?: string; accion_recomendada?: string; descripcion?: string };
+  return o.texto_completo || o.accion_recomendada || o.descripcion || "";
 }
 
 export default function Home() {
