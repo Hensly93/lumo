@@ -250,7 +250,7 @@ export default function Dashboard() {
         <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: 4, color: T.textMuted, textTransform: "uppercase", marginBottom: 6 }}>// Vista del negocio</div>
         <div style={{ fontSize: 24, fontWeight: 700, color: T.textPrimary }}>{negocio || "Mi negocio"}</div>
         <div style={{ fontSize: 13, color: T.textSecondary, marginTop: 4 }}>
-          {perfil?.tipo_negocio || "—"} · {perfil?.capas.total_transacciones ?? "—"} transacciones
+          {perfil?.tipo_negocio || "—"} · {perfil?.capas?.total_transacciones ?? "—"} transacciones
         </div>
       </div>
 
