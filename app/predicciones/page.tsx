@@ -99,7 +99,7 @@ function climaDelDia(p: Prediccion): string | null {
 }
 
 const etiqueta: CSSProperties = { fontSize: 9, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 };
-const valorChico: CSSProperties = { fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 800, color: "var(--text)" };
+const valorChico: CSSProperties = { fontFamily: "var(--font-instrument),sans-serif", fontSize: 13, fontWeight: 800, color: "var(--text)" };
 
 function CardDia({ p }: { p: Prediccion }) {
   const [expandido, setExpandido] = useState(false);

@@ -47,8 +47,8 @@ const fmtFecha = (ts: string) => { const [f] = ts.split(" "); const [y, m, d] = 
 
 const tarjeta: CSSProperties = { margin: "8px 12px", background: "var(--card2)", borderRadius: 16, padding: "14px 16px", border: "1px solid var(--border)" };
 const titulo: CSSProperties = { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6, fontWeight: 600 };
-const grande: CSSProperties = { fontFamily: "'Syne',sans-serif", fontSize: 30, fontWeight: 800, color: "var(--text)", lineHeight: 1.1 };
-const medio: CSSProperties = { fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 800, color: "var(--text)" };
+const grande: CSSProperties = { fontFamily: "var(--font-instrument),sans-serif", fontSize: 30, fontWeight: 800, color: "var(--text)", lineHeight: 1.1 };
+const medio: CSSProperties = { fontFamily: "var(--font-instrument),sans-serif", fontSize: 18, fontWeight: 800, color: "var(--text)" };
 
 // "Más es mejor" para ventas; para faltantes, más es peor
 function Variacion({ v, invertir = false, sufijo = "" }: { v: number | null | undefined; invertir?: boolean; sufijo?: string }) {

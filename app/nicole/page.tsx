@@ -126,7 +126,7 @@ export default function Nicole() {
               <button key={s} onClick={() => enviar(s)} style={{
                 background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12,
                 padding: "10px 14px", color: "var(--text2)", fontSize: 13, textAlign: "left",
-                cursor: "pointer", fontFamily: "'DM Sans',sans-serif", boxShadow: "var(--sh)",
+                cursor: "pointer", fontFamily: "var(--font-instrument),sans-serif", boxShadow: "var(--sh)",
               }}>
                 {s}
               </button>
@@ -146,7 +146,7 @@ export default function Nicole() {
             onKeyDown={onKeyDown}
             placeholder="Preguntale algo a NICOLE..."
             rows={1}
-            style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "var(--text)", fontSize: 13, resize: "none", fontFamily: "'DM Sans',sans-serif", lineHeight: 1.5, maxHeight: 100, overflowY: "auto" }}
+            style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "var(--text)", fontSize: 13, resize: "none", fontFamily: "var(--font-instrument),sans-serif", lineHeight: 1.5, maxHeight: 100, overflowY: "auto" }}
             onInput={e => { const el = e.currentTarget; el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 100) + "px"; }}
             disabled={cargando}
           />

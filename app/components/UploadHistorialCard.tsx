@@ -303,7 +303,7 @@ export default function UploadHistorialCard({
                 fontSize: 18,
                 fontWeight: 800,
                 color: "#3B82F6",
-                fontFamily: "'Syne',sans-serif",
+                fontFamily: "var(--font-instrument),sans-serif",
               }}
             >
               {data.transacciones_cargadas}
@@ -327,7 +327,7 @@ export default function UploadHistorialCard({
                 fontSize: 18,
                 fontWeight: 800,
                 color: "#8B5CF6",
-                fontFamily: "'Syne',sans-serif",
+                fontFamily: "var(--font-instrument),sans-serif",
               }}
             >
               {data.dias_datos}
@@ -351,7 +351,7 @@ export default function UploadHistorialCard({
                 fontSize: 16,
                 fontWeight: 800,
                 color: "#00C48C",
-                fontFamily: "'Syne',sans-serif",
+                fontFamily: "var(--font-instrument),sans-serif",
               }}
             >
               ${data.total_efectivo.toLocaleString("es-AR")}
@@ -375,7 +375,7 @@ export default function UploadHistorialCard({
                 fontSize: 16,
                 fontWeight: 800,
                 color: "#34A8DB",
-                fontFamily: "'Syne',sans-serif",
+                fontFamily: "var(--font-instrument),sans-serif",
               }}
             >
               ${data.total_mercado_pago.toLocaleString("es-AR")}

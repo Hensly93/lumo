@@ -48,7 +48,7 @@ const SEM_COLOR: Record<string, string> = {
 function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-AR"); }
 
 function inp(): React.CSSProperties {
-  return { width: "100%", padding: "11px 14px", background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--text)", fontSize: 14, fontFamily: "'DM Sans',sans-serif", outline: "none", boxSizing: "border-box" };
+  return { width: "100%", padding: "11px 14px", background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--text)", fontSize: 14, fontFamily: "var(--font-instrument),sans-serif", outline: "none", boxSizing: "border-box" };
 }
 
 export default function Red() {
@@ -298,7 +298,7 @@ export default function Red() {
                 <div key={s.id} style={{ margin: "0 12px 8px", background: "var(--card)", borderRadius: 14, padding: 14, border: "1px solid var(--border)", borderLeft: `3px solid ${semColor}`, boxShadow: "var(--sh)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{s.nombre}</div>
+                      <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{s.nombre}</div>
                       {s.direccion && <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{s.direccion}</div>}
                     </div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
@@ -326,15 +326,15 @@ export default function Red() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                       <div>
                         <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Ventas mes</div>
-                        <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 12, fontWeight: 800, color: "var(--emerald)" }}>{fmt(s.ventas_mes)}</div>
+                        <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 12, fontWeight: 800, color: "var(--emerald)" }}>{fmt(s.ventas_mes)}</div>
                       </div>
                       <div>
                         <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Brecha prom.</div>
-                        <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 12, fontWeight: 800, color: s.brecha_promedio > 1000 ? "var(--red)" : "var(--text)" }}>{fmt(s.brecha_promedio)}</div>
+                        <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 12, fontWeight: 800, color: s.brecha_promedio > 1000 ? "var(--red)" : "var(--text)" }}>{fmt(s.brecha_promedio)}</div>
                       </div>
                       <div>
                         <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Turnos</div>
-                        <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 12, fontWeight: 800, color: "var(--text)" }}>{s.n_turnos_analizados}</div>
+                        <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 12, fontWeight: 800, color: "var(--text)" }}>{s.n_turnos_analizados}</div>
                       </div>
                     </div>
                   )}

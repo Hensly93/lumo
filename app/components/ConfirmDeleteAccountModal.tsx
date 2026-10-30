@@ -250,7 +250,7 @@ export default function ConfirmDeleteAccountModal({
                   background: "var(--card3)",
                   color: "var(--text)",
                   fontSize: 13,
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "var(--font-instrument), sans-serif",
                   marginBottom: 16,
                   boxSizing: "border-box",
                 }}

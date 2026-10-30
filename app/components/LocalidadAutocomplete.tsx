@@ -25,7 +25,7 @@ function inp(): React.CSSProperties {
     borderRadius: 10,
     color: "var(--text)",
     fontSize: 14,
-    fontFamily: "'DM Sans',sans-serif",
+    fontFamily: "var(--font-instrument),sans-serif",
     outline: "none",
     boxSizing: "border-box",
   };

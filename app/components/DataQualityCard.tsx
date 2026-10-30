@@ -244,7 +244,7 @@ export default function DataQualityCard({
         </div>
 
         <div style={{
-          fontFamily: "'Syne',sans-serif",
+          fontFamily: "var(--font-instrument),sans-serif",
           fontSize: 32,
           fontWeight: 800,
           color: colors.text,
@@ -370,7 +370,7 @@ export default function DataQualityCard({
             border: `2px solid ${colors.border}`,
           }}>
             <div style={{
-              fontFamily: "'Syne', sans-serif",
+              fontFamily: "var(--font-instrument), sans-serif",
               fontSize: 48,
               fontWeight: 800,
               color: colors.text,
@@ -538,7 +538,7 @@ export default function DataQualityCard({
 
       {/* Score grande */}
       <div style={{
-        fontFamily: "'Syne',sans-serif",
+        fontFamily: "var(--font-instrument),sans-serif",
         fontSize: 40,
         fontWeight: 800,
         color: colors.text,

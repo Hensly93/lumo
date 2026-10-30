@@ -46,7 +46,7 @@ export default function SucursalSelector() {
           borderRadius: 10,
           color: "#FFFFFF",
           fontSize: 13,
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "var(--font-instrument), sans-serif",
           fontWeight: 500,
           cursor: "pointer",
           outline: "none",

@@ -9,7 +9,7 @@ function inp(): React.CSSProperties {
     width: "100%", padding: "13px 16px",
     background: "var(--card2)", border: "1px solid var(--border)",
     borderRadius: 12, color: "var(--text)", fontSize: 14,
-    fontFamily: "'DM Sans',sans-serif", outline: "none", boxSizing: "border-box",
+    fontFamily: "var(--font-instrument),sans-serif", outline: "none", boxSizing: "border-box",
   };
 }
 
@@ -40,7 +40,7 @@ function PasswordField({ placeholder, value, onChange, autoComplete }: {
         value={value}
         onChange={onChange}
         autoComplete={autoComplete}
-        style={{ width: "100%", padding: "13px 44px 13px 16px", background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--text)", fontSize: 14, fontFamily: "'DM Sans',sans-serif", outline: "none", boxSizing: "border-box" }}
+        style={{ width: "100%", padding: "13px 44px 13px 16px", background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--text)", fontSize: 14, fontFamily: "var(--font-instrument),sans-serif", outline: "none", boxSizing: "border-box" }}
       />
       <button
         type="button"
@@ -75,7 +75,7 @@ function Logo() {
           <line x1="18" y1="19" x2="18" y2="6" stroke="#007AFF" strokeWidth="1.3" strokeOpacity="0.35" strokeLinecap="round"/>
           <line x1="18" y1="19" x2="25" y2="9" stroke="#007AFF" strokeWidth="0.9" strokeOpacity="0.22" strokeLinecap="round"/>
           <line x1="18" y1="19" x2="11" y2="9" stroke="#007AFF" strokeWidth="0.9" strokeOpacity="0.22" strokeLinecap="round"/>
-          <text x="42" y="30" fontFamily="Syne" fontWeight="800" fontSize="28" fill="url(#ll-t)" letterSpacing="-1">lumo</text>
+          <text x="42" y="30" fontFamily="var(--font-instrument)" fontWeight="800" fontSize="28" fill="url(#ll-t)" letterSpacing="-1">lumo</text>
           <rect x="42" y="36" width="96" height="2" rx="1" fill="url(#ll-s)"/>
         </svg>
       </div>
@@ -91,7 +91,7 @@ const btnStyle = (loading: boolean): React.CSSProperties => ({
   borderRadius: 12, color: loading ? "var(--muted)" : "#fff",
   fontSize: 14, fontWeight: 700,
   cursor: loading ? "not-allowed" : "pointer",
-  fontFamily: "'DM Sans',sans-serif",
+  fontFamily: "var(--font-instrument),sans-serif",
   boxShadow: loading ? "none" : "0 4px 16px #007AFF20",
   opacity: loading ? 0.7 : 1,
 });
@@ -181,17 +181,17 @@ export default function Login() {
   ) : null;
 
   if (vista === "recupero-enviado") return (
-    <main style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "'DM Sans',sans-serif" }}>
+    <main style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "var(--font-instrument),sans-serif" }}>
       <div style={{ width: "100%", maxWidth: 360, textAlign: "center" }}>
         <Logo />
         <div style={{ fontSize: 36, marginBottom: 16 }}>✉️</div>
-        <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>Revisá tu email</div>
+        <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>Revisá tu email</div>
         <div style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.6, marginBottom: 28 }}>
           Si <span style={{ color: "var(--cyan)" }}>{emailRecupero}</span> está registrado, te enviamos un link para resetear tu contraseña. Revisá también el spam.
         </div>
         <button
           onClick={() => { setVista("login"); setError(""); setEmailRecupero(""); }}
-          style={{ padding: "12px 24px", background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--cyan)", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>
+          style={{ padding: "12px 24px", background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--cyan)", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "var(--font-instrument),sans-serif" }}>
           Volver al login
         </button>
       </div>
@@ -199,14 +199,14 @@ export default function Login() {
   );
 
   if (vista === "recupero") return (
-    <main style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "'DM Sans',sans-serif", position: "relative" }}>
+    <main style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "var(--font-instrument),sans-serif", position: "relative" }}>
       <button onClick={() => { setVista("login"); setError(""); }}
-        style={{ position: "absolute", top: 20, left: 20, background: "transparent", border: "none", color: "var(--muted)", fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>
+        style={{ position: "absolute", top: 20, left: 20, background: "transparent", border: "none", color: "var(--muted)", fontSize: 13, cursor: "pointer", fontFamily: "var(--font-instrument),sans-serif" }}>
         ← Volver
       </button>
       <div style={{ width: "100%", maxWidth: 360 }}>
         <Logo />
-        <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Recuperar contraseña</div>
+        <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Recuperar contraseña</div>
         <div style={{ fontSize: 13, color: "var(--text2)", marginBottom: 20, lineHeight: 1.5 }}>
           Ingresá tu email y te enviamos un link para crear una nueva contraseña.
         </div>
@@ -224,7 +224,7 @@ export default function Login() {
   );
 
   return (
-    <main style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "'DM Sans',sans-serif" }}>
+    <main style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "var(--font-instrument),sans-serif" }}>
       <div style={{ width: "100%", maxWidth: 360 }}>
         <Logo />
 
@@ -235,7 +235,7 @@ export default function Login() {
           {(["login", "registro"] as const).map(t => (
             <button key={t}
               onClick={() => { setVista(t); setError(""); setForm({ email: "", password: "", confirmPassword: "", nombre: "", negocio: "" }); }}
-              style={{ flex: 1, padding: "11px", background: vista === t ? "var(--card)" : "transparent", color: vista === t ? "var(--cyan)" : "var(--muted)", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", transition: "all 0.15s" }}>
+              style={{ flex: 1, padding: "11px", background: vista === t ? "var(--card)" : "transparent", color: vista === t ? "var(--cyan)" : "var(--muted)", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-instrument),sans-serif", transition: "all 0.15s" }}>
               {t === "login" ? "Iniciar sesión" : "Registrarse"}
             </button>
           ))}
@@ -247,7 +247,7 @@ export default function Login() {
             <PasswordField placeholder="Contraseña" value={form.password} onChange={set("password")} autoComplete="current-password" />
             <div style={{ textAlign: "right", marginTop: -4 }}>
               <button type="button" onClick={() => { setVista("recupero"); setError(""); setEmailRecupero(form.email); }}
-                style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "'DM Sans',sans-serif" }}>
+                style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "var(--font-instrument),sans-serif" }}>
                 ¿Olvidaste tu contraseña?
               </button>
             </div>

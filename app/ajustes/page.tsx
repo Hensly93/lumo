@@ -30,7 +30,7 @@ function inp(extra: React.CSSProperties = {}): React.CSSProperties {
     width: "100%", padding: "11px 14px",
     background: "var(--card2)", border: "1px solid var(--border)",
     borderRadius: 10, color: "var(--text)", fontSize: 14,
-    fontFamily: "'DM Sans',sans-serif", outline: "none", boxSizing: "border-box",
+    fontFamily: "var(--font-instrument),sans-serif", outline: "none", boxSizing: "border-box",
     ...extra,
   };
 }
@@ -209,7 +209,7 @@ function SecNegocio({ token, perfil, onSave }: { token: string; perfil: Perfil; 
             <img src={logoPreview} alt="logo" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--border)" }} />
           ) : (
             <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,#007AFF15,#007AFF08)", border: "2px solid #007AFF30", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 18, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Syne',sans-serif" }}>{initials}</span>
+              <span style={{ fontSize: 18, fontWeight: 700, color: "var(--cyan)", fontFamily: "var(--font-instrument),sans-serif" }}>{initials}</span>
             </div>
           )}
         </div>
@@ -464,7 +464,7 @@ function SecFacturacion({ token, perfil, onSave }: { token: string; perfil: Perf
       {msg && <Toast msg={msg.text} ok={msg.ok} />}
       <div style={{ background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 16px" }}>
         <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>Plan actual</div>
-        <div style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Syne',sans-serif" }}>Beta gratuita</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)", fontFamily: "var(--font-instrument),sans-serif" }}>Beta gratuita</div>
         <div style={{ fontSize: 12, color: "var(--text2)", marginTop: 4, lineHeight: 1.5 }}>Acceso completo durante el período de piloto. Sin compromiso.</div>
       </div>
       <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, color: "var(--muted)", textTransform: "uppercase" }}>// Datos fiscales</div>
@@ -900,7 +900,7 @@ export default function AjustesPage() {
       <div style={{ maxWidth: 600, margin: "0 auto" }}>
         {/* Header */}
         <div style={{ marginBottom: 40 }}>
-          <h1 style={{ fontSize: 32, fontWeight: 800, fontFamily: "'Syne',sans-serif", color: "var(--text)", marginBottom: 8 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 800, fontFamily: "var(--font-instrument),sans-serif", color: "var(--text)", marginBottom: 8 }}>
             Ajustes
           </h1>
           <p style={{ fontSize: 14, color: "var(--muted)" }}>

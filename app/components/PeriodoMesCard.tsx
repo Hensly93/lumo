@@ -53,7 +53,7 @@ export default function PeriodoMesCard({ sucursalId }: { sucursalId: number | nu
         <span style={{ fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", color: "#64748B", fontWeight: 700 }}>Cómo te fue este mes</span>
         <span style={{ fontSize: 13, color: "#007AFF", fontWeight: 600 }}>Ver períodos →</span>
       </div>
-      <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 26, fontWeight: 800, color: "#0A1628" }}>{fmt(d.actual.facturacion)}</div>
+      <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 26, fontWeight: 800, color: "#0A1628" }}>{fmt(d.actual.facturacion)}</div>
       <div style={{ fontSize: 12, color: "#94A3B8", marginBottom: 2 }}>{d.actual.tickets.toLocaleString("es-AR")} tickets</div>
       <Linea c={d.vs_anterior} />
       <Linea c={d.vs_anio_anterior} real />

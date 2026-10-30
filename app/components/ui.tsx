@@ -23,7 +23,7 @@ export function HeroCard({ label, value, sub, tag, gradient = "blue" }: HeroCard
     }}>
       <div style={{ position:"absolute", top:-30, right:-30, width:100, height:100, background:"radial-gradient(circle,#ffffff20,transparent 65%)", borderRadius:"50%" }} />
       <div style={{ fontSize:9, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"rgba(255,255,255,0.75)", marginBottom:6 }}>{label}</div>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:32, fontWeight:800, color:"#fff", lineHeight:1, marginBottom:4, fontVariantNumeric:"tabular-nums" }}>{value}</div>
+      <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:32, fontWeight:800, color:"#fff", lineHeight:1, marginBottom:4, fontVariantNumeric:"tabular-nums" }}>{value}</div>
       {(sub || tag) && (
         <div style={{ fontSize:11, color:"rgba(255,255,255,0.75)", display:"flex", alignItems:"center", gap:6 }}>
           {sub}
@@ -49,7 +49,7 @@ export function StatCard({ label, value, color = "blue" }: { label: string; valu
   return (
     <div style={{ background:"var(--card2)", borderRadius:14, padding:"12px 8px", border:"1px solid var(--border)", textAlign:"center", boxShadow:"var(--sh)" }}>
       <div style={{ fontSize:8, fontWeight:600, letterSpacing:1, textTransform:"uppercase", color:"var(--muted)", marginBottom:4, lineHeight:1.3 }}>{label}</div>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:800, color:colorMap[color] }}>{value}</div>
+      <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:18, fontWeight:800, color:colorMap[color] }}>{value}</div>
     </div>
   );
 }
@@ -83,10 +83,10 @@ export function AlertCard({ variant, tag, title, desc, amount, positive, time, a
         <span style={{ fontSize:8, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", padding:"2px 7px", borderRadius:20, background:tagBg[variant], color:tagColor[variant] }}>{tag}</span>
         {time && <span style={{ fontSize:10, color:"var(--muted)" }}>{time}</span>}
       </div>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:12, fontWeight:700, color:"var(--text)", marginBottom:3 }}>{title}</div>
+      <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:12, fontWeight:700, color:"var(--text)", marginBottom:3 }}>{title}</div>
       {desc && <div style={{ fontSize:11, color:"var(--muted)", lineHeight:1.45 }}>{desc}</div>}
       {amount && (
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:14, fontWeight:800, color:positive ? "var(--emerald)" : "var(--red)", marginTop:6 }}>{amount}</div>
+        <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:14, fontWeight:800, color:positive ? "var(--emerald)" : "var(--red)", marginTop:6 }}>{amount}</div>
       )}
       {actions && (
         <div style={{ display:"flex", gap:6, marginTop:8 }}>
@@ -102,7 +102,7 @@ export function AlertCard({ variant, tag, title, desc, amount, positive, time, a
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ fontSize:9, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--muted)", padding:"0 12px", marginBottom:8, display:"flex", alignItems:"center", gap:6 }}>
-      <span style={{ color:"var(--cyan)", fontFamily:"'Syne',sans-serif", fontWeight:800 }}>//</span>
+      <span style={{ color:"var(--cyan)", fontFamily:"var(--font-instrument),sans-serif", fontWeight:800 }}>//</span>
       {children}
     </div>
   );
@@ -112,7 +112,7 @@ export function SectionTitle({ children }: { children: React.ReactNode }) {
 export function PageHeader({ title, sub }: { title: string; sub?: string }) {
   return (
     <div style={{ padding:"10px 16px 12px" }}>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:22, fontWeight:800, color:"var(--text)" }}>{title}</div>
+      <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:22, fontWeight:800, color:"var(--text)" }}>{title}</div>
       {sub && <div style={{ fontSize:11, color:"var(--muted)", marginTop:1 }}>{sub}</div>}
     </div>
   );
@@ -161,15 +161,15 @@ export function EmployeeCard({ initials, colorVariant = "a", name, sub, amount, 
 }) {
   return (
     <div style={{ margin:"0 12px 7px", background:"var(--card)", borderRadius:14, padding:"12px 14px", border:"1px solid var(--border)", display:"flex", alignItems:"center", gap:10, boxShadow:"var(--sh)" }}>
-      <div style={{ width:36, height:36, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:12, flexShrink:0, ...eavStyles[colorVariant] }}>
+      <div style={{ width:36, height:36, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"var(--font-instrument),sans-serif", fontWeight:800, fontSize:12, flexShrink:0, ...eavStyles[colorVariant] }}>
         {initials}
       </div>
       <div style={{ flex:1 }}>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:12, fontWeight:700, color:"var(--text)", marginBottom:1 }}>{name}</div>
+        <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:12, fontWeight:700, color:"var(--text)", marginBottom:1 }}>{name}</div>
         <div style={{ fontSize:10, color:"var(--muted)" }}>{sub}</div>
       </div>
       <div style={{ textAlign:"right" }}>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:13, fontWeight:800, color:"var(--text)", fontVariantNumeric:"tabular-nums" }}>{amount}</div>
+        <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:13, fontWeight:800, color:"var(--text)", fontVariantNumeric:"tabular-nums" }}>{amount}</div>
         {badge && (
           <span style={{ fontSize:9, padding:"2px 7px", borderRadius:20, fontWeight:600, display:"inline-block", marginTop:2, background:badge.variant==="ok"?"#00C48C12":"#F59E0B12", color:badge.variant==="ok"?"var(--emerald)":"var(--yellow)" }}>
             {badge.text}
@@ -193,7 +193,7 @@ export function Button({ children, variant = "primary", onClick }: {
       borderRadius:14,
       background: p ? "linear-gradient(135deg,#007AFF,#00C2FF)" : "linear-gradient(135deg,#007AFF12,#00C2FF08)",
       color: p ? "#fff" : "var(--cyan)",
-      textAlign:"center", fontFamily:"'Syne',sans-serif", fontSize:13, fontWeight:700,
+      textAlign:"center", fontFamily:"var(--font-instrument),sans-serif", fontSize:13, fontWeight:700,
       boxShadow: p ? "0 6px 20px #007AFF25" : "none",
       border: p ? "none" : "1px solid #007AFF15",
       cursor:"pointer",
@@ -236,7 +236,7 @@ export function PlanCard({ title, sub, badge }: { title: string; sub: string; ba
   return (
     <div style={{ margin:"0 12px 8px", background:"linear-gradient(135deg,#007AFF,#00C2FF)", borderRadius:16, padding:16, position:"relative", overflow:"hidden", boxShadow:"0 8px 24px #007AFF20" }}>
       <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, background:"radial-gradient(circle,#ffffff18,transparent 65%)", borderRadius:"50%" }} />
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800, color:"#fff", marginBottom:2 }}>{title}</div>
+      <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:16, fontWeight:800, color:"#fff", marginBottom:2 }}>{title}</div>
       <div style={{ fontSize:11, color:"rgba(255,255,255,0.8)" }}>{sub}</div>
       <div style={{ display:"inline-block", background:"rgba(255,255,255,0.25)", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:1, textTransform:"uppercase", padding:"3px 9px", borderRadius:20, marginTop:8 }}>{badge}</div>
     </div>
@@ -249,7 +249,7 @@ export function ChartCard({ title, period, bars }: { title: string; period: stri
   return (
     <div style={{ margin:"0 12px 10px", background:"var(--card)", borderRadius:16, padding:14, border:"1px solid var(--border)", boxShadow:"var(--sh)" }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:12, fontWeight:700, color:"var(--text)" }}>{title}</div>
+        <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:12, fontWeight:700, color:"var(--text)" }}>{title}</div>
         <div style={{ fontSize:9, color:"var(--muted)", background:"var(--bg2)", padding:"3px 8px", borderRadius:12, border:"1px solid var(--border)" }}>{period}</div>
       </div>
       <div style={{ display:"flex", alignItems:"flex-end", gap:5, height:50 }}>
@@ -279,11 +279,11 @@ export function PredCard({ title, rows, confidence, confidenceLabel, warningBadg
   const barBg = warningBadge ? "linear-gradient(90deg,#F59E0B,#EF4444)" : "linear-gradient(135deg,#007AFF,#00C2FF)";
   return (
     <div style={{ margin:"0 12px 8px", background:"var(--card)", borderRadius:14, padding:14, border:"1px solid var(--border)", boxShadow:"var(--sh)" }}>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:12, fontWeight:700, color:"var(--text)", marginBottom:8 }}>{title}</div>
+      <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:12, fontWeight:700, color:"var(--text)", marginBottom:8 }}>{title}</div>
       {rows.map((r, i) => (
         <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
           <div style={{ fontSize:11, color:"var(--muted)" }}>{r.label}</div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:13, fontWeight:800, color:r.color ? predColorMap[r.color] : "var(--text)" }}>{r.value}</div>
+          <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:13, fontWeight:800, color:r.color ? predColorMap[r.color] : "var(--text)" }}>{r.value}</div>
         </div>
       ))}
       {confidence !== undefined && (
@@ -319,11 +319,11 @@ export function RedCard({ name, loc, value, sectorValue, progress, progressColor
     <div style={{ margin:"0 12px 8px", background:"var(--card)", borderRadius:14, padding:14, border:"1px solid var(--border)", boxShadow:"var(--sh)" }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
         <div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:12, fontWeight:700, color:"var(--text)" }}>{name}</div>
+          <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:12, fontWeight:700, color:"var(--text)" }}>{name}</div>
           <div style={{ fontSize:10, color:"var(--muted)", marginTop:1 }}>{loc}</div>
         </div>
         <div style={{ textAlign:"right" }}>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:14, fontWeight:800, color:valColor }}>{value}</div>
+          <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:14, fontWeight:800, color:valColor }}>{value}</div>
           <div style={{ fontSize:9, color:"var(--muted)" }}>{sectorValue}</div>
         </div>
       </div>
@@ -349,7 +349,7 @@ export function NicoleHero({ sub = "analizando tu negocio...", state = "idle" }:
         <NicoleStarIcon size={36} state={state} />
       </div>
       <div>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:22, fontWeight:800, color:"#fff", lineHeight:1, position:"relative" }}>nicole</div>
+        <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:22, fontWeight:800, color:"#fff", lineHeight:1, position:"relative" }}>nicole</div>
         <div style={{ fontSize:10, color:"rgba(255,255,255,0.8)", letterSpacing:1, marginTop:2, position:"relative" }}>{sub}</div>
       </div>
     </div>

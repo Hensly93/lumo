@@ -309,7 +309,7 @@ export default function EmpleadoPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontFamily: 'Syne, sans-serif',
+      fontFamily: 'var(--font-instrument), sans-serif',
       fontWeight: 800,
       fontSize: size / 2.5,
       color: '#FFFFFF',
@@ -328,7 +328,7 @@ export default function EmpleadoPage() {
       color: C.red,
       fontSize: 14,
       marginBottom: 20,
-      fontFamily: 'DM Sans, sans-serif',
+      fontFamily: 'var(--font-instrument), sans-serif',
     }}>
       {error}
     </div>
@@ -346,7 +346,7 @@ export default function EmpleadoPage() {
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: 700,
-        fontFamily: 'Syne, sans-serif',
+        fontFamily: 'var(--font-instrument), sans-serif',
         cursor: disabled || loading ? 'default' : 'pointer',
         marginBottom: 12,
         border: 'none',
@@ -372,7 +372,7 @@ export default function EmpleadoPage() {
         color: color,
         fontSize: 16,
         fontWeight: 700,
-        fontFamily: 'Syne, sans-serif',
+        fontFamily: 'var(--font-instrument), sans-serif',
         cursor: 'pointer',
         marginBottom: 12,
         border: `2px solid ${color}`,
@@ -391,7 +391,7 @@ export default function EmpleadoPage() {
         border: 'none',
         color: C.muted,
         fontSize: 14,
-        fontFamily: 'DM Sans, sans-serif',
+        fontFamily: 'var(--font-instrument), sans-serif',
         cursor: 'pointer',
         width: '100%',
         textAlign: 'center',
@@ -414,7 +414,7 @@ export default function EmpleadoPage() {
         transform: 'translateY(-50%)',
         fontSize: 32,
         fontWeight: 800,
-        fontFamily: 'Syne, sans-serif',
+        fontFamily: 'var(--font-instrument), sans-serif',
         color: C.muted,
       }}>$</div>
       <input
@@ -432,7 +432,7 @@ export default function EmpleadoPage() {
           color: C.text,
           fontSize: 32,
           fontWeight: 800,
-          fontFamily: 'Syne, sans-serif',
+          fontFamily: 'var(--font-instrument), sans-serif',
           boxSizing: 'border-box' as any,
           outline: 'none',
         }}
@@ -452,7 +452,7 @@ export default function EmpleadoPage() {
         color: C.text,
         fontSize: 24,
         fontWeight: 700,
-        fontFamily: 'Syne, sans-serif',
+        fontFamily: 'var(--font-instrument), sans-serif',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
@@ -466,11 +466,11 @@ export default function EmpleadoPage() {
 
   // ─── SCREEN 1: codigo ───────────────────────────────────────────────────────
   if (paso === "codigo") return (
-    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ maxWidth: 420, width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div style={{ fontSize: 14, letterSpacing: 3, color: C.muted, marginBottom: 12, fontWeight: 600 }}>LUMO</div>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 40, color: C.text, margin: '0 0 12px 0' }}>Modo empleado</h1>
+          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 40, color: C.text, margin: '0 0 12px 0' }}>Modo empleado</h1>
           <p style={{ fontSize: 16, color: C.muted, margin: 0 }}>Ingresá el código de tu negocio</p>
         </div>
         <ErrorBox />
@@ -489,7 +489,7 @@ export default function EmpleadoPage() {
             background: C.bg,
             color: C.text,
             fontSize: 18,
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'var(--font-instrument), sans-serif',
             boxSizing: 'border-box' as any,
             marginBottom: 24,
             outline: 'none',
@@ -502,9 +502,9 @@ export default function EmpleadoPage() {
 
   // ─── SCREEN 2: sucursal ─────────────────────────────────────────────────────
   if (paso === "sucursal") return (
-    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif' }}>
       <div style={{ padding: '32px 24px', borderBottom: `1px solid ${C.cardBorder}` }}>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿En qué local trabajás hoy?</h1>
+        <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿En qué local trabajás hoy?</h1>
       </div>
       <div style={{ padding: 24 }}>
         <ErrorBox />
@@ -521,7 +521,7 @@ export default function EmpleadoPage() {
                 color: C.text,
                 fontSize: 18,
                 fontWeight: 600,
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'var(--font-instrument), sans-serif',
                 textAlign: 'left',
                 cursor: 'pointer',
                 display: 'flex',
@@ -546,9 +546,9 @@ export default function EmpleadoPage() {
 
   // ─── SCREEN 3: empleado ─────────────────────────────────────────────────────
   if (paso === "empleado") return (
-    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif' }}>
       <div style={{ padding: '32px 24px', borderBottom: `1px solid ${C.cardBorder}` }}>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Quién sos?</h1>
+        <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Quién sos?</h1>
       </div>
       <div style={{ padding: 24 }}>
         <ErrorBox />
@@ -570,7 +570,7 @@ export default function EmpleadoPage() {
                 color: C.text,
                 fontSize: 18,
                 fontWeight: 600,
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'var(--font-instrument), sans-serif',
                 textAlign: 'left',
                 cursor: 'pointer',
                 display: 'flex',
@@ -593,10 +593,10 @@ export default function EmpleadoPage() {
 
   // ─── SCREEN 4: pin ──────────────────────────────────────────────────────────
   if (paso === "pin") return (
-    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
         <Avatar name={empleadoSel} size={100} />
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 28, color: C.text, margin: '24px 0 8px 0' }}>{empleadoSel}</h1>
+        <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 28, color: C.text, margin: '24px 0 8px 0' }}>{empleadoSel}</h1>
         <p style={{ fontSize: 16, color: C.muted, marginBottom: 40 }}>Ingresá tu PIN de 4 dígitos</p>
         <ErrorBox />
 
@@ -635,7 +635,7 @@ export default function EmpleadoPage() {
               background: 'transparent',
               color: C.muted,
               fontSize: 14,
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'var(--font-instrument), sans-serif',
               cursor: 'pointer',
             }}
           >
@@ -657,7 +657,7 @@ export default function EmpleadoPage() {
               background: 'transparent',
               color: C.muted,
               fontSize: 12,
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'var(--font-instrument), sans-serif',
               cursor: 'pointer',
             }}
           >
@@ -672,11 +672,11 @@ export default function EmpleadoPage() {
 
   // ─── SCREEN 5: apertura ─────────────────────────────────────────────────────
   if (paso === "apertura") return (
-    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ maxWidth: 420, width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, color: C.muted, margin: '0 0 12px 0' }}>Bienvenido/a, {empleadoSel}</h2>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Cuánto efectivo hay en caja ahora?</h1>
+          <h2 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 24, color: C.muted, margin: '0 0 12px 0' }}>Bienvenido/a, {empleadoSel}</h2>
+          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Cuánto efectivo hay en caja ahora?</h1>
           <p style={{ fontSize: 14, color: C.muted, marginTop: 12 }}>Declaración de apertura de turno</p>
         </div>
         <ErrorBox />
@@ -692,7 +692,7 @@ export default function EmpleadoPage() {
     const durMin = turno ? (Math.floor((Date.now() - new Date(turno.hora_apertura).getTime()) / 60000)) : 0;
 
     return (
-      <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', paddingBottom: 32 }}>
+      <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', paddingBottom: 32 }}>
         {/* Header gradient card */}
         <div style={{
           background: `linear-gradient(135deg, ${C.primary} 0%, #00C2FF 100%)`,
@@ -703,17 +703,17 @@ export default function EmpleadoPage() {
             <Avatar name={turno?.nombre_empleado || empleadoSel} size={64} />
             <div>
               <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Turno en curso</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24 }}>{turno?.nombre_empleado}</div>
+              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 24 }}>{turno?.nombre_empleado}</div>
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Duración</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, letterSpacing: 2 }}>{duracionLabel(durMin)}</div>
+              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, letterSpacing: 2 }}>{duracionLabel(durMin)}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Caja inicial</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24 }}>{fmt(turno?.caja_apertura || 0)}</div>
+              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 24 }}>{fmt(turno?.caja_apertura || 0)}</div>
             </div>
           </div>
         </div>
@@ -779,7 +779,7 @@ export default function EmpleadoPage() {
               marginBottom: 24,
             }}>
               <div style={{ fontSize: 12, letterSpacing: 2, color: C.amber, fontWeight: 700, marginBottom: 8 }}>⚠️ CONTEO SOLICITADO</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20, color: C.text, marginBottom: 8 }}>Contá la caja ahora</div>
+              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 20, color: C.text, marginBottom: 8 }}>Contá la caja ahora</div>
               <div style={{ fontSize: 14, color: C.muted, marginBottom: 16 }}>
                 Tenés <span style={{ color: C.amber, fontWeight: 700 }}>{conteoPend.minutos_restantes} min</span> para responder
               </div>
@@ -794,7 +794,7 @@ export default function EmpleadoPage() {
                   color: '#FFFFFF',
                   fontSize: 16,
                   fontWeight: 700,
-                  fontFamily: 'Syne, sans-serif',
+                  fontFamily: 'var(--font-instrument), sans-serif',
                   cursor: 'pointer',
                 }}
               >
@@ -814,12 +814,12 @@ export default function EmpleadoPage() {
             <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 16 }}>ÚLTIMA DECLARACIÓN</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <span style={{ fontSize: 14, color: C.text }}>Efectivo en apertura</span>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(turno?.caja_apertura || 0)}</span>
+              <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(turno?.caja_apertura || 0)}</span>
             </div>
             {turno?.total_egresos > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 14, color: C.text }}>Egresos registrados</span>
-                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.amber }}>{fmt(turno?.total_egresos || 0)}</span>
+                <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 16, color: C.amber }}>{fmt(turno?.total_egresos || 0)}</span>
               </div>
             )}
           </div>
@@ -846,7 +846,7 @@ export default function EmpleadoPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 15, color: C.text }}>
+                    <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 15, color: C.text }}>
                       {fmt(item.cantidad * parseFloat(item.precio_unitario))}
                     </span>
                     <span
@@ -867,7 +867,7 @@ export default function EmpleadoPage() {
               ))}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16 }}>
                 <span style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>Total</span>
-                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, color: C.text }}>{fmt(carrito.total)}</span>
+                <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 22, color: C.text }}>{fmt(carrito.total)}</span>
               </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
                 <button
@@ -882,7 +882,7 @@ export default function EmpleadoPage() {
                       if (!d.error) setCarrito({ items: [], total: 0 });
                     } catch { /* silencioso */ }
                   }}
-                  style={{ flex: 1, padding: '14px', borderRadius: 14, border: 'none', background: C.green, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'Syne, sans-serif', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '14px', borderRadius: 14, border: 'none', background: C.green, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer' }}
                 >
                   💵 Efectivo
                 </button>
@@ -898,7 +898,7 @@ export default function EmpleadoPage() {
                       if (!d.error) setCarrito({ items: [], total: 0 });
                     } catch { /* silencioso */ }
                   }}
-                  style={{ flex: 1, padding: '14px', borderRadius: 14, border: 'none', background: C.primary, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'Syne, sans-serif', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '14px', borderRadius: 14, border: 'none', background: C.primary, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer' }}
                 >
                   📲 MP
                 </button>
@@ -933,7 +933,7 @@ export default function EmpleadoPage() {
               color: C.primary,
               fontSize: 15,
               fontWeight: 700,
-              fontFamily: 'Syne, sans-serif',
+              fontFamily: 'var(--font-instrument), sans-serif',
               cursor: 'pointer',
               marginBottom: 24,
             }}
@@ -964,7 +964,7 @@ export default function EmpleadoPage() {
                   textAlign: 'center',
                 }}
               >
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 18, color: C.text, marginBottom: 16 }}>
+                <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 18, color: C.text, marginBottom: 16 }}>
                   Escaneá con la cámara del celu
                 </div>
                 <QRCodeSVG value={scanQR.url} size={220} />
@@ -995,14 +995,14 @@ export default function EmpleadoPage() {
 
   // ─── SCREEN 8: conteo ───────────────────────────────────────────────────────
   if (paso === "conteo") return (
-    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif' }}>
       <div style={{
         background: `rgba(255,149,0,0.1)`,
         borderBottom: `3px solid ${C.amber}`,
         padding: '32px 24px',
       }}>
         <div style={{ fontSize: 12, letterSpacing: 2, color: C.amber, fontWeight: 700, marginBottom: 8 }}>⚠️ CONTEO SOLICITADO</div>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>
           {conteoPend ? `Quedan ${conteoPend.minutos_restantes} minutos` : "Conteo de caja"}
         </h1>
       </div>
@@ -1019,7 +1019,7 @@ export default function EmpleadoPage() {
               Contá el efectivo físico en la caja sin mover nada. No cuentes lo que está separado.
             </p>
           </div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, color: C.text, marginBottom: 24 }}>¿Cuánto efectivo hay en caja ahora?</h2>
+          <h2 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 24, color: C.text, marginBottom: 24 }}>¿Cuánto efectivo hay en caja ahora?</h2>
           <ErrorBox />
           <CurrencyInput value={conteoMonto} onChange={v => { setConteoMonto(v); setError(""); }} placeholder="18500" />
           <PrimaryButton label="Confirmar conteo" onPress={handleConteo} color={C.primary} />
@@ -1031,10 +1031,10 @@ export default function EmpleadoPage() {
 
   // ─── SCREEN 9: cierre ───────────────────────────────────────────────────────
   if (paso === "cierre") return (
-    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+    <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ maxWidth: 420, width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: '0 0 12px 0' }}>Cerrando turno</h1>
+          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: '0 0 12px 0' }}>Cerrando turno</h1>
           <p style={{ fontSize: 16, color: C.muted }}>¿Cuánto efectivo hay en caja al cerrar?</p>
         </div>
         <ErrorBox />
@@ -1047,7 +1047,7 @@ export default function EmpleadoPage() {
         }}>
           <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 16 }}>EFECTIVO EN APERTURA</div>
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 32, color: C.text }}>{fmt(turno?.caja_apertura || 0)}</span>
+            <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text }}>{fmt(turno?.caja_apertura || 0)}</span>
           </div>
         </div>
         <CurrencyInput value={cierreMonto} onChange={v => { setCierreMonto(v); setError(""); }} placeholder="24000" />
@@ -1062,7 +1062,7 @@ export default function EmpleadoPage() {
             color: C.red,
             fontSize: 16,
             fontWeight: 700,
-            fontFamily: 'Syne, sans-serif',
+            fontFamily: 'var(--font-instrument), sans-serif',
             cursor: loading ? 'default' : 'pointer',
             marginBottom: 12,
             border: `2px solid ${C.red}`,
@@ -1088,7 +1088,7 @@ export default function EmpleadoPage() {
     const durMin = turno ? (Math.floor((Date.now() - new Date(turno.hora_apertura).getTime()) / 60000)) : 0;
 
     return (
-      <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
         <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
           {/* Checkmark animation */}
           <div style={{
@@ -1105,7 +1105,7 @@ export default function EmpleadoPage() {
             <div style={{ fontSize: 48, color: '#FFFFFF' }}>✓</div>
           </div>
 
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 36, color: C.text, margin: '0 0 40px 0' }}>Turno cerrado</h1>
+          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 36, color: C.text, margin: '0 0 40px 0' }}>Turno cerrado</h1>
 
           {/* Summary card */}
           <div style={{
@@ -1118,15 +1118,15 @@ export default function EmpleadoPage() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <span style={{ fontSize: 14, color: C.muted }}>Efectivo en apertura</span>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(resumen.caja_apertura || turno?.caja_apertura || 0)}</span>
+              <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(resumen.caja_apertura || turno?.caja_apertura || 0)}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <span style={{ fontSize: 14, color: C.muted }}>Efectivo en cierre</span>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(resumen.caja_cierre)}</span>
+              <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(resumen.caja_cierre)}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 16, borderTop: `1px solid ${C.cardBorder}` }}>
               <span style={{ fontSize: 14, color: C.muted }}>Duración del turno</span>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{duracionLabel(durMin)}</span>
+              <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{duracionLabel(durMin)}</span>
             </div>
           </div>
 

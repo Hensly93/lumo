@@ -142,11 +142,11 @@ function OnboardingInner() {
             </svg>
           </div>
 
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "28px", color: "var(--text)", marginBottom: "8px", textAlign: "center", lineHeight: "1.2" }}>
+          <h1 style={{ fontFamily: "var(--font-instrument), sans-serif", fontWeight: 800, fontSize: "28px", color: "var(--text)", marginBottom: "8px", textAlign: "center", lineHeight: "1.2" }}>
             Iluminamos lo que<br/>tu negocio pierde.
           </h1>
 
-          <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: "14px", color: "var(--muted)", marginBottom: "48px", textAlign: "center" }}>
+          <p style={{ fontFamily: "var(--font-instrument), sans-serif", fontSize: "14px", color: "var(--muted)", marginBottom: "48px", textAlign: "center" }}>
             Con NICOLE detectás fugas en tiempo real
           </p>
 
@@ -200,7 +200,7 @@ function OnboardingInner() {
             Tu NICOLE está al {progreso}% de su potencial
           </p>
 
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", marginBottom: "4px" }}>
+          <h1 style={{ fontFamily: "var(--font-instrument), sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", marginBottom: "4px" }}>
             Contanos sobre tu negocio
           </h1>
 
@@ -327,7 +327,7 @@ function OnboardingInner() {
             Tu NICOLE está al {progreso}% de su potencial
           </p>
 
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", marginBottom: "4px" }}>
+          <h1 style={{ fontFamily: "var(--font-instrument), sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", marginBottom: "4px" }}>
             Despertá a NICOLE
           </h1>
 
@@ -444,7 +444,7 @@ function OnboardingInner() {
             </svg>
           </div>
 
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", textAlign: "center", marginBottom: "8px" }}>
+          <h1 style={{ fontFamily: "var(--font-instrument), sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", textAlign: "center", marginBottom: "8px" }}>
             NICOLE está revisando tu negocio
           </h1>
 

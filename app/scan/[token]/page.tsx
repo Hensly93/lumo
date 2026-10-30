@@ -104,12 +104,12 @@ export default function ScanPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: '#0A1628', color: '#FFFFFF', padding: 24, fontFamily: 'DM Sans, sans-serif' }}>
+    <main style={{ minHeight: '100vh', background: '#0A1628', color: '#FFFFFF', padding: 24, fontFamily: 'var(--font-instrument), sans-serif' }}>
       <div style={{ maxWidth: 500, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 12, letterSpacing: 3, color: '#6B8099', marginBottom: 8, fontWeight: 600 }}>LUMO SCAN</div>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 28, margin: '0 0 8px 0' }}>Scanner móvil</h1>
+          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 28, margin: '0 0 8px 0' }}>Scanner móvil</h1>
           <p style={{ fontSize: 14, color: '#6B8099', margin: 0 }}>Turno de {sesion?.empleado}</p>
         </div>
 

@@ -706,7 +706,7 @@ function HomeContent() {
                       <span style={{ fontSize: 36, lineHeight: 1 }}>{pattern.icono}</span>
                       <div style={{ flex: 1 }}>
                         <div style={{
-                          fontFamily: "'Syne', sans-serif",
+                          fontFamily: "var(--font-instrument), sans-serif",
                           fontSize: 15,
                           fontWeight: 700,
                           color: "#0A1628",

@@ -101,12 +101,12 @@ export default function AppHeader() {
               <div style={{
                 fontSize: 11, color: "rgba(255,255,255,0.75)",
                 letterSpacing: "0.5px", marginBottom: 2,
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "var(--font-instrument), sans-serif",
               }}>
                 Hola 👋
               </div>
               <div style={{
-                fontFamily: "'Syne', sans-serif",
+                fontFamily: "var(--font-instrument), sans-serif",
                 fontWeight: 800, fontSize: 20,
                 color: "#FFFFFF", lineHeight: 1.1, letterSpacing: "-0.3px",
               }}>
@@ -122,7 +122,7 @@ export default function AppHeader() {
                 border: "1px solid rgba(255,255,255,0.3)",
                 borderRadius: 14, width: 44, height: 44,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", fontFamily: "'Syne', sans-serif",
+                cursor: "pointer", fontFamily: "var(--font-instrument), sans-serif",
                 fontWeight: 800, fontSize: 14, color: "#FFFFFF",
                 backdropFilter: "blur(8px)",
               }}
@@ -158,7 +158,7 @@ export default function AppHeader() {
             width: 7, height: 7, borderRadius: "50%",
             background: "#00C48C", boxShadow: "0 0 8px #00C48C", flexShrink: 0,
           }} />
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans', sans-serif" }}>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", fontFamily: "var(--font-instrument), sans-serif" }}>
             Motor activo · NICOLE monitoreando
           </span>
         </div>

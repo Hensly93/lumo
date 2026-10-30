@@ -73,7 +73,7 @@ const colorGan = (n: number | null | undefined) => (n == null ? "var(--muted)" :
 
 const tarjeta: CSSProperties = { margin: "8px 12px", background: "var(--card2)", borderRadius: 16, padding: "14px 16px", border: "1px solid var(--border)" };
 const titulo: CSSProperties = { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6, fontWeight: 600 };
-const grande: CSSProperties = { fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, lineHeight: 1.1 };
+const grande: CSSProperties = { fontFamily: "var(--font-instrument),sans-serif", fontSize: 28, fontWeight: 800, lineHeight: 1.1 };
 const fila: CSSProperties = { display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--text)", padding: "3px 0" };
 const input: CSSProperties = { width: 130, padding: "9px 10px", borderRadius: 10, border: "1px solid var(--border)", background: "white", fontSize: 14, textAlign: "right", color: "#0A1628" };
 const boton = (primario: boolean): CSSProperties => ({
