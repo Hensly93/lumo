@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "../components/ui";
+import Nav from "../components/Nav";
 
 const iconColor = "var(--azul)";
 
@@ -74,6 +75,7 @@ export default function MasPage() {
           </div>
         ))}
       </div>
+      <Nav />
     </main>
   );
 }
