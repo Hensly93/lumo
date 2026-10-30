@@ -449,7 +449,7 @@ function HomeContent() {
         </div>
       )}
 
-      <main style={{ minHeight: "100vh", background: "#F5F7FA", paddingBottom: 100 }}>
+      <main style={{ minHeight: "100vh", background: "var(--papel)", paddingBottom: 100 }}>
 
         {toast && (
           <div style={{
@@ -482,32 +482,30 @@ function HomeContent() {
                 text: "NICOLE proyecta tus ventas de hoy en base a tu historial de transacciones. Cuantos más datos tenga, más precisa será la proyección. El número se actualiza cada vez que registrás una venta."
               })}
               style={{
-                background: "linear-gradient(135deg, #0055CC 0%, #007AFF 100%)",
-                borderRadius: 20,
-                padding: 24,
+                background: "var(--blanco)",
+                border: "1px solid var(--linea)",
+                borderRadius: 10,
+                padding: 20,
                 margin: "16px 0 16px 0",
                 cursor: "pointer",
-                boxShadow: "0 8px 24px rgba(0,122,255,0.25)",
               }}
             >
               <div style={{
                 fontSize: 13,
-                fontWeight: 600,
-                color: "rgba(255,255,255,0.8)",
-                marginBottom: 8,
-                letterSpacing: 0.5,
-                textTransform: "uppercase",
+                fontWeight: 500,
+                color: "var(--tinta-apagada)",
+                marginBottom: 6,
               }}>
                 Facturación estimada hoy
               </div>
 
               <div style={{
-                fontSize: facturacion != null ? 56 : 28,
-                fontWeight: 900,
-                color: "#FFFFFF",
-                fontFamily: "system-ui, -apple-system, sans-serif",
-                lineHeight: 1,
-                marginTop: 12,
+                fontSize: facturacion != null ? 48 : 28,
+                fontWeight: 700,
+                color: "var(--tinta)",
+                fontFamily: "var(--font-instrument), sans-serif",
+                lineHeight: 1.1,
+                marginTop: 4,
                 marginBottom: 12,
               }}>
                 {facturacion != null ? fmt(facturacion) : "Sin datos"}
@@ -516,18 +514,18 @@ function HomeContent() {
               <div style={{ display: "flex", gap: 8 }}>
                 {perdidaMes != null && (
                   <div style={{
-                    background: "rgba(0,0,0,0.15)",
-                    borderRadius: 12,
-                    padding: "10px 14px",
+                    background: "var(--papel)",
+                    borderRadius: 8,
+                    padding: "8px 12px",
                   }}>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginBottom: 4 }}>Pérdida est. mes</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "white" }}>{fmt(perdidaMes)}</div>
+                    <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginBottom: 3 }}>Pérdida est. mes</div>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: "var(--tinta)" }}>{fmt(perdidaMes)}</div>
                   </div>
                 )}
                 <div style={{
-                  background: "rgba(0,0,0,0.15)",
-                  borderRadius: 12,
-                  padding: "10px 14px",
+                  background: "var(--papel)",
+                  borderRadius: 8,
+                  padding: "8px 12px",
                   display: "flex",
                   alignItems: "center",
                   gap: 6,
@@ -540,8 +538,8 @@ function HomeContent() {
                     display: "inline-block",
                   }} />
                   <div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginBottom: 4 }}>Calidad datos</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "white" }}>{dq != null ? `${Math.round(dq)}%` : "—"}</div>
+                    <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginBottom: 3 }}>Calidad datos</div>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: "var(--tinta)" }}>{dq != null ? `${Math.round(dq)}%` : "—"}</div>
                   </div>
                 </div>
               </div>
@@ -562,32 +560,41 @@ function HomeContent() {
                   actionButton: { text: "Ver alertas →", href: "/alertas" }
                 })}
                 style={{
-                  background: "white",
-                  borderRadius: 16,
-                  padding: 16,
-                  borderTop: `3px solid ${critCount > 0 ? "#EF4444" : "#00C48C"}`,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  background: "var(--blanco)",
+                  border: "1px solid var(--linea)",
+                  borderRadius: 10,
+                  padding: 14,
                   cursor: "pointer",
                 }}
               >
                 <div style={{
                   fontSize: 11,
-                  fontWeight: 600,
-                  color: "#64748B",
-                  marginBottom: 8,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
+                  fontWeight: 500,
+                  color: "var(--tinta-apagada)",
+                  marginBottom: 6,
                 }}>
                   Críticas
                 </div>
                 <div style={{
-                  fontSize: 32,
+                  fontSize: 28,
                   fontWeight: 700,
-                  color: critCount > 0 ? "#FF3B30" : "#34C759",
-                  fontFamily: "Verdana, Geneva, sans-serif",
+                  color: "var(--tinta)",
+                  fontFamily: "var(--font-instrument), sans-serif",
                   lineHeight: 1,
+                  marginBottom: 6,
                 }}>
                   {critCount}
+                </div>
+                <div style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: critCount > 0 ? "var(--critico)" : "var(--ok)",
+                  background: critCount > 0 ? "var(--critico-fondo)" : "var(--ok-fondo)",
+                  padding: "3px 8px",
+                  borderRadius: 6,
+                  display: "inline-block",
+                }}>
+                  {critCount > 0 ? "Crítico" : "En orden"}
                 </div>
               </div>
 
@@ -599,32 +606,41 @@ function HomeContent() {
                   actionButton: { text: "Ver alertas →", href: "/alertas" }
                 })}
                 style={{
-                  background: "white",
-                  borderRadius: 16,
-                  padding: 16,
-                  borderTop: `3px solid ${warnCount > 0 ? "#F59E0B" : "#00C48C"}`,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  background: "var(--blanco)",
+                  border: "1px solid var(--linea)",
+                  borderRadius: 10,
+                  padding: 14,
                   cursor: "pointer",
                 }}
               >
                 <div style={{
                   fontSize: 11,
-                  fontWeight: 600,
-                  color: "#64748B",
-                  marginBottom: 8,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
+                  fontWeight: 500,
+                  color: "var(--tinta-apagada)",
+                  marginBottom: 6,
                 }}>
                   Atención
                 </div>
                 <div style={{
-                  fontSize: 32,
+                  fontSize: 28,
                   fontWeight: 700,
-                  color: warnCount > 0 ? "#FF9500" : "#34C759",
-                  fontFamily: "Verdana, Geneva, sans-serif",
+                  color: "var(--tinta)",
+                  fontFamily: "var(--font-instrument), sans-serif",
                   lineHeight: 1,
+                  marginBottom: 6,
                 }}>
                   {warnCount}
+                </div>
+                <div style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: warnCount > 0 ? "var(--atencion)" : "var(--ok)",
+                  background: warnCount > 0 ? "var(--atencion-fondo)" : "var(--ok-fondo)",
+                  padding: "3px 8px",
+                  borderRadius: 6,
+                  display: "inline-block",
+                }}>
+                  {warnCount > 0 ? "Para revisar" : "En orden"}
                 </div>
               </div>
 
@@ -635,29 +651,26 @@ function HomeContent() {
                   text: "El score resume el nivel de inconsistencia operativa del negocio. Se calcula combinando ticket promedio, ratio efectivo/digital y volumen por turno. Sin datos suficientes aparece como —."
                 })}
                 style={{
-                  background: "white",
-                  borderRadius: 16,
-                  padding: 16,
-                  borderTop: "3px solid #007AFF",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  background: "var(--blanco)",
+                  border: "1px solid var(--linea)",
+                  borderRadius: 10,
+                  padding: 14,
                   cursor: "pointer",
                 }}
               >
                 <div style={{
                   fontSize: 11,
-                  fontWeight: 600,
-                  color: "#64748B",
-                  marginBottom: 8,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
+                  fontWeight: 500,
+                  color: "var(--tinta-apagada)",
+                  marginBottom: 6,
                 }}>
                   Score
                 </div>
                 <div style={{
-                  fontSize: 32,
+                  fontSize: 28,
                   fontWeight: 700,
-                  color: "#007AFF",
-                  fontFamily: "Verdana, Geneva, sans-serif",
+                  color: "var(--tinta)",
+                  fontFamily: "var(--font-instrument), sans-serif",
                   lineHeight: 1,
                 }}>
                   {analisis?.score != null ? String(analisis.score) : "—"}
@@ -668,21 +681,20 @@ function HomeContent() {
             {/* Sección WOW */}
             {wowPatterns.length > 0 && (
               <>
-                <div style={{ marginBottom: 12 }}>
+                <div style={{ marginBottom: 16, marginTop: 24 }}>
                   <div style={{
-                    fontFamily: "monospace",
-                    fontSize: 9,
-                    letterSpacing: 3,
-                    color: "#94A3B8",
-                    textTransform: "uppercase",
+                    fontSize: 18,
+                    fontWeight: 600,
+                    color: "var(--tinta)",
+                    fontFamily: "var(--font-instrument), sans-serif",
                     marginBottom: 4,
                   }}>
-                    // LO QUE ENCONTRÓ NICOLE
+                    Lo que encontró NICOLE
                   </div>
                   <div style={{
-                    fontSize: 11,
-                    color: "#64748B",
-                    marginBottom: 16,
+                    fontSize: 12,
+                    color: "var(--tinta-apagada)",
+                    marginBottom: 8,
                   }}>
                     Análisis de tus últimos 30 días · Preliminar
                   </div>
@@ -694,12 +706,11 @@ function HomeContent() {
                     onClick={() => openWowModal(pattern)}
                     style={{
                       marginBottom: 12,
-                      background: "white",
-                      borderRadius: 16,
-                      padding: 20,
-                      border: "1px solid #E0E7F1",
+                      background: "var(--blanco)",
+                      border: "1px solid var(--linea)",
+                      borderRadius: 10,
+                      padding: 18,
                       cursor: "pointer",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 12 }}>

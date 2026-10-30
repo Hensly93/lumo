@@ -33,35 +33,36 @@ export default function SucursalSelector() {
   // Si tiene 0 o 1 sucursal no mostrar selector
   if (sucursales.length <= 1) return null;
 
+  const seleccionada = sucursales.find(s => s.id === sucursalId);
+  const label = sucursalId ? seleccionada?.nombre || "Local" : "Todas las sucursales";
+
   return (
-    <div style={{ marginTop: 10, position: "relative", zIndex: 1 }}>
+    <div style={{ position: "relative", flexShrink: 0 }}>
       <select
         value={sucursalId ?? ""}
         onChange={e => setSucursal(e.target.value === "" ? null : parseInt(e.target.value))}
         style={{
-          width: "100%",
-          padding: "8px 12px",
-          background: "rgba(255,255,255,0.15)",
-          border: "1px solid rgba(255,255,255,0.3)",
-          borderRadius: 10,
-          color: "#FFFFFF",
+          padding: "6px 28px 6px 12px",
+          background: "var(--blanco)",
+          border: "1px solid var(--linea)",
+          borderRadius: 8,
+          color: "var(--tinta)",
           fontSize: 13,
           fontFamily: "var(--font-instrument), sans-serif",
           fontWeight: 500,
           cursor: "pointer",
           outline: "none",
           appearance: "none",
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%235F6E85' d='M5 7L1 3h8z'/%3E%3C/svg%3E")`,
           backgroundRepeat: "no-repeat",
-          backgroundPosition: "right 12px center",
-          paddingRight: 32,
+          backgroundPosition: "right 10px center",
         }}
       >
-        <option value="" style={{ background: "#0055CC", color: "#fff" }}>
-          📍 Todos los locales
+        <option value="" style={{ background: "var(--blanco)", color: "var(--tinta)" }}>
+          Todas las sucursales
         </option>
         {sucursales.map(s => (
-          <option key={s.id} value={s.id} style={{ background: "#0055CC", color: "#fff" }}>
+          <option key={s.id} value={s.id} style={{ background: "var(--blanco)", color: "var(--tinta)" }}>
             {s.nombre}
           </option>
         ))}

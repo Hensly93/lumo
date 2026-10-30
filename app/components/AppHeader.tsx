@@ -34,12 +34,12 @@ export default function AppHeader() {
     <header style={{
       background: "var(--blanco)",
       borderBottom: "1px solid var(--linea)",
-      padding: "12px 16px 10px",
+      padding: "8px 16px 6px",
       position: "sticky",
       top: 0,
       zIndex: 50,
     }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4, gap: 12 }}>
         <Logo height={28} variant="light" />
         <SucursalSelector />
       </div>
