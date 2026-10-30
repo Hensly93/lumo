@@ -27,13 +27,13 @@ function fmt(n: number) {
 }
 
 const ESTADO: Record<Fila["estado"], { texto: string; color: string; fondo: string }> = {
-  por_encima:     { texto: "Por encima",    color: "#00A676", fondo: "#00C48C18" },
-  en_linea:       { texto: "En línea",      color: "#007AFF", fondo: "#007AFF14" },
-  por_debajo:     { texto: "Por debajo",    color: "#E5484D", fondo: "#EF444418" },
-  temprano:       { texto: "Recién empieza", color: "#64748B", fondo: "#94A3B818" },
-  antes_de_abrir: { texto: "Todavía no abre", color: "#64748B", fondo: "#94A3B818" },
-  cerrado:        { texto: "Cerrado",       color: "#64748B", fondo: "#94A3B818" },
-  sin_prediccion: { texto: "Aprendiendo",   color: "#64748B", fondo: "#94A3B818" },
+  por_encima:     { texto: "Por encima",    color: "var(--ok)", fondo: "var(--ok-fondo)" },
+  en_linea:       { texto: "En línea",      color: "var(--azul)", fondo: "var(--azul-claro)" },
+  por_debajo:     { texto: "Por debajo",    color: "var(--critico)", fondo: "var(--critico-fondo)" },
+  temprano:       { texto: "Recién empieza", color: "var(--tinta-apagada)", fondo: "var(--papel)" },
+  antes_de_abrir: { texto: "Todavía no abre", color: "var(--tinta-apagada)", fondo: "var(--papel)" },
+  cerrado:        { texto: "Cerrado",       color: "var(--tinta-apagada)", fondo: "var(--papel)" },
+  sin_prediccion: { texto: "Aprendiendo",   color: "var(--tinta-apagada)", fondo: "var(--papel)" },
 };
 
 function badge(f: Fila) {
@@ -73,17 +73,17 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
   const varias = sucursales.length > 1;
 
   return (
-    <div style={{ background: "white", borderRadius: 20, padding: 18, margin: "16px 0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+    <div style={{ background: "var(--blanco)", border: "1px solid var(--linea)", borderRadius: 10, padding: 18, margin: "16px 0" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 8, height: 8, borderRadius: 4, background: "#00C48C", display: "inline-block", boxShadow: "0 0 0 4px #00C48C25" }} />
-          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2, color: "#0A1628" }}>EN VIVO</span>
+          <span style={{ width: 8, height: 8, borderRadius: 4, background: "var(--cian)", display: "inline-block", boxShadow: "0 0 6px var(--cian)" }} />
+          <span style={{ fontSize: 18, fontWeight: 600, color: "var(--tinta)", fontFamily: "var(--font-instrument), sans-serif" }}>En vivo</span>
         </div>
-        <span style={{ fontSize: 11, color: "#94A3B8" }}>{hora} · se actualiza solo</span>
+        <span style={{ fontSize: 11, color: "var(--tinta-apagada)" }}>{hora} · se actualiza solo</span>
       </div>
 
       {varias && total && total.esperado_dia != null && (
-        <div style={{ fontSize: 13, color: "#0A1628", marginBottom: 14, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 13, color: "var(--tinta)", marginBottom: 14, lineHeight: 1.5 }}>
           {sucursales.every(f => f.estado === "cerrado" || f.estado === "sin_prediccion") && total.ventas > 0 ? (
             <>Hoy cerraste con <strong>{fmt(total.ventas)}</strong> en {total.tickets} ventas, contra <strong>{fmt(total.esperado_dia)}</strong> esperados.</>
           ) : !total.esperado_hasta_ahora && !total.ventas ? (
@@ -100,28 +100,28 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
         const marca = f.esperado_dia && f.esperado_hasta_ahora != null ? Math.min(100, Math.round((f.esperado_hasta_ahora / f.esperado_dia) * 100)) : null;
         const color = ESTADO[f.estado].color;
         return (
-          <div key={f.sucursal_id} style={{ padding: "12px 0", borderTop: i ? "1px solid #EEF2F7" : "none" }}>
+          <div key={f.sucursal_id} style={{ padding: "12px 0", borderTop: i ? "1px solid var(--linea)" : "none" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#0A1628", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.nombre}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--tinta)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.nombre}</div>
               {badge(f)}
             </div>
-            <div style={{ fontSize: 13, color: "#334155", marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--tinta)", marginTop: 4 }}>
               <strong>{fmt(f.ventas)}</strong>
               {f.esperado_hasta_ahora != null && f.estado !== "antes_de_abrir" && (
-                <span style={{ color: "#64748B" }}>
+                <span style={{ color: "var(--tinta-apagada)" }}>
                   {f.estado === "cerrado" ? ` de ${fmt(f.esperado_dia ?? 0)} esperados en el día` : ` · lo normal a esta hora: ${fmt(f.esperado_hasta_ahora)}`}
                 </span>
               )}
             </div>
             {avance != null && (
-              <div style={{ position: "relative", height: 6, background: "#EEF2F7", borderRadius: 3, marginTop: 8 }}>
+              <div style={{ position: "relative", height: 6, background: "var(--papel)", borderRadius: 3, marginTop: 8 }}>
                 <div style={{ width: `${avance}%`, height: 6, background: color, borderRadius: 3 }} />
                 {marca != null && f.estado !== "cerrado" && (
-                  <div title="Lo normal a esta hora" style={{ position: "absolute", left: `${marca}%`, top: -3, width: 2, height: 12, background: "#0A1628", opacity: 0.35 }} />
+                  <div title="Lo normal a esta hora" style={{ position: "absolute", left: `${marca}%`, top: -3, width: 2, height: 12, background: "var(--tinta)", opacity: 0.35 }} />
                 )}
               </div>
             )}
-            <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 6, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginTop: 6, lineHeight: 1.6 }}>
               {f.ultima_hora && f.estado !== "cerrado" && f.estado !== "antes_de_abrir" && (
                 <div>Última hora ({f.ultima_hora.hora} a {f.ultima_hora.hora + 1} h): {fmt(f.ultima_hora.real)} · lo normal {fmt(f.ultima_hora.esperado)}</div>
               )}
