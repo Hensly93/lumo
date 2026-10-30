@@ -21,8 +21,43 @@ type Equilibrio = {
 type Rentab = {
   categorias: Categoria[]; meses: Mes[]; mes_en_curso: Mes & { avance_mes_pct: number }; ultimo_mes_cerrado: Mes | null;
   equilibrio: Equilibrio; en_que_se_va: { categoria: string; label: string; total: number; pct: number }[];
-  impuestos: Impuestos; hay_gastos: boolean; error?: string;
+  impuestos: Impuestos; hay_gastos: boolean; recomendaciones?: Recomendacion[]; error?: string;
 };
+type Recomendacion = { id: string; tipo: "alerta" | "atencion" | "positiva"; titulo: string; detalle: string; accion: string; impacto_pesos: number };
+const ESTILO_REC = {
+  alerta:   { borde: "var(--red, #E5484D)", etiqueta: "Atención", icono: "▲" },
+  atencion: { borde: "var(--yellow, #F5A524)", etiqueta: "Para mirar", icono: "●" },
+  positiva: { borde: "var(--emerald)", etiqueta: "Bien", icono: "✓" },
+} as const;
+
+function Recomendaciones({ recs }: { recs: Recomendacion[] }) {
+  const [abierta, setAbierta] = useState<string | null>(recs[0]?.id ?? null);
+  if (!recs.length) return null;
+  return (
+    <div style={tarjeta}>
+      <div style={titulo}>Qué hacer para ganar más</div>
+      {recs.map(r => {
+        const e = ESTILO_REC[r.tipo];
+        const open = abierta === r.id;
+        return (
+          <div key={r.id} onClick={() => setAbierta(open ? null : r.id)}
+            style={{ borderLeft: `3px solid ${e.borde}`, padding: "8px 0 8px 10px", margin: "6px 0", cursor: "pointer" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", lineHeight: 1.4 }}>{r.titulo}</span>
+              {r.impacto_pesos > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: e.borde, whiteSpace: "nowrap" }}>{fmt(r.impacto_pesos)}</span>}
+            </div>
+            {open && (
+              <>
+                <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.5, marginTop: 4 }}>{r.detalle}</div>
+                <div style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.5, marginTop: 6 }}><strong>Qué hacer:</strong> {r.accion}</div>
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 type Impuestos = { modo: "ninguno" | "porcentaje" | "monto"; base: "ventas" | "ganancia"; valor: number };
 type Gasto = { sucursal_id: number | null; categoria: string; monto: number };
 type GastosResp = {
@@ -94,6 +129,8 @@ export default function RentabilidadPage() {
 
       {r && r.hay_gastos && !editor && act && (
         <>
+          <Recomendaciones recs={r.recomendaciones ?? []} />
+
           {/* Último mes cerrado */}
           {ult && (
             <div style={tarjeta}>
