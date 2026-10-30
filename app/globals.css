@@ -3,24 +3,43 @@
 @tailwind utilities;
 
 :root {
-  --bg:         #EEF3FC;
+  /* ── Tokens del sistema visual LumoBi ──────────────────────── */
+  --tinta:            #0A1628;
+  --tinta-suave:      #45546B;
+  --tinta-apagada:    #5F6E85;
+  --papel:            #EEF1F5;
+  --blanco:           #FFFFFF;
+  --linea:            #D5DCE6;
+  --divisor:          #E6EAF0;
+  --azul:             #0A5BD3;
+  --azul-claro:       #E6EFFC;
+  --cian:             #00C2FF;
+  --ok:               #0B7A53;
+  --ok-fondo:         #E2F3EB;
+  --atencion:         #8A5100;
+  --atencion-fondo:   #FBEFD8;
+  --critico:          #B3261E;
+  --critico-fondo:    #FBE6E3;
+
+  /* ── Variables viejas (apuntan a los tokens nuevos) ─────────── */
+  --bg:         var(--papel);
   --bg2:        #E4EBF8;
-  --card:       #FFFFFF;
-  --card2:      #F5F8FF;
-  --cyan:       #007AFF;
-  --cyan2:      #00C2FF;
-  --emerald:    #00C48C;
-  --yellow:     #F59E0B;
-  --red:        #EF4444;
-  --text:       #0A1628;
-  --text2:      #1E3A5A;
-  --muted:      #6B8099;
-  --border:     #D8E4F5;
-  --grad:       linear-gradient(135deg, #007AFF, #00C2FF);
-  --grad-g:     linear-gradient(135deg, #00C2FF, #00C48C);
-  --grad-soft:  linear-gradient(135deg, #007AFF12, #00C2FF08);
-  --sh:         0 2px 16px #007AFF0D, 0 1px 3px #0A162808;
-  --sh2:        0 8px 32px #007AFF14, 0 2px 8px #0A162810;
+  --card:       var(--blanco);
+  --card2:      var(--blanco);
+  --cyan:       var(--azul);
+  --cyan2:      var(--cian);
+  --emerald:    var(--ok);
+  --yellow:     var(--atencion);
+  --red:        var(--critico);
+  --text:       var(--tinta);
+  --text2:      var(--tinta-suave);
+  --muted:      var(--tinta-apagada);
+  --border:     var(--linea);
+  --grad:       linear-gradient(135deg, var(--azul), var(--cian));
+  --grad-g:     linear-gradient(135deg, var(--cian), var(--ok));
+  --grad-soft:  linear-gradient(135deg, #0A5BD312, #00C2FF08);
+  --sh:         0 2px 16px #0A5BD30D, 0 1px 3px #0A162808;
+  --sh2:        0 8px 32px #0A5BD314, 0 2px 8px #0A162810;
 }
 
 * {
@@ -47,14 +66,9 @@
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
-  background:
-    radial-gradient(ellipse 80% 60% at 10% 0%,  #007AFF0F, transparent 55%),
-    radial-gradient(ellipse 60% 50% at 90% 100%, #00C48C0A, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 50% 50%,  #00C2FF07, transparent 60%),
-    #EEF3FC;
-  background-attachment: fixed;
-  color: var(--text);
+  font-family: var(--font-instrument), sans-serif;
+  background: var(--papel);
+  color: var(--tinta);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   overflow-y: auto;
