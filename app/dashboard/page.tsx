@@ -268,7 +268,7 @@ export default function Dashboard() {
                 label: "Facturación este mes",
                 valor: pred?.facturacion?.disponible ? fmt(pred.facturacion.ventas_acumuladas_mes) : "—",
                 color: T.green,
-                delta: pred?.facturacion?.disponible ? `Proyectado: ${fmt(pred.facturacion.proyeccion_mes_completo.esperado)}` : "Sin datos suficientes",
+                delta: pred?.facturacion?.disponible ? `Proyectado: ${fmt(pred.facturacion.proyeccion_mes_completo?.esperado ?? 0)}` : "Sin datos suficientes",
                 info: "Es la suma total de tus ventas del mes actual. NICOLE acumula cada transacción para darte una visión en tiempo real.\n\nLa proyección usa tu historial, tendencias y promedio diario para estimar cuánto facturarás al final del mes.",
               },
               {
@@ -284,7 +284,7 @@ export default function Dashboard() {
                 label: "Venta diaria est.",
                 valor: pred?.facturacion?.disponible ? fmt(pred.facturacion.venta_diaria_esperada) : "—",
                 color: T.accent,
-                delta: pred?.facturacion?.disponible ? `Confianza ${pred.facturacion.confianza.nivel}` : "—",
+                delta: pred?.facturacion?.disponible ? `Confianza ${pred.facturacion.confianza?.nivel ?? "—"}` : "—",
                 info: "Es el promedio que NICOLE espera que vendas por día, basándose en tu historial reciente.\n\nEl nivel de confianza indica qué tan precisa es la estimación. Más datos históricos = mayor confianza.",
               },
               {
