@@ -64,6 +64,15 @@ export default function EmpleadoPage() {
   const [scanQR, setScanQR] = useState<{ url: string; expira_en: string } | null>(null);
   const [scanQRLoading, setScanQRLoading] = useState(false);
 
+  // Tras cerrar el turno: volver al inicio a los 4 segundos
+  useEffect(() => {
+    if (paso !== "resumen") return;
+    const timer = setTimeout(() => {
+      resetear();
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [paso]);
+
   // Reloj para duración + polling conteo
   useEffect(() => {
     if (paso !== "activo") return;
@@ -1073,14 +1082,6 @@ export default function EmpleadoPage() {
 
   // ─── SCREEN 10: resumen ─────────────────────────────────────────────────────
   if (paso === "resumen" && resumen) {
-    // Auto-redirect after 4 seconds
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        resetear();
-      }, 4000);
-      return () => clearTimeout(timer);
-    }, []);
-
     const durMin = turno ? (Math.floor((Date.now() - new Date(turno.hora_apertura).getTime()) / 60000)) : 0;
 
     return (
