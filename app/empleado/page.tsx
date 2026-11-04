@@ -286,23 +286,41 @@ export default function EmpleadoPage() {
     return () => clearInterval(id);
   }, [paso, turno?.id]);
 
-  // Cargar negocio_id desde localStorage al inicio
+  // "Recordar este dispositivo": casilla de la pantalla del codigo (apagada por defecto)
+  const [recordar, setRecordar] = useState(false);
+
+  // Cargar el codigo guardado SOLO si el dispositivo fue marcado como "recordado"
   useEffect(() => {
-    const saved = localStorage.getItem("lumo_negocio_codigo");
-    if (saved) {
+    let saved: string | null = null;
+    let recordado = false;
+    try {
+      recordado = localStorage.getItem("lumo_recordar_dispositivo") === "1";
+      saved = localStorage.getItem("lumo_negocio_codigo");
+      if (!recordado && saved) localStorage.removeItem("lumo_negocio_codigo"); // limpia codigos guardados antes
+    } catch { /* sin acceso al almacenamiento */ }
+    if (recordado && saved) {
+      setRecordar(true);
       setNegocioId(saved);
-      cargarSucursales(saved);
+      cargarSucursales(saved, true);
     }
   }, []);
 
-  async function cargarSucursales(nid: string) {
+  async function cargarSucursales(nid: string, guardar?: boolean) {
     setLoading(true);
     setError("");
     try {
       const r = await fetch(`${API}/api/multilocal/sucursales-publicas/${nid}`);
       const d = await r.json();
       if (!Array.isArray(d)) { setError("Código de negocio incorrecto"); return; }
-      localStorage.setItem("lumo_negocio_codigo", nid);
+      try {
+        if (guardar === true) {
+          localStorage.setItem("lumo_negocio_codigo", nid);
+          localStorage.setItem("lumo_recordar_dispositivo", "1");
+        } else if (guardar === false) {
+          localStorage.removeItem("lumo_negocio_codigo");
+          localStorage.removeItem("lumo_recordar_dispositivo");
+        }
+      } catch { /* sin acceso al almacenamiento */ }
       setSucursales(d);
       if (d.length === 1) {
         // Un solo local — lo selecciona automáticamente
@@ -503,7 +521,11 @@ export default function EmpleadoPage() {
             outline: 'none',
           }}
         />
-        <PrimaryButton loading={loading} label="Continuar →" onPress={() => cargarSucursales(negocioId)} />
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, fontSize: 15, color: C.muted, cursor: 'pointer' }}>
+          <input type="checkbox" checked={recordar} onChange={e => setRecordar(e.target.checked)} style={{ width: 20, height: 20 }} />
+          Recordar este dispositivo
+        </label>
+        <PrimaryButton loading={loading} label="Continuar →" onPress={() => cargarSucursales(negocioId, recordar)} />
       </div>
     </main>
   );
@@ -546,7 +568,7 @@ export default function EmpleadoPage() {
           ))}
         </div>
         <div style={{ marginTop: 24 }}>
-          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_codigo"); setPaso("codigo"); }} />
+          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_codigo"); localStorage.removeItem("lumo_recordar_dispositivo"); setRecordar(false); setPaso("codigo"); }} />
         </div>
       </div>
     </main>
@@ -593,7 +615,7 @@ export default function EmpleadoPage() {
         </div>
         <div style={{ marginTop: 24 }}>
           {sucursales.length > 1 && <TextButton label="← Cambiar local" onPress={() => { setSucursalSel(null); setPaso("sucursal"); }} />}
-          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_codigo"); setPaso("codigo"); }} />
+          <TextButton label="Cambiar negocio" onPress={() => { setNegocioId(""); localStorage.removeItem("lumo_negocio_codigo"); localStorage.removeItem("lumo_recordar_dispositivo"); setRecordar(false); setPaso("codigo"); }} />
         </div>
       </div>
     </main>
