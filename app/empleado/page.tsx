@@ -40,6 +40,172 @@ function getInitials(name: string) {
   return parts[0].slice(0, 2);
 }
 
+// ─── Componentes de UI (fuera de EmpleadoPage para que no se recreen en cada redibujado) ───
+
+const Avatar = ({ name, size = 80 }: { name: string; size?: number }) => (
+  <div style={{
+    width: size,
+    height: size,
+    borderRadius: '50%',
+    background: `linear-gradient(135deg, ${C.primary} 0%, #00C2FF 100%)`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: 'var(--font-instrument), sans-serif',
+    fontWeight: 800,
+    fontSize: size / 2.5,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+  }}>
+    {getInitials(name)}
+  </div>
+);
+
+const ErrorBox = ({ error }: { error: string }) => error ? (
+  <div style={{
+    background: 'rgba(255,59,48,0.08)',
+    border: `1px solid rgba(255,59,48,0.2)`,
+    borderRadius: 14,
+    padding: '12px 16px',
+    color: C.red,
+    fontSize: 14,
+    marginBottom: 20,
+    fontFamily: 'var(--font-instrument), sans-serif',
+  }}>
+    {error}
+  </div>
+) : null;
+
+const PrimaryButton = ({ label, onPress, color = C.primary, disabled = false, icon, loading = false }: { label: string; onPress: () => void; color?: string; disabled?: boolean; icon?: string; loading?: boolean }) => (
+  <button
+    onClick={onPress}
+    disabled={disabled || loading}
+    style={{
+      width: '100%',
+      padding: '18px 24px',
+      borderRadius: 14,
+      background: disabled || loading ? C.cardBorder : color,
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: 700,
+      fontFamily: 'var(--font-instrument), sans-serif',
+      cursor: disabled || loading ? 'default' : 'pointer',
+      marginBottom: 12,
+      border: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      transition: 'all 0.2s',
+    }}
+  >
+    {loading ? "..." : <>{icon && <span>{icon}</span>}{label}</>}
+  </button>
+);
+
+const SecondaryButton = ({ label, onPress, color = C.primary }: { label: string; onPress: () => void; color?: string }) => (
+  <button
+    onClick={onPress}
+    style={{
+      width: '100%',
+      padding: '18px 24px',
+      borderRadius: 14,
+      background: 'transparent',
+      color: color,
+      fontSize: 16,
+      fontWeight: 700,
+      fontFamily: 'var(--font-instrument), sans-serif',
+      cursor: 'pointer',
+      marginBottom: 12,
+      border: `2px solid ${color}`,
+      transition: 'all 0.2s',
+    }}
+  >
+    {label}
+  </button>
+);
+
+const TextButton = ({ label, onPress }: { label: string; onPress: () => void }) => (
+  <button
+    onClick={onPress}
+    style={{
+      background: 'none',
+      border: 'none',
+      color: C.muted,
+      fontSize: 14,
+      fontFamily: 'var(--font-instrument), sans-serif',
+      cursor: 'pointer',
+      width: '100%',
+      textAlign: 'center',
+      padding: '12px',
+    }}
+  >
+    {label}
+  </button>
+);
+
+const CurrencyInput = ({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) => (
+  <div style={{
+    position: 'relative',
+    marginBottom: 24,
+  }}>
+    <div style={{
+      position: 'absolute',
+      left: 24,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      fontSize: 32,
+      fontWeight: 800,
+      fontFamily: 'var(--font-instrument), sans-serif',
+      color: C.muted,
+    }}>$</div>
+    <input
+      type="number"
+      inputMode="numeric"
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      style={{
+        width: '100%',
+        padding: '20px 24px 20px 56px',
+        borderRadius: 20,
+        border: `2px solid ${C.cardBorder}`,
+        background: C.bg,
+        color: C.text,
+        fontSize: 32,
+        fontWeight: 800,
+        fontFamily: 'var(--font-instrument), sans-serif',
+        boxSizing: 'border-box' as any,
+        outline: 'none',
+      }}
+    />
+  </div>
+);
+
+const NumpadKey = ({ value, onPress }: { value: string; onPress: () => void }) => (
+  <button
+    onClick={onPress}
+    style={{
+      width: 70,
+      height: 70,
+      borderRadius: '50%',
+      border: `2px solid ${C.cardBorder}`,
+      background: C.bg,
+      color: C.text,
+      fontSize: 24,
+      fontWeight: 700,
+      fontFamily: 'var(--font-instrument), sans-serif',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'all 0.15s',
+    }}
+  >
+    {value}
+  </button>
+);
+
 export default function EmpleadoPage() {
   const [paso, setPaso] = useState<Paso>("codigo");
   const [negocioId, setNegocioId] = useState("");
@@ -306,172 +472,6 @@ export default function EmpleadoPage() {
     setResumen(null);
   }
 
-  // ─── UI Components ──────────────────────────────────────────────────────────
-
-  const Avatar = ({ name, size = 80 }: { name: string; size?: number }) => (
-    <div style={{
-      width: size,
-      height: size,
-      borderRadius: '50%',
-      background: `linear-gradient(135deg, ${C.primary} 0%, #00C2FF 100%)`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'var(--font-instrument), sans-serif',
-      fontWeight: 800,
-      fontSize: size / 2.5,
-      color: '#FFFFFF',
-      textTransform: 'uppercase',
-    }}>
-      {getInitials(name)}
-    </div>
-  );
-
-  const ErrorBox = () => error ? (
-    <div style={{
-      background: 'rgba(255,59,48,0.08)',
-      border: `1px solid rgba(255,59,48,0.2)`,
-      borderRadius: 14,
-      padding: '12px 16px',
-      color: C.red,
-      fontSize: 14,
-      marginBottom: 20,
-      fontFamily: 'var(--font-instrument), sans-serif',
-    }}>
-      {error}
-    </div>
-  ) : null;
-
-  const PrimaryButton = ({ label, onPress, color = C.primary, disabled = false, icon }: { label: string; onPress: () => void; color?: string; disabled?: boolean; icon?: string }) => (
-    <button
-      onClick={onPress}
-      disabled={disabled || loading}
-      style={{
-        width: '100%',
-        padding: '18px 24px',
-        borderRadius: 14,
-        background: disabled || loading ? C.cardBorder : color,
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: 700,
-        fontFamily: 'var(--font-instrument), sans-serif',
-        cursor: disabled || loading ? 'default' : 'pointer',
-        marginBottom: 12,
-        border: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        transition: 'all 0.2s',
-      }}
-    >
-      {loading ? "..." : <>{icon && <span>{icon}</span>}{label}</>}
-    </button>
-  );
-
-  const SecondaryButton = ({ label, onPress, color = C.primary }: { label: string; onPress: () => void; color?: string }) => (
-    <button
-      onClick={onPress}
-      style={{
-        width: '100%',
-        padding: '18px 24px',
-        borderRadius: 14,
-        background: 'transparent',
-        color: color,
-        fontSize: 16,
-        fontWeight: 700,
-        fontFamily: 'var(--font-instrument), sans-serif',
-        cursor: 'pointer',
-        marginBottom: 12,
-        border: `2px solid ${color}`,
-        transition: 'all 0.2s',
-      }}
-    >
-      {label}
-    </button>
-  );
-
-  const TextButton = ({ label, onPress }: { label: string; onPress: () => void }) => (
-    <button
-      onClick={onPress}
-      style={{
-        background: 'none',
-        border: 'none',
-        color: C.muted,
-        fontSize: 14,
-        fontFamily: 'var(--font-instrument), sans-serif',
-        cursor: 'pointer',
-        width: '100%',
-        textAlign: 'center',
-        padding: '12px',
-      }}
-    >
-      {label}
-    </button>
-  );
-
-  const CurrencyInput = ({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) => (
-    <div style={{
-      position: 'relative',
-      marginBottom: 24,
-    }}>
-      <div style={{
-        position: 'absolute',
-        left: 24,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        fontSize: 32,
-        fontWeight: 800,
-        fontFamily: 'var(--font-instrument), sans-serif',
-        color: C.muted,
-      }}>$</div>
-      <input
-        type="number"
-        inputMode="numeric"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={{
-          width: '100%',
-          padding: '20px 24px 20px 56px',
-          borderRadius: 20,
-          border: `2px solid ${C.cardBorder}`,
-          background: C.bg,
-          color: C.text,
-          fontSize: 32,
-          fontWeight: 800,
-          fontFamily: 'var(--font-instrument), sans-serif',
-          boxSizing: 'border-box' as any,
-          outline: 'none',
-        }}
-      />
-    </div>
-  );
-
-  const NumpadKey = ({ value, onPress }: { value: string; onPress: () => void }) => (
-    <button
-      onClick={onPress}
-      style={{
-        width: 70,
-        height: 70,
-        borderRadius: '50%',
-        border: `2px solid ${C.cardBorder}`,
-        background: C.bg,
-        color: C.text,
-        fontSize: 24,
-        fontWeight: 700,
-        fontFamily: 'var(--font-instrument), sans-serif',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.15s',
-      }}
-    >
-      {value}
-    </button>
-  );
-
   // ─── SCREEN 1: codigo ───────────────────────────────────────────────────────
   if (paso === "codigo") return (
     <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
@@ -481,7 +481,7 @@ export default function EmpleadoPage() {
           <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 40, color: C.text, margin: '0 0 12px 0' }}>Modo empleado</h1>
           <p style={{ fontSize: 16, color: C.muted, margin: 0 }}>Ingresá el código de tu negocio</p>
         </div>
-        <ErrorBox />
+        <ErrorBox error={error} />
         <input
           type="text"
           autoCapitalize="characters"
@@ -503,7 +503,7 @@ export default function EmpleadoPage() {
             outline: 'none',
           }}
         />
-        <PrimaryButton label="Continuar →" onPress={() => cargarSucursales(negocioId)} />
+        <PrimaryButton loading={loading} label="Continuar →" onPress={() => cargarSucursales(negocioId)} />
       </div>
     </main>
   );
@@ -515,7 +515,7 @@ export default function EmpleadoPage() {
         <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿En qué local trabajás hoy?</h1>
       </div>
       <div style={{ padding: 24 }}>
-        <ErrorBox />
+        <ErrorBox error={error} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {sucursales.map(s => (
             <button
@@ -559,7 +559,7 @@ export default function EmpleadoPage() {
         <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Quién sos?</h1>
       </div>
       <div style={{ padding: 24 }}>
-        <ErrorBox />
+        <ErrorBox error={error} />
         {sucursalSel && (
           <div style={{ marginBottom: 20, padding: '12px 16px', background: `rgba(0,122,255,0.08)`, borderRadius: 14, fontSize: 14, color: C.primary, fontWeight: 600 }}>
             📍 {sucursalSel.nombre}
@@ -606,7 +606,7 @@ export default function EmpleadoPage() {
         <Avatar name={empleadoSel} size={100} />
         <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 28, color: C.text, margin: '24px 0 8px 0' }}>{empleadoSel}</h1>
         <p style={{ fontSize: 16, color: C.muted, marginBottom: 40 }}>Ingresá tu PIN de 4 dígitos</p>
-        <ErrorBox />
+        <ErrorBox error={error} />
 
         {/* PIN Dots */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 48 }}>
@@ -673,7 +673,7 @@ export default function EmpleadoPage() {
           </button>
         </div>
 
-        <PrimaryButton label="Confirmar" onPress={handleValidarPin} disabled={pin.length !== 4} />
+        <PrimaryButton loading={loading} label="Confirmar" onPress={handleValidarPin} disabled={pin.length !== 4} />
       </div>
     </main>
   );
@@ -687,9 +687,9 @@ export default function EmpleadoPage() {
           <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Cuánto efectivo hay en caja ahora?</h1>
           <p style={{ fontSize: 14, color: C.muted, marginTop: 12 }}>Declaración de apertura de turno</p>
         </div>
-        <ErrorBox />
+        <ErrorBox error={error} />
         <CurrencyInput value={aperturaEfectivo} onChange={v => { setAperturaEfectivo(v); setError(""); }} placeholder="15000" />
-        <PrimaryButton label="Abrir turno" onPress={handleApertura} color={C.green} />
+        <PrimaryButton loading={loading} label="Abrir turno" onPress={handleApertura} color={C.green} />
         <SecondaryButton label="← Volver" onPress={() => { setPaso("pin"); setError(""); }} color={C.muted} />
       </div>
     </main>
@@ -984,7 +984,7 @@ export default function EmpleadoPage() {
           )}
 
           {/* Actions */}
-          <PrimaryButton label="💰 Declaración mid-turno" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.yellow} icon="" />
+          <PrimaryButton loading={loading} label="💰 Declaración mid-turno" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.yellow} icon="" />
           <SecondaryButton label="Cerrar turno" onPress={() => { setCierreMonto(""); setError(""); setPaso("cierre"); }} color={C.red} />
         </div>
       </main>
@@ -1025,9 +1025,9 @@ export default function EmpleadoPage() {
             </p>
           </div>
           <h2 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 24, color: C.text, marginBottom: 24 }}>¿Cuánto efectivo hay en caja ahora?</h2>
-          <ErrorBox />
+          <ErrorBox error={error} />
           <CurrencyInput value={conteoMonto} onChange={v => { setConteoMonto(v); setError(""); }} placeholder="18500" />
-          <PrimaryButton label="Confirmar conteo" onPress={handleConteo} color={C.primary} />
+          <PrimaryButton loading={loading} label="Confirmar conteo" onPress={handleConteo} color={C.primary} />
           <SecondaryButton label="← Volver al turno" onPress={() => { setPaso("activo"); setError(""); }} color={C.muted} />
         </div>
       </div>
@@ -1042,7 +1042,7 @@ export default function EmpleadoPage() {
           <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: '0 0 12px 0' }}>Cerrando turno</h1>
           <p style={{ fontSize: 16, color: C.muted }}>¿Cuánto efectivo hay en caja al cerrar?</p>
         </div>
-        <ErrorBox />
+        <ErrorBox error={error} />
         <div style={{
           background: C.bg,
           border: `2px solid ${C.cardBorder}`,
