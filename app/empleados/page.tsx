@@ -31,8 +31,30 @@ type EmpleadoERM = {
   empleado: string;
   score: number | null;
   nivel: string;
+  motivo?: string;
   señales: { tipo: string; descripcion: string; peso: number }[];
   confianza?: { señales_disponibles: number; señales_totales: number };
+  detalle?: {
+    n_turnos: number;
+    brecha_promedio_abs: number;
+    tasa_inconsistencia: number;
+    tasa_omision_conteos: number;
+    racha_limpia: number;
+    ultimo_turno: string | null;
+  };
+  cusum_turnos?: { turno: string; disponible: boolean; pct_umbral: number | null; alarma: boolean }[];
+};
+
+type TurnoEvidencia = {
+  id: number;
+  hora_apertura: string;
+  tipo_turno: string;
+  sucursal: string | null;
+  caja_esperada: number | string | null;
+  caja_cierre: number | string | null;
+  brecha: number | string | null;
+  conteo_aleatorio_omitido: boolean | null;
+  conteo_aleatorio2_omitido: boolean | null;
 };
 
 type ERMNegocio = {
@@ -61,6 +83,111 @@ function nivelBadgeERM(nivel: string): { text: string; variant: "ok" | "warn" } 
   return { text: "Sin datos", variant: "ok" };
 }
 
+const pesos = (n: number) => "$" + Math.round(Math.abs(n)).toLocaleString("es-AR");
+const NOMBRE_TURNO: Record<string, string> = { manana: "Mañana", tarde: "Tarde", noche: "Noche" };
+const NOMBRE_SENAL: Record<string, { titulo: string; explica: string }> = {
+  CUSUM: { titulo: "Desvío sostenido en el turno", explica: "Mide si las diferencias de caja del turno vienen creciendo de forma sostenida. Se calcula sobre todo el turno del negocio, no solo sobre esta persona." },
+  ZSCORE_PROPIO: { titulo: "Se aparta de su propio patrón", explica: "Compara su diferencia promedio con lo que le pasa habitualmente a esta misma persona." },
+  BRECHA_PROMEDIO: { titulo: "Diferencia promedio de caja", explica: "Promedio de las diferencias entre lo esperado y lo declarado al cerrar, y porcentaje de turnos con diferencia." },
+  COMPORTAMIENTO_PEERS: { titulo: "Distinto del resto del equipo", explica: "Compara con otras personas que trabajaron el mismo turno." },
+  OMISION_CONTEOS: { titulo: "Conteos aleatorios sin responder", explica: "Porcentaje de conteos de caja a mitad de turno que no se respondieron." },
+  RACHA_POSITIVA: { titulo: "Racha sin diferencias", explica: "Turnos seguidos con diferencia de hasta $500. Baja el puntaje." },
+};
+
+function Titulo({ children }: { children: React.ReactNode }) {
+  return <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--muted)", margin: "12px 0 6px" }}>{children}</div>;
+}
+
+function Fila({ k, v }: { k: string; v: string }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 11, padding: "3px 0" }}>
+      <span style={{ color: "var(--muted)" }}>{k}</span>
+      <span style={{ color: "var(--text)", fontWeight: 600, textAlign: "right" }}>{v}</span>
+    </div>
+  );
+}
+
+function DetalleRiesgo({ e, turnos }: { e: EmpleadoERM; turnos: TurnoEvidencia[] | "cargando" | "error" | undefined }) {
+  const d = e.detalle;
+  const cusum = (e.cusum_turnos || []).filter(c => c.disponible && c.pct_umbral !== null);
+  return (
+    <div style={{ margin: "0 12px 10px", background: "var(--card2)", borderRadius: 14, padding: 14, border: "1px solid var(--border)", boxShadow: "var(--sh)" }}>
+      <div style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.5 }}>
+        {e.score !== null
+          ? `Puntaje ${e.score} de 100. Normal hasta 29, atención de 30 a 60, alto riesgo desde 61. Se calcula con los turnos cerrados de los últimos 30 días (mínimo 3 turnos).`
+          : (e.motivo || "Todavía no hay datos suficientes para calcular el puntaje.")}
+      </div>
+
+      {d && (
+        <>
+          <Titulo>Últimos 30 días</Titulo>
+          <Fila k="Turnos analizados" v={String(d.n_turnos)} />
+          <Fila k="Turnos con diferencia" v={`${d.tasa_inconsistencia}%`} />
+          <Fila k="Diferencia promedio" v={pesos(d.brecha_promedio_abs)} />
+          <Fila k="Conteos sin responder" v={`${d.tasa_omision_conteos}%`} />
+          <Fila k="Racha sin diferencias" v={`${d.racha_limpia} turnos`} />
+        </>
+      )}
+
+      {e.score !== null && <Titulo>De dónde sale el puntaje</Titulo>}
+      {e.score === null ? null : e.señales.length === 0 ? (
+        <div style={{ fontSize: 11, color: "var(--muted)" }}>Ninguna señal superó su umbral.</div>
+      ) : e.señales.map(s => {
+        const info = NOMBRE_SENAL[s.tipo];
+        return (
+          <div key={s.tipo} style={{ padding: "6px 0", borderTop: "1px solid var(--border)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text)" }}>{info ? info.titulo : s.tipo}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: s.peso < 0 ? "var(--emerald)" : "var(--yellow)" }}>{s.peso > 0 ? "+" : ""}{Math.round(s.peso)} pts</span>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text2)", marginTop: 2 }}>{s.descripcion}</div>
+            {info && <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2, lineHeight: 1.4 }}>{info.explica}</div>}
+          </div>
+        );
+      })}
+      {cusum.length > 0 && (
+        <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 6 }}>
+          Desvío del turno: {cusum.map(c => `${NOMBRE_TURNO[String(c.turno).toLowerCase()] || c.turno} ${Math.round(c.pct_umbral as number)}% del umbral`).join(" · ")}
+        </div>
+      )}
+      {e.confianza && (
+        <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 6 }}>
+          Señales estadísticas con datos suficientes: {e.confianza.señales_disponibles} de {e.confianza.señales_totales}
+        </div>
+      )}
+
+      <Titulo>Turnos analizados</Titulo>
+      {turnos === undefined || turnos === "cargando" ? (
+        <div style={{ fontSize: 11, color: "var(--muted)" }}>Cargando turnos...</div>
+      ) : turnos === "error" ? (
+        <div style={{ fontSize: 11, color: "var(--muted)" }}>No se pudieron cargar los turnos. Probá de nuevo.</div>
+      ) : turnos.length === 0 ? (
+        <div style={{ fontSize: 11, color: "var(--muted)" }}>No hay turnos cerrados en los últimos 30 días.</div>
+      ) : turnos.map(t => {
+        const dif = t.brecha === null ? null : Number(t.brecha);
+        const omitidos = (t.conteo_aleatorio_omitido ? 1 : 0) + (t.conteo_aleatorio2_omitido ? 1 : 0);
+        const fecha = new Date(t.hora_apertura).toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+        return (
+          <div key={t.id} style={{ padding: "6px 0", borderTop: "1px solid var(--border)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text)" }}>{fecha} · {NOMBRE_TURNO[String(t.tipo_turno).toLowerCase()] || t.tipo_turno}{t.sucursal ? ` · ${t.sucursal}` : ""}</div>
+            <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>
+              {t.caja_esperada !== null ? `Esperado ${pesos(Number(t.caja_esperada))}` : "Esperado —"} · {t.caja_cierre !== null ? `Declarado ${pesos(Number(t.caja_cierre))}` : "Declarado —"}
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2, color: dif !== null && Math.abs(dif) >= 200 ? "var(--yellow)" : "var(--emerald)" }}>
+              {dif === null ? "Sin diferencia calculada" : Math.abs(dif) < 1 ? "Sin diferencia" : `Diferencia ${pesos(dif)} ${dif > 0 ? "de menos" : "de más"}`}
+              {omitidos > 0 ? ` · ${omitidos} conteo(s) sin responder` : ""}
+            </div>
+          </div>
+        );
+      })}
+
+      <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 12, lineHeight: 1.45 }}>
+        Estos datos describen diferencias de caja y conteos. Por sí solos no indican la causa: pueden deberse a errores de registro, gastos no cargados o cambios en la forma de trabajar.
+      </div>
+    </div>
+  );
+}
+
 export default function Empleados() {
   const router = useRouter();
   const { token, ready } = useAuth();
@@ -70,6 +197,8 @@ export default function Empleados() {
   const [erm, setErm] = useState<ERMNegocio | null>(null);
   const [turnoActivo, setTurnoActivo] = useState<string>("MANANA");
   const [loading, setLoading] = useState(true);
+  const [abierto, setAbierto] = useState<string | null>(null);
+  const [info, setInfo] = useState<Record<string, { erm?: EmpleadoERM; turnos?: TurnoEvidencia[] | "cargando" | "error" }>>({});
 
   useEffect(() => {
     if (!ready) return;
@@ -97,6 +226,21 @@ export default function Empleados() {
       setLoading(false);
     });
   }, [ready, token]);
+
+  const abrirDetalle = (nombre: string) => {
+    if (abierto === nombre) { setAbierto(null); return; }
+    setAbierto(nombre);
+    if (info[nombre]?.turnos !== undefined && info[nombre]?.turnos !== "error") return;
+    const headers = { Authorization: `Bearer ${token}` };
+    const base = `${API}/api/erm/${encodeURIComponent(nombre)}`;
+    setInfo(prev => ({ ...prev, [nombre]: { ...prev[nombre], turnos: "cargando" } }));
+    fetch(base, { headers }).then(r => r.json())
+      .then(d => { if (d && typeof d === "object" && !d.error) setInfo(prev => ({ ...prev, [nombre]: { ...prev[nombre], erm: d as EmpleadoERM } })); })
+      .catch(() => {});
+    fetch(`${base}/turnos`, { headers }).then(r => r.json())
+      .then(d => setInfo(prev => ({ ...prev, [nombre]: { ...prev[nombre], turnos: Array.isArray(d.turnos) ? d.turnos : "error" } })))
+      .catch(() => setInfo(prev => ({ ...prev, [nombre]: { ...prev[nombre], turnos: "error" } })));
+  };
 
   const ranking = rankings[turnoActivo] || [];
   const today = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
@@ -147,16 +291,23 @@ export default function Empleados() {
               {erm.alerta_equipo && (
                 <AlertCard variant="crit" tag="Alerta de equipo" title={erm.alerta_equipo} desc="" />
               )}
+              <div style={{ fontSize: 10, color: "var(--muted)", padding: "0 14px 8px" }}>Tocá a una persona para ver de dónde sale su puntaje.</div>
               {erm.empleados.map((e, i) => (
-                <EmployeeCard
-                  key={e.empleado}
-                  initials={iniciales(e.empleado)}
-                  colorVariant={EAV_VARIANT[i % 3]}
-                  name={e.empleado}
-                  sub={e.score !== null && e.señales.length > 0 ? e.señales[0].descripcion : e.score === null ? "Datos insuficientes" : "Sin señales activas"}
-                  amount={e.score !== null ? `Riesgo ${e.score}` : "—"}
-                  badge={nivelBadgeERM(e.nivel)}
-                />
+                <div key={e.empleado}>
+                  <div onClick={() => abrirDetalle(e.empleado)} style={{ cursor: "pointer" }}>
+                    <EmployeeCard
+                      initials={iniciales(e.empleado)}
+                      colorVariant={EAV_VARIANT[i % 3]}
+                      name={e.empleado}
+                      sub={e.score !== null && e.señales.length > 0 ? e.señales[0].descripcion : e.score === null ? "Datos insuficientes" : "Sin señales activas"}
+                      amount={e.score !== null ? `Riesgo ${e.score}` : "—"}
+                      badge={nivelBadgeERM(e.nivel)}
+                    />
+                  </div>
+                  {abierto === e.empleado && (
+                    <DetalleRiesgo e={{ ...(info[e.empleado]?.erm ?? {}), ...e }} turnos={info[e.empleado]?.turnos} />
+                  )}
+                </div>
               ))}
               <Divider />
             </>
