@@ -49,7 +49,7 @@ function OnboardingInner() {
     }
 
     try {
-      await fetch(`${API}/api/perfil`, {
+      const resp = await fetch(`${API}/api/perfil`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -57,6 +57,11 @@ function OnboardingInner() {
         },
         body: JSON.stringify({ tipo_negocio: tipoNegocio, zona: zona || null })
       });
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        setError(data.error || "No pudimos guardar. Intentá de nuevo.");
+        return;
+      }
       setPantalla("nicole");
     } catch (err) {
       console.error("Error guardando registro:", err);
@@ -167,7 +172,7 @@ function OnboardingInner() {
                 cursor: "pointer"
               }}
             >
-              Empezá gratis — 15 días
+              Empezá gratis — 5 días
             </button>
 
             <button
@@ -237,28 +242,31 @@ function OnboardingInner() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "20px" }}>
             {[
-              { label: "Cafetería", emoji: "☕" },
-              { label: "Kiosko", emoji: "🏪" },
-              { label: "Restobar", emoji: "🍽️" },
-              { label: "Farmacia", emoji: "💊" },
-              { label: "Otro", emoji: "🏬" }
-            ].map(({ label, emoji }) => (
+              { label: "Restaurante y parrilla", valor: "restaurante" },
+              { label: "Café y bar", valor: "cafeteria" },
+              { label: "Panadería", valor: "panaderia" },
+              { label: "Kiosco", valor: "kiosko" },
+              { label: "Almacén", valor: "almacen" },
+              { label: "Supermercado", valor: "supermercado" },
+              { label: "Farmacia", valor: "farmacia" },
+              { label: "Indumentaria y otros comercios", valor: "retail" }
+            ].map(({ label, valor }) => (
               <button
                 key={label}
-                onClick={() => { setTipoNegocio(label); setError(""); }}
+                onClick={() => { setTipoNegocio(valor); setError(""); }}
                 style={{
                   padding: "14px 10px",
-                  background: tipoNegocio === label ? "rgba(0,122,255,0.2)" : "rgba(255,255,255,0.05)",
-                  border: tipoNegocio === label ? "1px solid #007AFF" : "1px solid var(--border)",
+                  background: tipoNegocio === valor ? "rgba(0,122,255,0.2)" : "rgba(255,255,255,0.05)",
+                  border: tipoNegocio === valor ? "1px solid #007AFF" : "1px solid var(--border)",
                   borderRadius: "12px",
                   cursor: "pointer",
                   textAlign: "center",
-                  color: tipoNegocio === label ? "white" : "var(--text)",
+                  color: tipoNegocio === valor ? "white" : "var(--text)",
                   fontSize: "13px",
                   fontWeight: 600
                 }}
               >
-                {emoji} {label}
+                {label}
               </button>
             ))}
           </div>
