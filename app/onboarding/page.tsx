@@ -37,7 +37,7 @@ function OnboardingInner() {
     }
 
     if (typeof window !== "undefined" && window.location.search.includes("mp_conectado=true")) {
-      setPantalla("wow");
+      router.replace("/primeros-pasos");
       return;
     }
   }, [router, searchParams]);
@@ -62,7 +62,7 @@ function OnboardingInner() {
         setError(data.error || "No pudimos guardar. Intentá de nuevo.");
         return;
       }
-      setPantalla("nicole");
+      router.replace("/primeros-pasos");
     } catch (err) {
       console.error("Error guardando registro:", err);
       setError("Error al guardar. Intentá de nuevo.");
