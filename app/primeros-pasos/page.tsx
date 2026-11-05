@@ -181,7 +181,7 @@ export default function PrimerosPasos() {
             texto="Rubro y zona de tu negocio. Con eso NICOLE lo compara con el patrón correcto y con negocios parecidos al tuyo.">
             {hechos[0]
               ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Rubro y zona cargados.</div>
-              : <button style={btnPrimario} onClick={() => router.push("/onboarding")}>Completar los datos</button>}
+              : <button style={btnPrimario} onClick={() => router.push("/onboarding?desde=pasos")}>Completar los datos</button>}
           </Tarjeta>
 
           <Tarjeta n={2} hecho={hechos[1]} titulo="Tus locales"

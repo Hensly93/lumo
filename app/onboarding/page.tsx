@@ -59,6 +59,8 @@ function OnboardingInner() {
       return;
     }
     setToken(lumoToken);
+    // Si llega desde "Completar los datos" de primeros pasos, ya tiene cuenta: no se le muestra la bienvenida.
+    if (window.location.search.includes("desde=pasos")) setPantalla("registro");
 
     const usuarioStr = localStorage.getItem("lumo_usuario");
     if (usuarioStr) {
