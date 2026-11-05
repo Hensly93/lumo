@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { subscribePush } from "../hooks/usePush";
+import { subscribePush, getMotivoPush } from "../hooks/usePush";
 import SubirVentas from "../components/SubirVentas";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -126,7 +126,7 @@ export default function PrimerosPasos() {
   async function activarAvisos() {
     if (!token) return;
     const ok = await subscribePush(token);
-    setMensaje(ok ? "Avisos activados" : "No se pudo activar. Revisá que Chrome tenga permiso para notificaciones.");
+    setMensaje(ok ? "Avisos activados" : (getMotivoPush() || "No se pudo activar. Revisá que Chrome tenga permiso para notificaciones."));
     if (ok) cargarEstado(token);
   }
 
