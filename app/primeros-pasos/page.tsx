@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { subscribePush } from "../hooks/usePush";
+import SubirVentas from "../components/SubirVentas";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const CLAVE_CODIGO = "lumo_paso_codigo_compartido";
@@ -206,10 +207,10 @@ export default function PrimerosPasos() {
           </Tarjeta>
 
           <Tarjeta n={5} hecho={hechos[4]} titulo="Tus ventas"
-            texto="Conectá Mercado Pago para que NICOLE vea tus cobros digitales y los cruce con la caja de cada turno.">
-            {hechos[4]
-              ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Ya hay ventas conectadas.</div>
-              : <button style={btnPrimario} onClick={conectarMercadoPago}>Conectar Mercado Pago</button>}
+            texto="Para que NICOLE te muestre lo que descubre de tu negocio, subí tus ventas (Excel, PDF o una foto del cuaderno) o conectá Mercado Pago.">
+            {hechos[4] && <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Ya hay ventas cargadas.</div>}
+            <SubirVentas token={token} onListo={() => cargarEstado(token)} />
+            <button style={btnSecundario} onClick={conectarMercadoPago}>Conectar Mercado Pago</button>
           </Tarjeta>
 
           <Tarjeta n={6} hecho={hechos[5]} titulo="Avisos en tu celu"
