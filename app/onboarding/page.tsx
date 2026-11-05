@@ -5,6 +5,25 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
+function Contador({ titulo, valor, min, max, onChange }: {
+  titulo: string; valor: number; min: number; max: number; onChange: (v: number) => void;
+}) {
+  const boton: React.CSSProperties = {
+    width: "40px", height: "40px", borderRadius: "10px", border: "1px solid var(--border)",
+    background: "var(--card)", color: "var(--text)", fontSize: "20px", cursor: "pointer"
+  };
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0" }}>
+      <span style={{ fontSize: "14px", color: "var(--text)" }}>{titulo}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <button type="button" onClick={() => onChange(Math.max(min, valor - 1))} style={boton}>-</button>
+        <span style={{ minWidth: "28px", textAlign: "center", fontSize: "16px", fontWeight: 700, color: "var(--text)" }}>{valor}</span>
+        <button type="button" onClick={() => onChange(Math.min(max, valor + 1))} style={boton}>+</button>
+      </div>
+    </div>
+  );
+}
+
 function OnboardingInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -12,6 +31,23 @@ function OnboardingInner() {
   const [nombreNegocio, setNombreNegocio] = useState("");
   const [tipoNegocio, setTipoNegocio] = useState("");
   const [zona, setZona] = useState("");
+  const [locales, setLocales] = useState(1);
+  const [cajas, setCajas] = useState(1);
+  const [empleados, setEmpleados] = useState(1);
+  const [calculo, setCalculo] = useState<{ plan: string; precio: number | null } | null>(null);
+
+  useEffect(() => {
+    let vigente = true;
+    fetch(`${API}/api/plan/calcular`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cajas: Array.from({ length: locales }, () => cajas), empleados }),
+    })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (vigente) setCalculo(d); })
+      .catch(() => { if (vigente) setCalculo(null); });
+    return () => { vigente = false; };
+  }, [locales, cajas, empleados]);
   const [procesandoStep, setProcesandoStep] = useState(0);
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
@@ -62,6 +98,13 @@ function OnboardingInner() {
         setError(data.error || "No pudimos guardar. Intentá de nuevo.");
         return;
       }
+      try {
+        await fetch(`${API}/api/plan/tamano`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          body: JSON.stringify({ locales, cajas, empleados })
+        });
+      } catch { /* si falla, el tamaño se puede cargar después */ }
       router.replace("/primeros-pasos");
     } catch (err) {
       console.error("Error guardando registro:", err);
@@ -299,6 +342,24 @@ function OnboardingInner() {
             <option value="CABA">CABA</option>
             <option value="Interior">Interior</option>
           </select>
+
+          <label style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "var(--muted)", display: "block", marginBottom: "8px" }}>
+            TAMAÑO DE TU NEGOCIO
+          </label>
+
+          <div style={{ marginBottom: "16px" }}>
+            <Contador titulo="Locales" valor={locales} min={1} max={10} onChange={setLocales} />
+            <Contador titulo="Cajas por local" valor={cajas} min={1} max={20} onChange={setCajas} />
+            <Contador titulo="Empleados" valor={empleados} min={0} max={100} onChange={setEmpleados} />
+          </div>
+
+          {calculo !== null && (
+            <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", padding: "14px 16px", marginBottom: "28px", fontSize: "13px", color: "var(--text)", lineHeight: 1.5 }}>
+              {calculo.plan === "empresarial"
+                ? "Tu negocio entra en el plan EMPRESARIAL: te armamos un precio a medida."
+                : "Tu abono estimado: $" + (calculo.precio ?? 0).toLocaleString("es-AR") + " por mes, después de 5 días gratis."}
+            </div>
+          )}
 
           {error && (
             <p style={{ color: "#EF4444", fontSize: "13px", marginBottom: "12px" }}>{error}</p>
