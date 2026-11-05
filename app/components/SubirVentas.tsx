@@ -51,6 +51,7 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [wow, setWow] = useState<Wow | null>(null);
   const entrada = useRef<HTMLInputElement | null>(null);
+  const entradaFoto = useRef<HTMLInputElement | null>(null);
 
   function descargarPlantilla() {
     const blob = new Blob([PLANTILLA], { type: "text/csv;charset=utf-8" });
@@ -94,18 +95,31 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
     } finally {
       clearTimeout(reloj);
       if (entrada.current) entrada.current.value = "";
+      if (entradaFoto.current) entradaFoto.current.value = "";
     }
   }
 
+  // Dos selectores: si se mezclan archivos e imagenes en uno solo, el celular ofrece solo Camara y Fotos
+  // y no deja elegir un Excel, un CSV ni un PDF.
   const selector = (
-    <input
-      ref={entrada}
-      type="file"
-      accept=".xlsx,.xls,.csv,.pdf,image/*"
-      aria-label="Elegir el archivo de ventas"
-      style={{ display: "none" }}
-      onChange={e => { const f = e.currentTarget.files; if (f && f[0]) subir(f[0]); }}
-    />
+    <>
+      <input
+        ref={entrada}
+        type="file"
+        accept=".xlsx,.xls,.csv,.pdf,application/pdf,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        aria-label="Elegir el archivo de ventas"
+        style={{ display: "none" }}
+        onChange={e => { const f = e.currentTarget.files; if (f && f[0]) subir(f[0]); }}
+      />
+      <input
+        ref={entradaFoto}
+        type="file"
+        accept="image/*"
+        aria-label="Sacar o elegir una foto de las ventas"
+        style={{ display: "none" }}
+        onChange={e => { const f = e.currentTarget.files; if (f && f[0]) subir(f[0]); }}
+      />
+    </>
   );
 
   if (fase === "leyendo") {
@@ -159,9 +173,12 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
         </div>
       )}
       <button style={btnPrimario} onClick={() => entrada.current?.click()}>
-        {fase === "error" ? "Probar de nuevo" : "Subir mis ventas"}
+        {fase === "error" ? "Probar de nuevo con un archivo" : "Subir archivo (Excel, CSV o PDF)"}
       </button>
-      <p style={nota}>Excel, CSV, PDF o una foto del cuaderno o del ticket. Con 2 o 3 semanas alcanza.</p>
+      <button style={btnSecundario} onClick={() => entradaFoto.current?.click()}>
+        Sacar o elegir una foto
+      </button>
+      <p style={nota}>Sirve una foto del cuaderno o del ticket. Con 2 o 3 semanas de ventas alcanza.</p>
       <p style={nota}>Guardamos estas ventas en tu cuenta para calcular tus patrones. Solo las ves vos.</p>
       <button
         onClick={descargarPlantilla}
