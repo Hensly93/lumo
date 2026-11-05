@@ -49,6 +49,7 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
   const [fase, setFase] = useState<Fase>("reposo");
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState<Resultado | null>(null);
+  const [nombre, setNombre] = useState("");
   const [wow, setWow] = useState<Wow | null>(null);
   const entrada = useRef<HTMLInputElement | null>(null);
   const entradaFoto = useRef<HTMLInputElement | null>(null);
@@ -65,6 +66,7 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
 
   async function subir(archivo: File) {
     setFase("leyendo");
+    setNombre(archivo.name);
     setError("");
     setResultado(null);
     setWow(null);
@@ -139,6 +141,7 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
         <div style={{ fontSize: 14, fontWeight: 700, color: "#16A34A", fontFamily: FUENTE }}>
           Listo: se cargaron {resultado.transacciones_cargadas} ventas.
         </div>
+        {nombre && <p style={nota}>Archivo leído: {nombre}</p>}
         {(resultado.duplicadas_omitidas ?? 0) > 0 && (
           <p style={nota}>{resultado.duplicadas_omitidas} ya estaban cargadas y no se repitieron.</p>
         )}
