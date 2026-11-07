@@ -6,6 +6,12 @@ import Nav from "../components/Nav";
 const iconColor = "var(--azul)";
 
 const icons = {
+  fugas: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M12 3c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z" stroke={iconColor} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M9.5 14.5a2.5 2.5 0 002.5 2.5" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
   periodos: (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
       <rect x="3" y="14" width="4" height="7" rx="1" stroke={iconColor} strokeWidth="1.5" />
@@ -44,6 +50,7 @@ export default function NegocioPage() {
   const router = useRouter();
 
   const items = [
+    { label: "Fugas", desc: "Dónde se va la plata y cómo cerrarla", href: "/fugas", icon: icons.fugas },
     { label: "Períodos", desc: "Comparar períodos y ver evolución", href: "/periodos", icon: icons.periodos },
     { label: "Rentabilidad", desc: "Análisis de ganancias y costos", href: "/rentabilidad", icon: icons.rentabilidad },
     { label: "Predicciones", desc: "Proyecciones de NICOLE", href: "/predicciones", icon: icons.predicciones },

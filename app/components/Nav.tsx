@@ -67,7 +67,7 @@ export default function Nav() {
   const isActive = (href: string) => {
     if (href === "/") return path === "/";
     if (href === "/negocio") {
-      return ["/negocio", "/periodos", "/rentabilidad", "/predicciones", "/red"].some(p => path.startsWith(p));
+      return ["/negocio", "/fugas", "/periodos", "/rentabilidad", "/predicciones", "/red"].some(p => path.startsWith(p));
     }
     if (href === "/mas") {
       return ["/mas", "/empleados", "/catalogo", "/ajustes"].some(p => path.startsWith(p));

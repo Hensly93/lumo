@@ -1,6 +1,7 @@
 "use client";
 import Nav from "./components/Nav";
 import EnVivoCard from "./components/EnVivoCard";
+import FugasCard from "./components/FugasCard";
 import PeriodoMesCard from "./components/PeriodoMesCard";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -472,6 +473,7 @@ function HomeContent() {
           <div style={{ padding: "0 16px" }}>
 
             {/* Tu Negocio en Vivo */}
+            <FugasCard />
             <EnVivoCard sucursalId={sucursalId} />
             <PeriodoMesCard sucursalId={sucursalId} />
 
