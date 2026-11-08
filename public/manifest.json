@@ -1,6 +1,6 @@
 {
-  "name": "Lumo — Detección operativa",
-  "short_name": "Lumo",
+  "name": "LumoBi",
+  "short_name": "LumoBi",
   "description": "Detectá inconsistencias en tu caja antes de que se acumulen.",
   "start_url": "/",
   "scope": "/",
