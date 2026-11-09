@@ -1,364 +1,349 @@
-"use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import InstallButton from "../components/InstallButton";
+// LANDING_LUMOBI_V3
+// Landing de LumoBi. Pensada para celular primero (el tráfico de los anuncios llega desde el celu):
+// un solo objetivo (probar 5 días gratis), un solo botón repetido, sin datos inventados.
+// Es una página de servidor: casi no manda JavaScript, así que carga rápido.
+import type { Metadata } from "next";
+import Link from "next/link";
+import BarraCta from "./BarraCta";
 
-const T = {
-  bg:            "#050D1A",
-  bgCard:        "#071428",
-  border:        "#0E2340",
-  borderBright:  "#1A3A5C",
-  accent:        "#38BDF8",
-  accentDim:     "rgba(56,189,248,0.10)",
-  accentGlow:    "rgba(56,189,248,0.25)",
-  green:         "#34D399",
-  greenDim:      "rgba(52,211,153,0.10)",
-  red:           "#EF4444",
-  yellow:        "#FBBF24",
-  textPrimary:   "#E8F4FF",
-  textSecondary: "#4A7A9B",
-  textMuted:     "#1E3A5F",
+export const metadata: Metadata = {
+  title: "LumoBi — Encontrá dónde se escapa la plata de tu negocio",
+  description:
+    "LumoBi cruza tu caja, tus ventas y Mercado Pago, detecta las fugas de plata y te dice cuánto son y cómo cerrarlas. Probalo 5 días gratis.",
+  openGraph: {
+    title: "LumoBi — Encontrá dónde se escapa la plata de tu negocio",
+    description: "Detecta las fugas de plata de tu comercio o local gastronómico y te dice cómo cerrarlas.",
+    locale: "es_AR",
+    type: "website",
+  },
 };
 
-const PASOS = [
-  {
-    num: "01",
-    titulo: "Registrás el turno",
-    desc: "El empleado abre el turno con su PIN y declara el efectivo en caja. Sin papel. Sin excusas.",
-    color: T.accent,
-  },
-  {
-    num: "02",
-    titulo: "Lumo cruza los números",
-    desc: "Al cierre, Lumo compara caja apertura + ventas + Mercado Pago + egresos. Detecta la brecha en segundos.",
-    color: T.green,
-  },
-  {
-    num: "03",
-    titulo: "Ves el patrón, no la persona",
-    desc: "Te avisamos qué turno, qué día, qué patrón. Sin acusaciones. Con evidencia estadística real.",
-    color: T.yellow,
-  },
-];
+// Si tenés un WhatsApp comercial, ponelo acá (solo números, con código de país: 5491123456789) y aparece el botón.
+const WHATSAPP = "";
+const EMAIL = "lumobusinessintel@gmail.com";
+const CTA = "/login?registro=1";
 
-const FEATURES = [
-  {
-    icon: "⟁",
-    titulo: "Cruce de 4 variables simultáneo",
-    desc: "Caja apertura, ventas totales, pagos digitales y egresos. Un desvío de $500 deja rastro en todos al mismo tiempo.",
-    color: T.accent,
-  },
-  {
-    icon: "◈",
-    titulo: "CUSUM — detección de deriva",
-    desc: "No solo detecta el spike de hoy. Detecta cuando algo empieza a cambiar lentamente, antes de que se acumule.",
-    color: T.green,
-  },
-  {
-    icon: "◉",
-    titulo: "Umbrales que aprenden",
-    desc: "Cada negocio es distinto. Los umbrales se ajustan automáticamente con el feedback del dueño.",
-    color: T.yellow,
-  },
-  {
-    icon: "⊕",
-    titulo: "Mercado Pago integrado",
-    desc: "Importá 18 meses de historial en un clic. Las ventas digitales se cruzan automáticamente con el efectivo.",
-    color: T.accent,
-  },
-  {
-    icon: "⊞",
-    titulo: "Multi-local",
-    desc: "Varios locales propios, una sola pantalla. Ves el semáforo de cada uno en tiempo real.",
-    color: T.green,
-  },
-  {
-    icon: "⊛",
-    titulo: "Predicción de facturación",
-    desc: "Cuánto vas a vender este mes, con rango realista. Un modelo estadístico sobre tu propio historial.",
-    color: T.yellow,
-  },
-];
+const C = {
+  tinta: "#0A1628", suave: "#45546B", apagada: "#5F6E85", papel: "#EEF1F5", blanco: "#FFFFFF",
+  linea: "#D5DCE6", azul: "#0A5BD3", cian: "#00C2FF", ok: "#0B7A53", critico: "#B3261E", atencion: "#8A5100",
+};
 
-const STATS = [
-  { valor: "4", unidad: "rastros", label: "Un desvío de $500 deja cuatro rastros simultáneos en el sistema" },
-  { valor: "94%", unidad: "", label: "de las inconsistencias detectadas antes del cierre del turno" },
-  { valor: "21", unidad: "días", label: "de ventana estadística para detectar goteo acumulado" },
-];
-
-const FAQS = [
-  {
-    q: "¿Cómo sabe Lumo que hay una inconsistencia si no ve las cámaras?",
-    a: "No necesita cámaras. Los números mienten diferente de cómo miente una persona. Si el efectivo no cuadra con las ventas, el ratio de pagos digitales y los egresos, eso es evidencia estadística — no intuición.",
-  },
-  {
-    q: "¿Tiene que saber contabilidad el empleado?",
-    a: "No. El empleado solo declara el efectivo en pantalla. Todo el análisis lo hace Lumo por atrás.",
-  },
-  {
-    q: "¿Cuánto tarda en funcionar?",
-    a: "El control de caja funciona desde el primer turno. La detección estadística mejora con 30 días de historial. Las predicciones se activan con 60 días.",
-  },
-  {
-    q: "¿Es una acusación hacia el empleado?",
-    a: "No. Lumo detecta patrones por turno y condición, no por persona. Te dice 'el turno tarde los viernes tiene una brecha sostenida'. Lo que hacés con eso es decisión tuya.",
-  },
-];
-
-function Logo({ center = false, size = 130 }: { center?: boolean; size?: number }) {
-  const h = Math.round(size * (40 / 130));
-  return (
-    <svg width={size} height={h} viewBox="0 0 130 40" fill="none"
-      style={{ display: center ? "block" : undefined, margin: center ? "0 auto" : undefined, flexShrink: 0 }}>
-      <defs>
-        <linearGradient id="lumo-beam" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={T.accent} stopOpacity="0" />
-          <stop offset="30%" stopColor={T.accent} stopOpacity="1" />
-          <stop offset="100%" stopColor={T.accent} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <line x1="7" y1="6" x2="16" y2="1" stroke={T.accent} strokeWidth="1.3" strokeOpacity="0.8" strokeLinecap="round" />
-      <circle cx="7" cy="6" r="2" fill={T.accent} />
-      <text x="2" y="32" fontFamily="sans-serif" fontWeight="700" fontSize="30" fill={T.textPrimary} letterSpacing="-1">LUMO</text>
-      <rect x="0" y="36" width="125" height="1.5" fill="url(#lumo-beam)" />
-    </svg>
-  );
+const css = `
+.lb{font-family:var(--font-instrument),system-ui,sans-serif;color:${C.tinta};background:${C.papel};-webkit-font-smoothing:antialiased}
+.lb *{box-sizing:border-box}
+.lb a{color:inherit}
+.lb h1,.lb h2,.lb h3{margin:0;letter-spacing:-0.02em}
+.lb p{margin:0}
+.lb .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.lb .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 28px;border-radius:12px;background:${C.cian};color:${C.tinta};font-weight:700;font-size:16px;text-decoration:none;border:0;cursor:pointer}
+.lb .btn:hover{filter:brightness(0.95)}
+.lb .btn:focus-visible,.lb a:focus-visible,.lb summary:focus-visible{outline:3px solid ${C.azul};outline-offset:3px}
+.lb .btn-azul{background:${C.azul};color:#fff}
+.lb .hero{background:${C.tinta};color:#fff;padding:36px 0 56px}
+.lb .hero-grid{display:grid;grid-template-columns:1fr;gap:40px;align-items:center}
+.lb .eyebrow{font-size:13px;font-weight:600;letter-spacing:.04em;color:${C.cian};margin-bottom:14px}
+.lb .hero h1{font-size:clamp(32px,8.4vw,52px);line-height:1.08;font-weight:800;margin-bottom:18px}
+.lb .hero .sub{font-size:17px;line-height:1.55;color:#C7D2E3;max-width:520px;margin-bottom:28px}
+.lb .micro{margin-top:14px;font-size:13px;color:#9FB0C9}
+.lb .link-suave{color:#C7D2E3;font-size:14px;text-underline-offset:4px}
+.lb section.s{padding:64px 0}
+.lb .kicker{font-size:13px;font-weight:700;letter-spacing:.04em;color:${C.azul};margin-bottom:10px}
+.lb h2.t{font-size:clamp(26px,6vw,36px);line-height:1.15;font-weight:800;margin-bottom:14px}
+.lb .lead{font-size:17px;line-height:1.6;color:${C.suave};max-width:640px}
+.lb .grid3{display:grid;grid-template-columns:1fr;gap:14px;margin-top:32px}
+.lb .card{background:${C.blanco};border:1px solid ${C.linea};border-radius:16px;padding:22px}
+.lb .card h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.lb .card p{font-size:15px;line-height:1.6;color:${C.suave}}
+.lb .ico{width:40px;height:40px;border-radius:10px;background:#E6EFFC;color:${C.azul};display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.lb .paso{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:22px 0;border-top:1px solid ${C.linea}}
+.lb .paso:last-child{border-bottom:1px solid ${C.linea}}
+.lb .num{width:44px;height:44px;border-radius:12px;background:${C.tinta};color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+.lb .paso h3{font-size:19px;font-weight:700;margin-bottom:6px}
+.lb .paso p{font-size:15px;line-height:1.6;color:${C.suave}}
+.lb .oscuro{background:${C.tinta};color:#fff}
+.lb .oscuro .lead{color:#C7D2E3}
+.lb .precio{background:${C.blanco};border:1px solid ${C.linea};border-radius:20px;padding:28px 24px;max-width:520px}
+.lb .precio .monto{font-size:clamp(38px,10vw,52px);font-weight:800;letter-spacing:-0.03em;line-height:1}
+.lb .precio ul{list-style:none;padding:0;margin:20px 0 24px}
+.lb .precio li{display:flex;gap:10px;font-size:15px;line-height:1.5;padding:7px 0;color:${C.tinta}}
+.lb .precio li svg{flex:none;margin-top:3px;color:${C.ok}}
+.lb details{border-bottom:1px solid ${C.linea}}
+.lb details:first-of-type{border-top:1px solid ${C.linea}}
+.lb summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-size:17px;font-weight:600;line-height:1.35}
+.lb summary::-webkit-details-marker{display:none}
+.lb summary .mas{flex:none;font-size:22px;font-weight:400;color:${C.azul};transition:transform .15s}
+.lb details[open] summary .mas{transform:rotate(45deg)}
+.lb details p{padding:0 0 20px;font-size:15px;line-height:1.65;color:${C.suave};max-width:680px}
+.lb .movil{background:${C.blanco};color:${C.tinta};border-radius:28px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.35);max-width:380px;margin:0 auto;width:100%}
+.lb .fuga{display:grid;grid-template-columns:4px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid ${C.linea}}
+.lb .fuga b{display:block;font-size:14px;font-weight:700;line-height:1.3}
+.lb .fuga small{display:block;font-size:12px;color:${C.suave};margin-top:2px}
+.lb .fuga .m{font-weight:800;font-size:15px;white-space:nowrap}
+.lb .barra{display:flex}
+.lb footer{background:${C.tinta};color:#C7D2E3;padding:40px 0 96px;font-size:14px}
+@media (min-width:760px){
+  .lb .wrap{padding:0 32px}
+  .lb .hero{padding:56px 0 80px}
+  .lb .hero-grid{grid-template-columns:1.1fr .9fr;gap:56px}
+  .lb section.s{padding:92px 0}
+  .lb .grid3{grid-template-columns:repeat(3,1fr)}
+  .lb .grid2x{grid-template-columns:repeat(2,1fr)}
+  .lb footer{padding-bottom:40px}
+  .lb .barra{display:none}
 }
+html{scroll-behavior:smooth}
+`;
+
+const Ico = ({ d, extra }: { d: string; extra?: string }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d={d} />{extra ? <path d={extra} /> : null}
+  </svg>
+);
+const Tilde = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+);
+
+const PROBLEMAS = [
+  { t: "La caja que no cierra", d: "Turnos que terminan con plata de menos, una y otra vez, sin que sepas en cuál ni por qué.", ico: "M3 7h18v12H3z", extra: "M3 11h18M7 15h4" },
+  { t: "Precios que se quedan atrás", d: "Tus proveedores suben y tus precios no. El margen se achica de a poco, sin que lo notes.", ico: "M3 17l6-6 4 4 8-9", extra: "M15 6h6v6" },
+  { t: "Costos que suben sin aviso", d: "Un aumento de mercadería o de servicios que recién ves a fin de mes, cuando ya pasó.", ico: "M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z" },
+];
+const PASOS = [
+  { t: "Conectás tus datos", d: "Conectás Mercado Pago y subís tus ventas desde un Excel, un PDF o una foto. Tu equipo abre y cierra cada turno con su PIN." },
+  { t: "LumoBi aprende cómo funciona tu negocio", d: "Estudia tus turnos, tus horarios y tus días fuertes para saber qué es normal en tu negocio y qué no." },
+  { t: "Te avisa en el celular", d: "Cuando algo se desvía te llega el aviso: cuánta plata es, dónde está y cómo cerrarla." },
+];
+const BENEFICIOS = [
+  { t: "Plata en fuga", d: "Cuánta plata se pierde, en qué turno o en qué costo, y los pasos concretos para cerrar cada fuga.", ico: "M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z" },
+  { t: "Caja que cierra", d: "Cada cierre se cruza con las ventas, los cobros digitales y los egresos. Ves la diferencia en pesos.", ico: "M3 7h18v12H3z", extra: "M3 11h18M7 15h4" },
+  { t: "Avisos en el momento", d: "Te avisamos al celular cuando algo se sale de lo normal, no a fin de mes.", ico: "M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7z", extra: "M10 20a2 2 0 0 0 4 0" },
+  { t: "Predicción de ventas", d: "Cuánto vas a vender los próximos días, considerando clima, feriados, quincena y tu propio historial.", ico: "M3 17l6-6 4 4 8-9", extra: "M15 6h6v6" },
+  { t: "Todos tus locales", d: "Cada local, cada turno y cada caja en una sola pantalla, cada uno con su propia referencia.", ico: "M4 9l1-5h14l1 5M5 9v10h14V9", extra: "M9 19v-5h6v5" },
+  { t: "Preguntale a NICOLE", d: "La inteligencia de LumoBi responde con tus números: qué turno rinde menos, cómo viene el mes.", ico: "M4 5h16v11H9l-5 4z" },
+];
+const FAQS = [
+  { q: "¿Tengo que cambiar mi sistema de ventas?", a: "No. LumoBi no reemplaza tu sistema: lo interpreta. Hoy cargás tus ventas desde un Excel, un PDF o una foto, o con Mercado Pago, y tu equipo cierra los turnos en LumoBi. Estamos trabajando para conectarnos directo con los sistemas de venta más usados." },
+  { q: "¿Es una acusación a mis empleados?", a: "No. LumoBi habla de hechos: qué turno, qué día y cuánta diferencia hay. No dice quién tiene la culpa ni por qué. Lo que hacés con esa información lo decidís vos." },
+  { q: "¿Cuánto tarda en funcionar?", a: "El control de caja funciona desde el primer turno. Cuantos más días de datos tiene LumoBi, más precisa es la referencia de lo que es normal en tu negocio y mejores son los avisos." },
+  { q: "¿Cuánto cuesta?", a: "Desde $45.000 + IVA por mes, con 1 local y hasta 3 cajas. Si tenés más locales, cajas o empleados, el precio se ajusta y lo ves antes de pagar. Para grandes superficies o muchos locales, escribinos." },
+  { q: "¿Qué pasa cuando termina la prueba?", a: "Tus datos quedan guardados. Ves un resumen del último mes y, cuando activás el plan, volvés a ver todo. Si no lo activás, no pasa nada más." },
+  { q: "¿Mis datos están a salvo?", a: "Cada negocio ve únicamente su información. Los datos de un negocio nunca se mezclan con los de otro." },
+];
 
 export default function Landing() {
-  const router = useRouter();
-  const [hora, setHora] = useState("");
-  const [faqAbierta, setFaqAbierta] = useState<number | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const tick = () =>
-      setHora(new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }));
-    tick();
-    const id = setInterval(tick, 60000);
-    return () => clearInterval(id);
-  }, []);
-
   return (
-    <main style={{ background: T.bg, minHeight: "100vh", fontFamily: "system-ui, sans-serif", color: T.textPrimary, overflowX: "hidden" }}>
+    <main className="lb">
+      <style>{css}</style>
 
-      {/* ── Nav ── */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 50, padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${T.border}`, background: "rgba(5,13,26,0.92)", backdropFilter: "blur(12px)" }}>
-        <div style={{ flexShrink: 0, lineHeight: 0 }}>
-          <Logo size={130} />
+      {/* Navegación mínima: logo, entrar y un solo botón */}
+      <header style={{ background: C.tinta, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+        <div className="wrap" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/lumobi-logo-dark.svg" alt="LumoBi" width={128} height={33} />
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <Link href="/login" style={{ color: "#C7D2E3", fontSize: 14, textDecoration: "none" }}>Entrar</Link>
+            <Link href={CTA} className="btn" style={{ minHeight: 40, padding: "0 16px", fontSize: 14 }}>Probar gratis</Link>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-          <button onClick={() => router.push("/login")}
-            style={{ padding: "8px 14px", background: "transparent", border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>
-            Entrar
-          </button>
-          <button onClick={() => router.push("/login")}
-            style={{ padding: "8px 14px", background: T.accentDim, border: `1px solid ${T.accent}`, borderRadius: 10, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
-            Empezar gratis
-          </button>
-        </div>
-      </nav>
+      </header>
 
-      {/* InstallButton fuera del nav — no afecta el layout del logo */}
-      <InstallButton />
-
-      {/* ── Hero ── */}
-      <section style={{ position: "relative", padding: "80px 24px 72px", textAlign: "center", maxWidth: 640, margin: "0 auto" }}>
-        {/* Glow de fondo */}
-        <div style={{ position: "absolute", top: "40%", left: "50%", transform: "translate(-50%, -50%)", width: 560, height: 320, background: "radial-gradient(ellipse, rgba(56,189,248,0.11) 0%, transparent 70%)", pointerEvents: "none" }} />
-
-        <div style={{ position: "relative" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 100, fontSize: 11, color: T.textSecondary, marginBottom: 28, fontFamily: "monospace", letterSpacing: 2 }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.green, display: "inline-block", boxShadow: `0 0 6px ${T.green}` }} />
-            LUMO · DETECCIÓN OPERATIVA · {mounted ? hora : "—"}
+      {/* Hero */}
+      <section className="hero">
+        <div className="wrap hero-grid">
+          <div>
+            <div className="eyebrow">Para comercios y gastronomía de Argentina</div>
+            <h1>Encontrá dónde se escapa la plata de tu negocio</h1>
+            <p className="sub">
+              LumoBi cruza tu caja, tus ventas y Mercado Pago. Detecta las fugas, te dice cuánto son y cómo cerrarlas, antes de que sea tarde.
+            </p>
+            <Link href={CTA} className="btn">Probar 5 días gratis</Link>
+            <div className="micro">5 días gratis. Sin tarjeta. Cancelás cuando quieras.</div>
+            <div style={{ marginTop: 18 }}>
+              <a href="#como" className="link-suave">Ver cómo funciona</a>
+            </div>
           </div>
 
-          <h1 style={{ fontSize: "clamp(30px, 7vw, 48px)", fontWeight: 900, lineHeight: 1.12, letterSpacing: -1.5, marginBottom: 22, color: T.textPrimary }}>
-            Tu caja dice una cosa.
-            <br />
-            <span style={{ color: T.accent }}>Tus ventas dicen otra.</span>
-          </h1>
-
-          <p style={{ fontSize: 16, color: T.textSecondary, lineHeight: 1.8, maxWidth: 500, margin: "0 auto 36px" }}>
-            Lumo cruza caja, ventas, Mercado Pago y egresos en cada turno.
-            Detecta la brecha exacta — y el patrón detrás — antes de que se acumule.
-          </p>
-
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={() => router.push("/login")}
-              style={{ padding: "14px 36px", background: T.accentDim, border: `1px solid ${T.accent}`, borderRadius: 14, color: T.accent, fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: `0 0 28px ${T.accentGlow}` }}>
-              Empezar gratis
-            </button>
-            <button onClick={() => router.push("/empleado")}
-              style={{ padding: "14px 28px", background: "transparent", border: `1px solid ${T.border}`, borderRadius: 14, color: T.textSecondary, fontSize: 15, cursor: "pointer" }}>
-              Ver demo empleado →
-            </button>
-          </div>
-
-          <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
-            <InstallButton />
-          </div>
-
-          <div style={{ marginTop: 14, fontSize: 12, color: T.textMuted, letterSpacing: 1 }}>
-            Sin tarjeta de crédito · Sin contrato · Cancelás cuando querés
+          {/* Pantalla de ejemplo: así se ve una fuga en LumoBi */}
+          <div>
+            <div className="movil" role="img" aria-label="Ejemplo de la pantalla de fugas de LumoBi con datos de muestra">
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.suave, marginBottom: 6 }}>Plata en fuga · últimos 30 días</div>
+              <div style={{ fontSize: 38, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1 }}>$48.300</div>
+              <div style={{ fontSize: 13, color: C.suave, margin: "6px 0 12px" }}>3 fugas activas</div>
+              <div className="fuga">
+                <span style={{ background: C.critico, borderRadius: 4, alignSelf: "stretch" }} />
+                <div><b>Faltaron $7.850 en la caja del turno tarde</b><small>3 de 20 cierres terminaron con plata de menos</small></div>
+                <span className="m" style={{ color: C.critico }}>$7.850</span>
+              </div>
+              <div className="fuga">
+                <span style={{ background: C.atencion, borderRadius: 4, alignSelf: "stretch" }} />
+                <div><b>Precios atrasados frente a tus costos</b><small>El margen bajó respecto del mes anterior</small></div>
+                <span className="m" style={{ color: C.atencion }}>$31.200</span>
+              </div>
+              <div className="fuga">
+                <span style={{ background: C.atencion, borderRadius: 4, alignSelf: "stretch" }} />
+                <div><b>Subió la mercadería y el precio no</b><small>Aumento de costos sin trasladar</small></div>
+                <span className="m" style={{ color: C.atencion }}>$9.250</span>
+              </div>
+              <div style={{ marginTop: 6, background: C.papel, borderRadius: 12, padding: "12px 14px" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Cómo cerrarla</div>
+                <div style={{ fontSize: 13, lineHeight: 1.5, color: C.suave }}>Cerrar el turno con dos personas presentes, quien entrega y quien recibe, y firmar el conteo.</div>
+              </div>
+            </div>
+            <div style={{ textAlign: "center", marginTop: 12, fontSize: 12, color: "#9FB0C9" }}>Ejemplo con datos de muestra</div>
           </div>
         </div>
       </section>
 
-      {/* ── Problema ── */}
-      <section style={{ padding: "0 24px 72px", maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 20, padding: "32px 28px" }}>
-          <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 4, color: T.textMuted, textTransform: "uppercase", marginBottom: 18 }}>
-            // el problema
-          </div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: T.textPrimary, lineHeight: 1.35, marginBottom: 16 }}>
-            El 60% de las pérdidas en negocios físicos no aparecen en ningún reporte.
-          </h2>
-          <p style={{ fontSize: 14, color: T.textSecondary, lineHeight: 1.8, marginBottom: 24 }}>
-            No son robos groseros. Son brechas de $300, $700, $1200 por turno.
-            Errores de vuelto, egresos no declarados, ventas cobradas en efectivo que no se registran.
-            <br /><br />
-            Acumuladas en 30 días, esas brechas pueden superar los{" "}
-            <strong style={{ color: T.red }}>$40.000</strong> sin que ningún sistema lo haya detectado.
+      {/* Problema */}
+      <section className="s">
+        <div className="wrap">
+          <div className="kicker">LO QUE SE PIERDE EN SILENCIO</div>
+          <h2 className="t">Las pérdidas chicas no aparecen en ningún reporte</h2>
+          <p className="lead">
+            Las grandes se notan. Las chicas no: una diferencia de caja, un precio que se quedó atrás, un costo que subió y nadie avisó.
+            Cada una parece poca cosa, pero todos los meses se llevan plata.
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {[
-              { label: "Detectan el problema con Excel", val: "8%", ok: false },
-              { label: "Lo detectan con Lumo", val: "94%", ok: true },
-              { label: "Cierran el turno sin cruzar datos", val: "73%", ok: false },
-              { label: "Tienen 4 rastros por cada desvío", val: "100%", ok: true },
-            ].map((item, i) => (
-              <div key={i} style={{
-                background: item.ok ? T.greenDim : "rgba(239,68,68,0.06)",
-                border: `1px solid ${item.ok ? T.green : T.red}35`,
-                borderRadius: 12, padding: "14px", textAlign: "center"
-              }}>
-                <div style={{ fontFamily: "monospace", fontSize: 24, fontWeight: 800, color: item.ok ? T.green : T.red, marginBottom: 6 }}>{item.val}</div>
-                <div style={{ fontSize: 11, color: T.textSecondary, lineHeight: 1.4 }}>{item.label}</div>
+          <div className="grid3">
+            {PROBLEMAS.map((p) => (
+              <div className="card" key={p.t}>
+                <div className="ico"><Ico d={p.ico} extra={p.extra} /></div>
+                <h3>{p.t}</h3>
+                <p>{p.d}</p>
+              </div>
+            ))}
+          </div>
+          <p className="lead" style={{ marginTop: 28, color: C.tinta, fontWeight: 600 }}>
+            LumoBi las encuentra, las suma y las pone en una sola pantalla.
+          </p>
+        </div>
+      </section>
+
+      {/* Cómo funciona */}
+      <section className="s" id="como" style={{ background: C.blanco }}>
+        <div className="wrap">
+          <div className="kicker">CÓMO FUNCIONA</div>
+          <h2 className="t">Empezás en un día</h2>
+          <div style={{ marginTop: 28, maxWidth: 720 }}>
+            {PASOS.map((p, i) => (
+              <div className="paso" key={p.t}>
+                <div className="num">{i + 1}</div>
+                <div><h3>{p.t}</h3><p>{p.d}</p></div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 32 }}><Link href={CTA} className="btn btn-azul">Probar 5 días gratis</Link></div>
+        </div>
+      </section>
+
+      {/* Qué ves */}
+      <section className="s">
+        <div className="wrap">
+          <div className="kicker">QUÉ VES EN LUMOBI</div>
+          <h2 className="t">Cada pantalla sirve para decidir</h2>
+          <p className="lead">No es un tablero lleno de gráficos. Es lo que necesitás saber hoy para frenar una pérdida o aprovechar un buen día.</p>
+          <div className="grid3">
+            {BENEFICIOS.map((b) => (
+              <div className="card" key={b.t}>
+                <div className="ico"><Ico d={b.ico} extra={b.extra} /></div>
+                <h3>{b.t}</h3>
+                <p>{b.d}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Cómo funciona ── */}
-      <section style={{ padding: "0 24px 72px", maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 4, color: T.textMuted, textTransform: "uppercase", marginBottom: 28, textAlign: "center" }}>
-          // cómo funciona
-        </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {PASOS.map((p, i) => (
-            <div key={i} style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                <div style={{ width: 44, height: 44, borderRadius: "50%", border: `2px solid ${p.color}`, background: `${p.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: p.color }}>
-                  {p.num}
-                </div>
-                {i < PASOS.length - 1 && (
-                  <div style={{ width: 1, height: 36, background: `linear-gradient(${p.color}40, transparent)`, marginTop: 4 }} />
-                )}
+      {/* Confianza */}
+      <section className="s oscuro">
+        <div className="wrap">
+          <div className="kicker" style={{ color: C.cian }}>CÓMO CUIDAMOS TU NEGOCIO</div>
+          <h2 className="t">Tu información es tuya</h2>
+          <div className="grid3" style={{ marginTop: 28 }}>
+            {[
+              { t: "Solo vos ves tus datos", d: "Cada negocio ve únicamente su información. Nunca se mezcla con la de otro negocio." },
+              { t: "Hechos, no acusaciones", d: "LumoBi muestra diferencias y patrones por turno. No dice quién tiene la culpa: eso lo decidís vos." },
+              { t: "No toca tu plata", d: "LumoBi no mueve dinero ni emite facturas. Interpreta lo que ya pasó en tu negocio." },
+            ].map((x) => (
+              <div key={x.t} style={{ border: "1px solid rgba(255,255,255,.14)", borderRadius: 16, padding: 22 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{x.t}</h3>
+                <p style={{ fontSize: 15, lineHeight: 1.6, color: "#C7D2E3" }}>{x.d}</p>
               </div>
-              <div style={{ paddingTop: 10, paddingBottom: i < PASOS.length - 1 ? 20 : 0 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: T.textPrimary, marginBottom: 6 }}>{p.titulo}</div>
-                <div style={{ fontSize: 13, color: T.textSecondary, lineHeight: 1.7 }}>{p.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Stats ── */}
-      <section style={{ padding: "0 24px 72px", maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-          {STATS.map((s, i) => (
-            <div key={i} style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 16, padding: "22px 12px", textAlign: "center" }}>
-              <div style={{ fontFamily: "monospace", fontWeight: 800, color: T.accent, lineHeight: 1, marginBottom: 4 }}>
-                <span style={{ fontSize: 30 }}>{s.valor}</span>
-                {s.unidad && <span style={{ fontSize: 12, marginLeft: 2, opacity: 0.7 }}>{s.unidad}</span>}
-              </div>
-              <div style={{ fontSize: 11, color: T.textSecondary, lineHeight: 1.5, marginTop: 8 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section style={{ padding: "0 24px 72px", maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 4, color: T.textMuted, textTransform: "uppercase", marginBottom: 24, textAlign: "center" }}>
-          // qué detecta lumo
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {FEATURES.map((f, i) => (
-            <div key={i} style={{ background: T.bgCard, borderLeft: `3px solid ${f.color}`, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 20px", display: "flex", gap: 16, alignItems: "flex-start" }}>
-              <div style={{ fontFamily: "monospace", fontSize: 18, color: f.color, flexShrink: 0, lineHeight: 1, paddingTop: 2 }}>{f.icon}</div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: T.textPrimary, marginBottom: 5 }}>{f.titulo}</div>
-                <div style={{ fontSize: 13, color: T.textSecondary, lineHeight: 1.65 }}>{f.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── CTA Piloto ── */}
-      <section style={{ padding: "0 24px 72px", maxWidth: 480, margin: "0 auto" }}>
-        <div style={{ background: T.bgCard, border: `1px solid ${T.borderBright}`, borderRadius: 24, padding: "40px 28px", textAlign: "center", boxShadow: `0 0 60px rgba(56,189,248,0.05)` }}>
-          <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 4, color: T.textMuted, textTransform: "uppercase", marginBottom: 16 }}>
-            // programa piloto
+            ))}
           </div>
-          <h2 style={{ fontSize: 26, fontWeight: 800, color: T.textPrimary, lineHeight: 1.3, marginBottom: 14 }}>
-            Primeros 10 negocios.
-            <br />
-            <span style={{ color: T.accent }}>90 días gratis.</span>
-          </h2>
-          <p style={{ fontSize: 14, color: T.textSecondary, lineHeight: 1.75, marginBottom: 28 }}>
-            Lumo está en fase piloto. Buscamos negocios físicos en Argentina que quieran validar el sistema con datos reales — a cambio de feedback real.
+        </div>
+      </section>
+
+      {/* Precio */}
+      <section className="s" id="precio">
+        <div className="wrap">
+          <div className="kicker">PRECIO</div>
+          <h2 className="t">Un precio simple, en pesos</h2>
+          <p className="lead" style={{ marginBottom: 28 }}>
+            Si LumoBi te detecta una fuga mayor a lo que cuesta, el plan ya se pagó.
           </p>
-          <button onClick={() => router.push("/login")}
-            style={{ width: "100%", padding: "15px", background: T.accentDim, border: `1px solid ${T.accent}`, borderRadius: 14, color: T.accent, fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: `0 0 24px ${T.accentGlow}` }}>
-            Quiero ser piloto →
-          </button>
-          <div style={{ marginTop: 14, fontSize: 11, color: T.textMuted, lineHeight: 1.6 }}>
-            Sin compromiso · Sin tarjeta · Feedback bienvenido
+          <div className="precio">
+            <div style={{ fontSize: 14, color: C.suave, marginBottom: 6 }}>Desde</div>
+            <div className="monto">$45.000<span style={{ fontSize: 18, fontWeight: 600, color: C.suave, letterSpacing: 0 }}> + IVA / mes</span></div>
+            <div style={{ fontSize: 14, color: C.suave, marginTop: 8 }}>Para 1 local y hasta 3 cajas</div>
+            <ul>
+              {["Fugas de plata con pasos para cerrarlas", "Control de caja y turnos", "Avisos en el celular", "Predicción de ventas", "NICOLE, la inteligencia de LumoBi"].map((x) => (
+                <li key={x}><Tilde />{x}</li>
+              ))}
+            </ul>
+            <Link href={CTA} className="btn btn-azul" style={{ width: "100%" }}>Probar 5 días gratis</Link>
+            <p style={{ fontSize: 13, color: C.suave, marginTop: 14, lineHeight: 1.55 }}>
+              Si tenés más locales, cajas o empleados, el precio se ajusta y lo ves antes de pagar. Cancelás cuando quieras.
+            </p>
+          </div>
+          <p style={{ marginTop: 20, fontSize: 15, color: C.suave, maxWidth: 520, lineHeight: 1.6 }}>
+            ¿Grandes superficies o muchos locales?{" "}
+            <a href={`mailto:${EMAIL}?subject=LumoBi%20para%20mi%20empresa`} style={{ color: C.azul, fontWeight: 600 }}>Hablemos</a>.
+          </p>
+        </div>
+      </section>
+
+      {/* Preguntas */}
+      <section className="s" style={{ background: C.blanco }}>
+        <div className="wrap">
+          <div className="kicker">PREGUNTAS</div>
+          <h2 className="t" style={{ marginBottom: 24 }}>Lo que más nos preguntan</h2>
+          <div style={{ maxWidth: 760 }}>
+            {FAQS.map((f) => (
+              <details key={f.q}>
+                <summary>{f.q}<span className="mas" aria-hidden="true">+</span></summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── FAQ ── */}
-      <section style={{ padding: "0 24px 80px", maxWidth: 600, margin: "0 auto" }}>
-        <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 4, color: T.textMuted, textTransform: "uppercase", marginBottom: 24, textAlign: "center" }}>
-          // preguntas frecuentes
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {FAQS.map((f, i) => (
-            <div key={i}
-              onClick={() => setFaqAbierta(faqAbierta === i ? null : i)}
-              style={{ background: T.bgCard, border: `1px solid ${faqAbierta === i ? T.borderBright : T.border}`, borderRadius: 14, overflow: "hidden", cursor: "pointer" }}>
-              <div style={{ padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: T.textPrimary, lineHeight: 1.4 }}>{f.q}</div>
-                <div style={{ color: T.accent, fontFamily: "monospace", fontSize: 18, flexShrink: 0, transform: faqAbierta === i ? "rotate(45deg)" : "none", transition: "transform 0.15s" }}>+</div>
-              </div>
-              {faqAbierta === i && (
-                <div style={{ padding: "0 20px 18px", paddingTop: 14, fontSize: 13, color: T.textSecondary, lineHeight: 1.75, borderTop: `1px solid ${T.border}` }}>
-                  {f.a}
-                </div>
-              )}
+      {/* Cierre */}
+      <section className="s oscuro" style={{ textAlign: "center" }}>
+        <div className="wrap">
+          <h2 className="t" style={{ maxWidth: 640, margin: "0 auto 14px" }}>Empezá hoy y mirá qué encuentra en tus primeros días</h2>
+          <p className="lead" style={{ margin: "0 auto 28px" }}>5 días gratis. Sin tarjeta. Cancelás cuando quieras.</p>
+          <Link href={CTA} className="btn">Probar 5 días gratis</Link>
+          {WHATSAPP ? (
+            <div style={{ marginTop: 18 }}>
+              <a className="link-suave" href={`https://wa.me/${WHATSAPP}?text=Hola%2C%20quiero%20saber%20m%C3%A1s%20sobre%20LumoBi`}>¿Dudas? Escribinos por WhatsApp</a>
             </div>
-          ))}
+          ) : null}
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer style={{ borderTop: `1px solid ${T.border}`, padding: "32px 24px", textAlign: "center" }}>
-        <Logo center />
-        <div style={{ marginTop: 16, fontSize: 12, color: T.textMuted, letterSpacing: 1 }}>
-          LUMO · BETA · Argentina · {new Date().getFullYear()}
-        </div>
-        <div style={{ marginTop: 8, fontSize: 12, color: T.textSecondary }}>
-          castellyholy@gmail.com
+      <footer>
+        <div className="wrap" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 20, alignItems: "center" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/lumobi-logo-dark.svg" alt="LumoBi" width={112} height={29} />
+          <div style={{ lineHeight: 1.7 }}>
+            <a href={`mailto:${EMAIL}`} style={{ textDecoration: "none" }}>{EMAIL}</a><br />
+            Hecho en Argentina · Versión beta · {new Date().getFullYear()}
+          </div>
         </div>
       </footer>
 
+      <BarraCta href={CTA} />
     </main>
   );
 }

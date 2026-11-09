@@ -104,6 +104,11 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Desde la landing se entra con /login?registro=1 y abre directo la pestaña Registrarse
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("registro") === "1") setVista("registro");
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (localStorage.getItem("lumo_token")) {
