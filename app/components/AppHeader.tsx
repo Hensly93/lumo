@@ -47,13 +47,7 @@ export default function AppHeader() {
         <span style={{ fontSize: 13, color: "var(--tinta-suave)", fontFamily: "var(--font-instrument), sans-serif" }}>
           {perfil?.negocio || "LumoBi"}
         </span>
-        <div style={{
-          width: 5, height: 5, borderRadius: "50%",
-          background: "var(--ok)", boxShadow: "0 0 6px var(--ok)", flexShrink: 0,
-        }} />
-        <span style={{ fontSize: 11, color: "var(--tinta-apagada)", fontFamily: "var(--font-instrument), sans-serif" }}>
-          NICOLE monitoreando
-        </span>
+        {/* indicador de monitoreo eliminado */}
       </div>
     </header>
   );
