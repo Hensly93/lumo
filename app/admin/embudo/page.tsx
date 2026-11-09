@@ -15,6 +15,7 @@ type Resumen = {
   dispositivos: { disp: string; visitantes: number }[];
   errores: { tipo: string; ruta: string; detalle: string | null; estado: string; veces: number; personas: number }[];
   scroll_landing: { pct: number; visitantes: number }[];
+  cuentas: { por_estado: { estado: string; n: number; nuevas: number }[]; trial_vencido_sin_pagar: number } | null;
   negocios: { negocio_id: string; nombre?: string | null; ultimo: string; dias_activos: number; pantallas: number; eventos: number }[];
 };
 
@@ -117,6 +118,15 @@ export default function AdminEmbudo() {
             <div style={{ fontSize: 13, color: "#0A1628", marginTop: 6 }}>
               De cada 100 que ven la landing se registran <b>{pct(data.embudo[5].n, data.embudo[0].n).replace("%", "")}</b>.
             </div>
+          </Seccion>
+
+          <Seccion titulo="Cuentas y planes" nota="Se lee de la base de usuarios, no de las visitas. Hoy el plan se activa a mano, así que las pagas aparecen cuando vos las activás.">
+            {data.cuentas ? (
+              <>
+                <Tabla cab={["Estado de la cuenta", "Total", "Nuevas en el período"]} filas={data.cuentas.por_estado.map((c) => [c.estado, c.n, c.nuevas])} />
+                <p style={{ fontSize: 13, color: "#0A1628", margin: "12px 0 0" }}>Prueba vencida sin pagar: <b>{data.cuentas.trial_vencido_sin_pagar}</b></p>
+              </>
+            ) : <div style={{ fontSize: 13, color: "#5B6B80" }}>No se pudieron leer las cuentas.</div>}
           </Seccion>
 
           <Seccion titulo="Hasta dónde bajan en la landing" nota="Personas que llegaron a cada punto de la página.">
