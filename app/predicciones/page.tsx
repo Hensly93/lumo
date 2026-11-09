@@ -236,7 +236,7 @@ const TEXTO_MODELO =
   "Cuánto te afecta cada cosa lo aprende de tus propias ventas. Al principio usa valores de referencia y los va corrigiendo con tus datos.";
 
 type Acierto = { fecha: string; predicho: number; vendido: number; error_pct: number };
-type RespAciertos = { dias: number; minimo?: number; error_medio_pct?: number; sesgo_pct?: number; acertados?: number; tolerancia_pct?: number; detalle?: Acierto[] };
+type RespAciertos = { dias: number; minimo?: number; error_medio_pct?: number; sesgo_pct?: number; acertados?: number; con_rango?: number; en_rango?: number; tolerancia_pct?: number; detalle?: Acierto[] };
 
 function signoPct(v: number) {
   return (v > 0 ? "+" : v < 0 ? "-" : "") + Math.abs(v).toLocaleString("es-AR") + "%";
@@ -275,7 +275,7 @@ function Aciertos() {
     <div style={caja}>
       <div style={{ ...etiqueta, marginBottom: 8 }}>Cómo viene acertando NICOLE</div>
       <div style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.7, marginBottom: 8 }}>
-        En {d.dias} días medidos, la predicción se desvió en promedio un {d.error_medio_pct.toLocaleString("es-AR")}% de lo que vendiste. {d.acertados} de {d.dias} quedaron dentro de ±{d.tolerancia_pct}%. {textoSesgo}
+        En {d.dias} días medidos, la predicción se desvió en promedio un {d.error_medio_pct.toLocaleString("es-AR")}% de lo que vendiste. {d.acertados} de {d.dias} quedaron dentro de ±{d.tolerancia_pct}%. {textoSesgo}{(d.con_rango ?? 0) >= 3 ? ` Del rango probable: ${d.en_rango} de ${d.con_rango} cayeron adentro.` : ""}
       </div>
       <div style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.8 }}>
         {detalle.map(x => (
