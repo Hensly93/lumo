@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -206,6 +206,199 @@ const NumpadKey = ({ value, onPress }: { value: string; onPress: () => void }) =
   </button>
 );
 
+function PrecioModal({ turnoId, onClose }: { turnoId: number; onClose: () => void }) {
+  const [codigo, setCodigo] = useState("");
+  const [prod, setProd] = useState<{ id: number; nombre: string; precio_venta: number | string | null } | null>(null);
+  const [precio, setPrecio] = useState("");
+  const [costo, setCosto] = useState("");
+  const [msg, setMsg] = useState<{ texto: string; ok: boolean } | null>(null);
+  const [guardando, setGuardando] = useState(false);
+  const [hechos, setHechos] = useState<string[]>([]);
+  const refCodigo = useRef<HTMLInputElement>(null);
+  const refPrecio = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { refCodigo.current?.focus(); }, []);
+
+  async function buscar() {
+    const c = codigo.trim();
+    if (!c) return;
+    setCodigo("");
+    setMsg(null);
+    try {
+      const r = await fetchT(`${API}/api/scanner/producto?turno_id=${turnoId}&codigo=${encodeURIComponent(c)}`);
+      const d = await r.json();
+      if (d.existe) {
+        setProd({ id: d.producto.id, nombre: d.producto.nombre, precio_venta: d.producto.precio_venta });
+        setPrecio("");
+        setCosto("");
+        setTimeout(() => refPrecio.current?.focus(), 0);
+      } else {
+        setMsg({ texto: `El código ${c} no está cargado`, ok: false });
+      }
+    } catch {
+      setMsg({ texto: "Error de conexión", ok: false });
+    }
+  }
+
+  async function guardar() {
+    if (!prod || guardando) return;
+    const p = parseFloat(precio);
+    const c = parseFloat(costo);
+    if (!(p > 0) && !(c > 0)) { setMsg({ texto: "Escribí el precio nuevo", ok: false }); return; }
+    setGuardando(true);
+    try {
+      const r = await fetchT(`${API}/api/scanner/producto/${prod.id}/precio`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ precio_venta: p > 0 ? p : undefined, precio_costo: c > 0 ? c : undefined }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "No se pudo guardar");
+      setHechos(h => [`${prod.nombre}: ${p > 0 ? fmt(p) : "costo actualizado"}`, ...h].slice(0, 6));
+      setProd(null);
+      setPrecio("");
+      setCosto("");
+      setMsg({ texto: "Guardado", ok: true });
+      setTimeout(() => refCodigo.current?.focus(), 0);
+    } catch (e: unknown) {
+      setMsg({ texto: e instanceof Error ? e.message : "Error", ok: false });
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  const campo: React.CSSProperties = {
+    width: '100%', padding: '14px 16px', borderRadius: 14, border: `2px solid ${C.cardBorder}`, background: C.bg,
+    color: C.text, fontSize: 18, fontFamily: 'var(--font-instrument), sans-serif', boxSizing: 'border-box', outline: 'none',
+  };
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.6)', zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', fontFamily: 'var(--font-instrument), sans-serif' }}>
+        <div style={{ fontWeight: 800, fontSize: 20, color: C.text, marginBottom: 4 }}>Cambiar precios</div>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.5 }}>
+          Escaneá el producto con la pistola, escribí el precio nuevo y apretá Enter. Queda registrado a tu nombre.
+        </div>
+
+        <input
+          ref={refCodigo}
+          style={campo}
+          placeholder="Escaneá el producto"
+          value={codigo}
+          autoComplete="off"
+          onChange={e => setCodigo(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); buscar(); } }}
+          disabled={prod != null}
+        />
+
+        {prod && (
+          <div style={{ marginTop: 16, border: `2px solid ${C.primary}`, borderRadius: 16, padding: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: 17, color: C.text }}>{prod.nombre}</div>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 12 }}>Precio actual {prod.precio_venta != null ? fmt(Number(prod.precio_venta)) : "sin precio"}</div>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>Precio nuevo ($)</div>
+            <input
+              ref={refPrecio}
+              style={campo}
+              type="number"
+              inputMode="decimal"
+              value={precio}
+              onChange={e => setPrecio(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardar(); } if (e.key === 'Escape') { setProd(null); setTimeout(() => refCodigo.current?.focus(), 0); } }}
+            />
+            <div style={{ fontSize: 12, color: C.muted, margin: '12px 0 4px' }}>Costo de compra nuevo ($), si cambió (opcional)</div>
+            <input
+              style={campo}
+              type="number"
+              inputMode="decimal"
+              value={costo}
+              onChange={e => setCosto(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardar(); } }}
+            />
+            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+              <button onClick={() => { setProd(null); setTimeout(() => refCodigo.current?.focus(), 0); }} style={{ flex: 1, padding: 14, borderRadius: 14, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.muted, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-instrument), sans-serif' }}>Cancelar</button>
+              <button onClick={guardar} disabled={guardando} style={{ flex: 2, padding: 14, borderRadius: 14, border: 'none', background: C.primary, color: '#FFFFFF', fontSize: 15, fontWeight: 700, cursor: 'pointer', opacity: guardando ? 0.6 : 1, fontFamily: 'var(--font-instrument), sans-serif' }}>{guardando ? '...' : 'Guardar'}</button>
+            </div>
+          </div>
+        )}
+
+        {msg && (
+          <div style={{ marginTop: 14, fontSize: 14, fontWeight: 600, color: msg.ok ? C.green : C.red }}>{msg.texto}</div>
+        )}
+
+        {hechos.length > 0 && (
+          <div style={{ marginTop: 16, fontSize: 13, color: C.text, lineHeight: 1.8 }}>
+            <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 4 }}>CAMBIADOS EN ESTA SESIÓN</div>
+            {hechos.map((h, i) => <div key={i}>{h}</div>)}
+          </div>
+        )}
+
+        <button onClick={onClose} style={{ width: '100%', marginTop: 18, padding: 14, borderRadius: 14, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-instrument), sans-serif' }}>Terminar</button>
+      </div>
+    </div>
+  );
+}
+
+function AltaModal({ codigo, turnoId, onClose, onAgregado }: { codigo: string; turnoId: number; onClose: () => void; onAgregado: () => Promise<void> }) {
+  const [nombre, setNombre] = useState("");
+  const [precio, setPrecio] = useState("");
+  const [msg, setMsg] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const refNombre = useRef<HTMLInputElement>(null);
+  const refPrecio = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { refNombre.current?.focus(); }, []);
+
+  async function guardar() {
+    if (guardando) return;
+    const p = parseFloat(precio);
+    if (!nombre.trim()) { setMsg("Escribí el nombre del producto"); return; }
+    if (!(p > 0)) { setMsg("Escribí el precio"); return; }
+    setGuardando(true);
+    setMsg("");
+    try {
+      const r = await fetchT(`${API}/api/scanner/producto`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo_barras: codigo, nombre: nombre.trim(), precio_venta: p }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "No se pudo guardar");
+      await fetchT(`${API}/api/scanner/carrito`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ turno_id: turnoId, producto_id: d.producto.id, cantidad: 1, agregado_por: 'pistola_compu' }),
+      });
+      await onAgregado();
+      onClose();
+    } catch (e: unknown) {
+      setMsg(e instanceof Error ? e.message : "Error");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  const campo: React.CSSProperties = {
+    width: '100%', padding: '14px 16px', borderRadius: 14, border: `2px solid ${C.cardBorder}`, background: C.bg,
+    color: C.text, fontSize: 18, fontFamily: 'var(--font-instrument), sans-serif', boxSizing: 'border-box', outline: 'none',
+  };
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.6)', zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, width: '100%', maxWidth: 440, fontFamily: 'var(--font-instrument), sans-serif' }}>
+        <div style={{ fontWeight: 800, fontSize: 20, color: C.text, marginBottom: 4 }}>Producto nuevo</div>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>El código {codigo} no está en el catálogo. Cargalo y se suma a la venta.</div>
+        <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>Nombre</div>
+        <input ref={refNombre} style={campo} value={nombre} onChange={e => setNombre(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); refPrecio.current?.focus(); } }} />
+        <div style={{ fontSize: 12, color: C.muted, margin: '12px 0 4px' }}>Precio de venta ($)</div>
+        <input ref={refPrecio} style={campo} type="number" inputMode="decimal" value={precio} onChange={e => setPrecio(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardar(); } }} />
+        {msg && <div style={{ marginTop: 12, fontSize: 14, fontWeight: 600, color: C.red }}>{msg}</div>}
+        <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+          <button onClick={onClose} style={{ flex: 1, padding: 14, borderRadius: 14, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.muted, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-instrument), sans-serif' }}>Cancelar</button>
+          <button onClick={guardar} disabled={guardando} style={{ flex: 2, padding: 14, borderRadius: 14, border: 'none', background: C.primary, color: '#FFFFFF', fontSize: 15, fontWeight: 700, cursor: 'pointer', opacity: guardando ? 0.6 : 1, fontFamily: 'var(--font-instrument), sans-serif' }}>{guardando ? '...' : 'Guardar y sumar a la venta'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function EmpleadoPage() {
   const [paso, setPaso] = useState<Paso>("codigo");
   const [negocioId, setNegocioId] = useState("");
@@ -229,6 +422,8 @@ export default function EmpleadoPage() {
   const [scanBuffer, setScanBuffer] = useState("");
   const [scanQR, setScanQR] = useState<{ url: string; expira_en: string } | null>(null);
   const [scanQRLoading, setScanQRLoading] = useState(false);
+  const [precioModal, setPrecioModal] = useState(false);
+  const [altaCodigo, setAltaCodigo] = useState<string | null>(null);
 
   // Tras cerrar el turno: volver al inicio a los 4 segundos
   useEffect(() => {
@@ -784,6 +979,7 @@ export default function EmpleadoPage() {
                   if (!d2.error) setCarrito(d2);
                 } else {
                   setError(`Código ${codigo} no encontrado`);
+                  setAltaCodigo(codigo);
                 }
               } catch { /* silencioso */ }
             }}
@@ -968,6 +1164,21 @@ export default function EmpleadoPage() {
             {scanQRLoading ? 'Generando...' : '📷 Escanear con el celu'}
           </button>
 
+          {precioModal && turno?.id && (
+            <PrecioModal turnoId={turno.id} onClose={() => { setPrecioModal(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />
+          )}
+          {altaCodigo && turno?.id && (
+            <AltaModal
+              codigo={altaCodigo}
+              turnoId={turno.id}
+              onClose={() => { setAltaCodigo(null); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }}
+              onAgregado={async () => {
+                const r2 = await fetchT(`${API}/api/scanner/carrito/${turno.id}`);
+                const d2 = await r2.json();
+                if (!d2.error) setCarrito(d2);
+              }}
+            />
+          )}
           {scanQR && (
             <div
               onClick={() => setScanQR(null)}
@@ -1004,6 +1215,8 @@ export default function EmpleadoPage() {
               </div>
             </div>
           )}
+
+          <SecondaryButton label="Cambiar precios" onPress={() => setPrecioModal(true)} color={C.primary} />
 
           {/* Actions */}
           <PrimaryButton loading={loading} label="💰 Declaración mid-turno" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.yellow} icon="" />
