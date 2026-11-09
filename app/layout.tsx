@@ -12,13 +12,13 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Lumo — Detección operativa",
+  title: "LumoBi",
   description: "Detectá inconsistencias en tu caja antes de que se acumulen.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Lumo",
+    title: "LumoBi",
   },
   other: {
     "mobile-web-app-capable": "yes",
