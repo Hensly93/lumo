@@ -1,4 +1,4 @@
-// LANDING_LUMOBI_V3
+// LANDING_LUMOBI_V4
 // Landing de LumoBi. Pensada para celular primero (el tráfico de los anuncios llega desde el celu):
 // un solo objetivo (probar 5 días gratis), un solo botón repetido, sin datos inventados.
 // Es una página de servidor: casi no manda JavaScript, así que carga rápido.
@@ -7,19 +7,19 @@ import Link from "next/link";
 import BarraCta from "./BarraCta";
 
 export const metadata: Metadata = {
-  title: "LumoBi — Encontrá dónde se escapa la plata de tu negocio",
+  title: "LumoBi — Dónde se escapa la plata de tu negocio y qué va a pasar",
   description:
-    "LumoBi cruza tu caja, tus ventas y Mercado Pago, detecta las fugas de plata y te dice cuánto son y cómo cerrarlas. Probalo 5 días gratis.",
+    "LumoBi junta tu caja, tus ventas y Mercado Pago: te muestra por dónde se escapa la plata, te avisa antes de que crezca y te dice cuánto vas a vender los próximos días. Probalo 5 días gratis.",
   openGraph: {
-    title: "LumoBi — Encontrá dónde se escapa la plata de tu negocio",
-    description: "Detecta las fugas de plata de tu comercio o local gastronómico y te dice cómo cerrarlas.",
+    title: "LumoBi — Dónde se escapa la plata de tu negocio y qué va a pasar",
+    description: "Juntamos tu caja, tus ventas y Mercado Pago. Te mostramos las fugas de plata, te avisamos a tiempo y anticipamos tus ventas.",
     locale: "es_AR",
     type: "website",
   },
 };
 
 // Si tenés un WhatsApp comercial, ponelo acá (solo números, con código de país: 5491123456789) y aparece el botón.
-const WHATSAPP = "";
+const WHATSAPP = "5491166959457";
 const EMAIL = "lumobusinessintel@gmail.com";
 const CTA = "/login?registro=1";
 
@@ -51,6 +51,7 @@ const css = `
 .lb h2.t{font-size:clamp(26px,6vw,36px);line-height:1.15;font-weight:800;margin-bottom:14px}
 .lb .lead{font-size:17px;line-height:1.6;color:${C.suave};max-width:640px}
 .lb .grid3{display:grid;grid-template-columns:1fr;gap:14px;margin-top:32px}
+.lb .grid2{grid-template-columns:1fr}
 .lb .card{background:${C.blanco};border:1px solid ${C.linea};border-radius:16px;padding:22px}
 .lb .card h3{font-size:18px;font-weight:700;margin-bottom:8px}
 .lb .card p{font-size:15px;line-height:1.6;color:${C.suave}}
@@ -87,6 +88,7 @@ const css = `
   .lb .hero-grid{grid-template-columns:1.1fr .9fr;gap:56px}
   .lb section.s{padding:92px 0}
   .lb .grid3{grid-template-columns:repeat(3,1fr)}
+  .lb .grid3.grid2{grid-template-columns:repeat(2,1fr)}
   .lb .grid2x{grid-template-columns:repeat(2,1fr)}
   .lb footer{padding-bottom:40px}
   .lb .barra{display:none}
@@ -104,9 +106,20 @@ const Tilde = () => (
 );
 
 const PROBLEMAS = [
-  { t: "La caja que no cierra", d: "Turnos que terminan con plata de menos, una y otra vez, sin que sepas en cuál ni por qué.", ico: "M3 7h18v12H3z", extra: "M3 11h18M7 15h4" },
-  { t: "Precios que se quedan atrás", d: "Tus proveedores suben y tus precios no. El margen se achica de a poco, sin que lo notes.", ico: "M3 17l6-6 4 4 8-9", extra: "M15 6h6v6" },
-  { t: "Costos que suben sin aviso", d: "Un aumento de mercadería o de servicios que recién ves a fin de mes, cuando ya pasó.", ico: "M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z" },
+  { t: "Cerrás la caja y falta plata. Otra vez.", d: "Y no sabés si fue un error, un vuelto mal dado o algo peor. Lo único seguro es que la plata no está.", ico: "M3 7h18v12H3z", extra: "M3 11h18M7 15h4" },
+  { t: "Tu proveedor subió y vos cobrás lo mismo", d: "El margen se achica de a poco y te enterás cuando ya lo perdiste.", ico: "M3 17l6-6 4 4 8-9", extra: "M15 6h6v6" },
+  { t: "No sabés si el sábado vas a vender", d: "Comprás mercadería y armás los turnos a ojo. Si te pasás, se pierde. Si te quedás corto, vendés menos.", ico: "M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z" },
+  { t: "Tu información está en cuatro lugares", d: "La caja, Mercado Pago, un Excel y la cabeza de tu encargado. Nadie la junta, así que nadie ve el cuadro completo.", ico: "M4 9l1-5h14l1 5M5 9v10h14V9", extra: "M9 19v-5h6v5" },
+];
+const TIEMPOS = [
+  { k: "LO QUE PASÓ", t: "Cada peso, cruzado", d: "Cada cierre de caja se cruza con tus ventas y tus cobros. Ves la diferencia en pesos, turno por turno." },
+  { k: "LO QUE ESTÁ PASANDO", t: "Te avisa en el momento", d: "Si algo se sale de lo normal en tu negocio, te llega un aviso al celular en el momento, no a fin de mes." },
+  { k: "LO QUE VIENE", t: "Cuánto vas a vender", d: "Los próximos días, según el clima, los feriados, la quincena y la historia de tu propio negocio." },
+];
+const ALIVIOS = [
+  "Cerrás el turno y sabés si la caja da.",
+  "Te enterás del problema antes de que se agrande.",
+  "Comprás y armás los turnos sabiendo cuánto vas a vender.",
 ];
 const PASOS = [
   { t: "Conectás tus datos", d: "Conectás Mercado Pago y subís tus ventas desde un Excel, un PDF o una foto. Tu equipo abre y cierra cada turno con su PIN." },
@@ -152,14 +165,17 @@ export default function Landing() {
         <div className="wrap hero-grid">
           <div>
             <div className="eyebrow">Para comercios y gastronomía de Argentina</div>
-            <h1>Encontrá dónde se escapa la plata de tu negocio</h1>
+            <h1>Tu negocio pierde plata todos los meses. LumoBi te dice dónde, cuánto y qué va a pasar.</h1>
             <p className="sub">
-              LumoBi cruza tu caja, tus ventas y Mercado Pago. Detecta las fugas, te dice cuánto son y cómo cerrarlas, antes de que sea tarde.
+              Juntamos tu caja, tus ventas y Mercado Pago en un solo lugar. Te mostramos por dónde se escapa la plata, te avisamos antes de que crezca y te decimos cuánto vas a vender los próximos días.
             </p>
             <Link href={CTA} className="btn">Probar 5 días gratis</Link>
             <div className="micro">5 días gratis. Sin tarjeta. Cancelás cuando quieras.</div>
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 18, display: "flex", flexWrap: "wrap", gap: "10px 22px" }}>
               <a href="#como" className="link-suave">Ver cómo funciona</a>
+              {WHATSAPP ? (
+                <a className="link-suave" href={`https://wa.me/${WHATSAPP}?text=Hola%2C%20quiero%20saber%20m%C3%A1s%20sobre%20LumoBi`}>Escribinos por WhatsApp</a>
+              ) : null}
             </div>
           </div>
 
@@ -197,13 +213,12 @@ export default function Landing() {
       {/* Problema */}
       <section className="s">
         <div className="wrap">
-          <div className="kicker">LO QUE SE PIERDE EN SILENCIO</div>
-          <h2 className="t">Las pérdidas chicas no aparecen en ningún reporte</h2>
+          <div className="kicker">SI TE PASA ESTO, NO ESTÁS SOLO</div>
+          <h2 className="t">Trabajás todo el día y a fin de mes la plata no da</h2>
           <p className="lead">
-            Las grandes se notan. Las chicas no: una diferencia de caja, un precio que se quedó atrás, un costo que subió y nadie avisó.
-            Cada una parece poca cosa, pero todos los meses se llevan plata.
+            Las pérdidas grandes se notan. Las chicas no aparecen en ningún reporte, pero se repiten todos los meses y juntas pesan mucho.
           </p>
-          <div className="grid3">
+          <div className="grid3 grid2">
             {PROBLEMAS.map((p) => (
               <div className="card" key={p.t}>
                 <div className="ico"><Ico d={p.ico} extra={p.extra} /></div>
@@ -213,8 +228,34 @@ export default function Landing() {
             ))}
           </div>
           <p className="lead" style={{ marginTop: 28, color: C.tinta, fontWeight: 600 }}>
-            LumoBi las encuentra, las suma y las pone en una sola pantalla.
+            No es que vendas poco. Es que no ves todo junto.
           </p>
+        </div>
+      </section>
+
+      {/* Lo que pasó / pasa / viene */}
+      <section className="s oscuro">
+        <div className="wrap">
+          <div className="kicker" style={{ color: C.cian }}>LUMOBI LO JUNTA TODO</div>
+          <h2 className="t">Lo que pasó. Lo que está pasando. Lo que viene.</h2>
+          <p className="lead">Es como tener un analista mirando tu negocio todo el día, que solo te escribe cuando hay algo para hacer.</p>
+          <div className="grid3" style={{ marginTop: 28 }}>
+            {TIEMPOS.map((x) => (
+              <div key={x.k} style={{ border: "1px solid rgba(255,255,255,.14)", borderRadius: 16, padding: 22 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: ".06em", color: C.cian, marginBottom: 10 }}>{x.k}</div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{x.t}</h3>
+                <p style={{ fontSize: 15, lineHeight: 1.6, color: "#C7D2E3" }}>{x.d}</p>
+              </div>
+            ))}
+          </div>
+          <ul style={{ listStyle: "none", padding: 0, margin: "32px 0 0", display: "grid", gap: 12 }}>
+            {ALIVIOS.map((a) => (
+              <li key={a} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 17, fontWeight: 600 }}>
+                <span style={{ color: C.cian, flex: "none", marginTop: 2 }}><Tilde /></span>{a}
+              </li>
+            ))}
+          </ul>
+          <div style={{ marginTop: 28 }}><Link href={CTA} className="btn">Probar 5 días gratis</Link></div>
         </div>
       </section>
 
@@ -262,7 +303,7 @@ export default function Landing() {
             {[
               { t: "Solo vos ves tus datos", d: "Cada negocio ve únicamente su información. Nunca se mezcla con la de otro negocio." },
               { t: "Hechos, no acusaciones", d: "LumoBi muestra diferencias y patrones por turno. No dice quién tiene la culpa: eso lo decidís vos." },
-              { t: "No toca tu plata", d: "LumoBi no mueve dinero ni emite facturas. Interpreta lo que ya pasó en tu negocio." },
+              { t: "No toca tu plata", d: "LumoBi no mueve dinero ni emite facturas. Interpreta lo que pasa en tu negocio y te anticipa lo que viene." },
             ].map((x) => (
               <div key={x.t} style={{ border: "1px solid rgba(255,255,255,.14)", borderRadius: 16, padding: 22 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{x.t}</h3>
