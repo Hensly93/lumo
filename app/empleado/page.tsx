@@ -279,16 +279,19 @@ function PrecioModal({ turnoId, onClose }: { turnoId: number; onClose: () => voi
           Escaneá el producto con la pistola, escribí el precio nuevo y apretá Enter. Queda registrado a tu nombre.
         </div>
 
-        <input
-          ref={refCodigo}
-          style={campo}
-          placeholder="Escaneá el producto"
-          value={codigo}
-          autoComplete="off"
-          onChange={e => setCodigo(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); buscar(); } }}
-          disabled={prod != null}
-        />
+        <form onSubmit={e => { e.preventDefault(); buscar(); }} style={{ display: 'flex', gap: 8 }}>
+          <input
+            ref={refCodigo}
+            style={{ ...campo, flex: 1, minWidth: 0 }}
+            placeholder="Escaneá o escribí el código"
+            value={codigo}
+            autoComplete="off"
+            enterKeyHint="search"
+            onChange={e => setCodigo(e.target.value)}
+            disabled={prod != null}
+          />
+          <button type="submit" disabled={prod != null || !codigo.trim()} style={{ padding: '0 18px', borderRadius: 14, border: 'none', background: C.primary, color: '#FFFFFF', fontSize: 15, fontWeight: 700, cursor: 'pointer', opacity: prod != null || !codigo.trim() ? 0.5 : 1, fontFamily: 'var(--font-instrument), sans-serif' }}>Buscar</button>
+        </form>
 
         {prod && (
           <div style={{ marginTop: 16, border: `2px solid ${C.primary}`, borderRadius: 16, padding: 16 }}>
