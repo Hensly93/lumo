@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import AppHeader from "./AppHeader";
 import PushRegistrar from "./PushRegistrar";
+import PlanGate from "./PlanGate";
 
 const SIN_HEADER = ["/landing", "/login", "/empleado", "/reset-password", "/onboarding"];
 
@@ -13,6 +14,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <>
       {showHeader && <AppHeader />}
       <PushRegistrar />
+      <PlanGate />
       {children}
     </>
   );

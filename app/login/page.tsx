@@ -99,7 +99,7 @@ const btnStyle = (loading: boolean): React.CSSProperties => ({
 export default function Login() {
   const router = useRouter();
   const [vista, setVista] = useState<Vista>("login");
-  const [form, setForm] = useState({ email: "", password: "", confirmPassword: "", nombre: "", negocio: "" });
+  const [form, setForm] = useState({ email: "", password: "", confirmPassword: "", nombre: "", negocio: "", celular: "", cuit: "" });
   const [emailRecupero, setEmailRecupero] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -142,17 +142,20 @@ export default function Login() {
     e.preventDefault();
     if (form.password !== form.confirmPassword) { setError("Las contraseñas no coinciden"); return; }
     if (form.password.length < 6) { setError("La contraseña debe tener al menos 6 caracteres"); return; }
+    if (form.celular.replace(/\D/g, "").length < 8) { setError("Ingresá tu celular con código de área"); return; }
+    if (form.cuit.trim() && form.cuit.replace(/\D/g, "").length !== 11) { setError("El CUIT tiene 11 números"); return; }
     setLoading(true); setError("");
     try {
       const resp = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, password: form.password, nombre: form.nombre, negocio: form.negocio }),
+        body: JSON.stringify({ email: form.email, password: form.password, nombre: form.nombre, negocio: form.negocio, celular: form.celular, cuit: form.cuit }),
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || "Error al conectar");
       localStorage.setItem("lumo_token", data.token);
       localStorage.setItem("lumo_usuario", JSON.stringify(data.usuario));
+      try { sessionStorage.setItem("lumo_ya_uso_prueba", data.plan && data.plan.ya_uso_prueba ? "1" : "0"); } catch { /* sin acceso */ }
       router.replace("/onboarding");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Error desconocido");
@@ -234,7 +237,7 @@ export default function Login() {
         <div style={{ display: "flex", background: "var(--card2)", borderRadius: 12, border: "1px solid var(--border)", overflow: "hidden", marginBottom: 24 }}>
           {(["login", "registro"] as const).map(t => (
             <button key={t}
-              onClick={() => { setVista(t); setError(""); setForm({ email: "", password: "", confirmPassword: "", nombre: "", negocio: "" }); }}
+              onClick={() => { setVista(t); setError(""); setForm({ email: "", password: "", confirmPassword: "", nombre: "", negocio: "", celular: "", cuit: "" }); }}
               style={{ flex: 1, padding: "11px", background: vista === t ? "var(--card)" : "transparent", color: vista === t ? "var(--cyan)" : "var(--muted)", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-instrument),sans-serif", transition: "all 0.15s" }}>
               {t === "login" ? "Iniciar sesión" : "Registrarse"}
             </button>
@@ -263,16 +266,21 @@ export default function Login() {
             <input type="email" placeholder="Email" value={form.email} onChange={set("email")} autoComplete="email" style={inp()} />
             <PasswordField placeholder="Contraseña" value={form.password} onChange={set("password")} autoComplete="new-password" />
             <PasswordField placeholder="Confirmar contraseña" value={form.confirmPassword} onChange={set("confirmPassword")} autoComplete="new-password" />
+            <input type="tel" placeholder="Celular (con código de área)" value={form.celular} onChange={set("celular")} autoComplete="tel" style={inp()} />
+            <input inputMode="numeric" placeholder="CUIT (opcional)" value={form.cuit} onChange={set("cuit")} style={inp()} />
+            <p style={{ margin: "-4px 0 0", fontSize: 11, color: "var(--muted)", lineHeight: 1.5 }}>
+              Usamos tu celular y tu CUIT solo para que cada negocio use la prueba gratis una vez.
+            </p>
             <ErrorBox />
             <button type="submit" disabled={loading} style={btnStyle(loading)}>{loading ? "Creando cuenta..." : "Crear cuenta"}</button>
             <p style={{ marginTop: 4, fontSize: 11, color: "var(--muted)", textAlign: "center", lineHeight: 1.6 }}>
-              Al registrarte aceptás que Lumo está en versión beta. Sin compromiso.
+              Al registrarte aceptás que LumoBi está en versión beta. Sin compromiso.
             </p>
           </form>
         )}
 
         <div style={{ textAlign: "center", marginTop: 28, fontSize: 10, color: "var(--muted)", letterSpacing: 2 }}>
-          LUMO · BETA · {new Date().getFullYear()}
+          LumoBi · BETA · {new Date().getFullYear()}
         </div>
       </div>
     </main>
