@@ -3,8 +3,9 @@ import { usePathname } from "next/navigation";
 import AppHeader from "./AppHeader";
 import PushRegistrar from "./PushRegistrar";
 import PlanGate from "./PlanGate";
+import Tracker from "./Tracker";
 
-const SIN_HEADER = ["/landing", "/login", "/empleado", "/reset-password", "/onboarding"];
+const SIN_HEADER = ["/landing", "/login", "/empleado", "/reset-password", "/onboarding", "/admin"];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -14,6 +15,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <>
       {showHeader && <AppHeader />}
       <PushRegistrar />
+      <Tracker />
       <PlanGate />
       {children}
     </>
