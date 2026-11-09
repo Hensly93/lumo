@@ -8,7 +8,7 @@ import { QRCodeSVG } from "qrcode.react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
-type Vista = "catalogo" | "metodos" | "cargando" | "preview" | "manual";
+type Vista = "catalogo" | "metodos" | "cargando" | "preview" | "manual" | "pistola";
 type Orden = "nombre" | "margen" | "sin_costo";
 
 type Producto = {
@@ -51,6 +51,12 @@ type CruceTicket = {
 };
 
 const ROJO = "var(--red, #E5484D)";
+
+// La base devuelve los precios como texto ("600.00"): se convierten a numero para poder comparar.
+function normProducto(p: Producto): Producto {
+  const n = (v: unknown) => (v == null || v === "" ? null : Number(v));
+  return { ...p, precio_venta: n(p.precio_venta), precio_costo: n(p.precio_costo) };
+}
 
 function fmt(n: number | null | undefined) {
   if (n == null) return "—";
@@ -334,6 +340,248 @@ function EditModal({
 }
 
 // ─── Opcion de carga ──────────────────────────────────────────────────────────
+function PistolaView({
+  token, productos, onCambio, avisar,
+}: {
+  token: string;
+  productos: Producto[];
+  onCambio: (p: Producto) => void;
+  avisar: (msg: string, ok: boolean) => void;
+}) {
+  type Actual = { tipo: "existente"; producto: Producto } | { tipo: "nuevo"; codigo: string };
+  const [codigo, setCodigo] = useState("");
+  const [actual, setActual] = useState<Actual | null>(null);
+  const [nombre, setNombre] = useState("");
+  const [costo, setCosto] = useState("");
+  const [venta, setVenta] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [hechos, setHechos] = useState<{ nombre: string; costo: number | null }[]>([]);
+  const refCodigo = useRef<HTMLInputElement>(null);
+  const refNombre = useRef<HTMLInputElement>(null);
+  const refCosto = useRef<HTMLInputElement>(null);
+  const refVenta = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { refCodigo.current?.focus(); }, []);
+
+  const soloDigitos = (s: string) => s.replace(/\D/g, "");
+
+  function leerCodigo() {
+    const c = codigo.trim();
+    if (!c) return;
+    setCodigo("");
+    const p = productos.find(x => {
+      const cb = (x.codigo_barras ?? "").trim();
+      return cb !== "" && (cb === c || (soloDigitos(cb) !== "" && soloDigitos(cb) === soloDigitos(c)));
+    });
+    if (p) {
+      setActual({ tipo: "existente", producto: p });
+      setCosto(p.precio_costo ? String(p.precio_costo) : "");
+      setVenta(p.precio_venta ? String(p.precio_venta) : "");
+      setTimeout(() => refCosto.current?.focus(), 0);
+    } else {
+      setActual({ tipo: "nuevo", codigo: c });
+      setNombre(""); setCosto(""); setVenta("");
+      setTimeout(() => refNombre.current?.focus(), 0);
+    }
+  }
+
+  function terminar(nombreHecho: string, costoHecho: number | null) {
+    setHechos(h => [{ nombre: nombreHecho, costo: costoHecho }, ...h].slice(0, 8));
+    setActual(null);
+    setNombre(""); setCosto(""); setVenta("");
+    setTimeout(() => refCodigo.current?.focus(), 0);
+  }
+
+  function cancelar() {
+    setActual(null);
+    setNombre(""); setCosto(""); setVenta("");
+    setTimeout(() => refCodigo.current?.focus(), 0);
+  }
+
+  async function guardar() {
+    if (!actual || guardando) return;
+    const c = parseFloat(costo) || null;
+    const v = parseFloat(venta) || null;
+    setGuardando(true);
+    try {
+      if (actual.tipo === "existente") {
+        if (c == null && v == null) { avisar("Escribí el costo o el precio", false); setGuardando(false); return; }
+        const r = await fetch(`${API}/api/productos/${actual.producto.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ precio_costo: c, precio_venta: v }),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "No se pudo guardar");
+        onCambio(normProducto(d));
+        terminar(actual.producto.nombre, c ?? (actual.producto.precio_costo ?? null));
+      } else {
+        if (!nombre.trim()) { avisar("Escribí el nombre del producto", false); setGuardando(false); return; }
+        const r = await fetch(`${API}/api/productos`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ nombre: nombre.trim(), precio_venta: v, precio_costo: c, codigo_barras: actual.codigo }),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "No se pudo guardar");
+        onCambio(normProducto(d));
+        terminar(nombre.trim(), c);
+      }
+    } catch (e: unknown) {
+      avisar(e instanceof Error ? e.message : "Error", false);
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  const teclaEn = (siguiente: (() => void) | null) => (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") { cancelar(); return; }
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (siguiente) siguiente(); else guardar();
+  };
+
+  const m = actual ? margenPct(parseFloat(venta) || null, parseFloat(costo) || null) : null;
+
+  return (
+    <div style={{ padding: "8px 16px" }}>
+      <div style={{ ...caja, padding: "16px" }}>
+        <div style={etiqueta}>Código de barras</div>
+        <input
+          ref={refCodigo}
+          style={inp({ fontSize: 18, padding: "14px 16px" })}
+          placeholder="Disparale con la pistola al producto"
+          value={codigo}
+          autoComplete="off"
+          inputMode="numeric"
+          onChange={e => setCodigo(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); leerCodigo(); } }}
+          disabled={actual != null}
+        />
+        <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 8, lineHeight: 1.6 }}>
+          La pistola escribe el código y aprieta Enter sola. Si el producto ya está, te pide el costo. Si es nuevo, te pide nombre, costo y precio.
+        </div>
+      </div>
+
+      {actual && (
+        <div style={{ ...caja, padding: "16px", marginTop: 12, borderColor: "var(--azul, #0A5BD3)" }}>
+          {actual.tipo === "existente" ? (
+            <>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text)" }}>{actual.producto.nombre}</div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 12 }}>
+                Precio de venta {fmt(actual.producto.precio_venta)}{actual.producto.precio_costo ? ` · costo actual ${fmt(actual.producto.precio_costo)}` : " · sin costo cargado"}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--cyan)", marginBottom: 2 }}>Producto nuevo</div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 12 }}>Código {actual.codigo}</div>
+              <div style={etiqueta}>Nombre</div>
+              <input ref={refNombre} style={inp({ marginBottom: 10 })} value={nombre} onChange={e => setNombre(e.target.value)} onKeyDown={teclaEn(() => refCosto.current?.focus())} />
+            </>
+          )}
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ flex: 1 }}>
+              <div style={etiqueta}>Costo ($)</div>
+              <input ref={refCosto} style={inp()} type="number" inputMode="decimal" value={costo} onChange={e => setCosto(e.target.value)} onKeyDown={teclaEn(actual.tipo === "nuevo" ? () => refVenta.current?.focus() : null)} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={etiqueta}>Precio de venta ($)</div>
+              <input ref={refVenta} style={inp()} type="number" inputMode="decimal" value={venta} onChange={e => setVenta(e.target.value)} onKeyDown={teclaEn(null)} />
+            </div>
+          </div>
+          {m != null && (
+            <div style={{ fontSize: 12, marginTop: 10, color: "var(--text)" }}>
+              Margen <strong style={{ color: m >= 0 ? "var(--emerald)" : ROJO }}>{pctTxt(m)}</strong>
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+            <button onClick={cancelar} style={{ ...btnSecundario, flex: 1 }}>Cancelar</button>
+            <button onClick={guardar} disabled={guardando} style={{ ...btnPrimario, flex: 2, opacity: guardando ? 0.6 : 1 }}>{guardando ? "Guardando..." : "Guardar y seguir"}</button>
+          </div>
+          <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 8 }}>Enter guarda · Esc cancela</div>
+        </div>
+      )}
+
+      {hechos.length > 0 && (
+        <div style={{ ...caja, padding: "12px 14px", marginTop: 12 }}>
+          <div style={etiqueta}>Cargados en esta sesión: {hechos.length}</div>
+          {hechos.map((h, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text)", padding: "3px 0" }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginRight: 8 }}>{h.nombre}</span>
+              <span style={{ color: "var(--muted)", flexShrink: 0 }}>{h.costo ? "costo " + fmt(h.costo) : "sin costo"}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type CambioPrecio = {
+  id: number;
+  producto_nombre: string | null;
+  campo: string;
+  valor_anterior: number | null;
+  valor_nuevo: number | null;
+  empleado: string | null;
+  creado: string;
+  variacion_pct: number | null;
+  alerta: boolean;
+};
+
+function CambiosEquipo({ token }: { token: string }) {
+  const [items, setItems] = useState<CambioPrecio[]>([]);
+  const [todos, setTodos] = useState(false);
+  useEffect(() => {
+    fetch(`${API}/api/productos/cambios-precios`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => setItems(Array.isArray(d) ? d : []))
+      .catch(() => setItems([]));
+  }, [token]);
+  if (items.length === 0) return null;
+
+  const aRevisar = items.filter(x => x.alerta).length;
+  const visibles = todos ? items : items.slice(0, 5);
+  const cuando = (iso: string) => new Date(iso).toLocaleString("es-AR", {
+    timeZone: "America/Argentina/Buenos_Aires", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+  });
+  return (
+    <div style={{ padding: "12px 16px 0" }}>
+      <div style={{ ...caja, border: `1px solid ${aRevisar > 0 ? "var(--yellow)" : "var(--border)"}`, padding: "14px 16px" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: aRevisar > 0 ? "var(--yellow)" : "var(--text)", marginBottom: 3 }}>
+          Cambios de precio de tu equipo
+        </div>
+        <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 10 }}>
+          {items.length} en los últimos 30 días{aRevisar > 0 ? ` · ${aRevisar} para revisar (variación de 15% o más)` : ""}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {visibles.map(x => (
+            <div key={x.id} style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "10px 12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {x.producto_nombre ?? "Producto"}
+                </div>
+                {x.alerta && <span style={{ fontSize: 10, fontWeight: 700, color: "var(--yellow)", border: "1px solid var(--yellow)", borderRadius: 6, padding: "1px 6px", flexShrink: 0 }}>Revisar</span>}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text)", marginTop: 3 }}>
+                {x.campo === "precio_costo" ? "Costo" : "Precio"}: {fmt(x.valor_anterior)} a <strong>{fmt(x.valor_nuevo)}</strong>
+                {x.variacion_pct != null && <span style={{ color: "var(--muted)" }}> ({x.variacion_pct > 0 ? "+" : ""}{x.variacion_pct.toLocaleString("es-AR")}%)</span>}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{x.empleado ?? "Empleado"} · {cuando(x.creado)}</div>
+            </div>
+          ))}
+        </div>
+        {items.length > 5 && (
+          <button onClick={() => setTodos(t => !t)} style={{ ...btnSecundario, width: "100%", marginTop: 10, padding: "8px", fontSize: 12 }}>
+            {todos ? "Ver menos" : `Ver los ${items.length}`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function OpcionCarga({ titulo, texto, extra, onClick }: { titulo: string; texto: string; extra?: string; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{ ...caja, padding: "20px 18px", textAlign: "left", cursor: "pointer", width: "100%", fontFamily: "var(--font-instrument), sans-serif" }}>
@@ -397,7 +645,7 @@ export default function Catalogo() {
         fetch(`${API}/api/productos/precios-alertas`, { headers: { Authorization: `Bearer ${t}` } }).then(r => r.json()).catch(() => null),
         fetch(`${API}/api/scanner-dueno/pendientes`, { headers: { Authorization: `Bearer ${t}` } }).then(r => r.json()).catch(() => []),
       ]);
-      setProductos(Array.isArray(prods) ? prods : []);
+      setProductos(Array.isArray(prods) ? prods.map(normProducto) : []);
       setCategorias(Array.isArray(cats) ? cats : []);
       if (alertas) {
         setStalePrecios(Array.isArray(alertas.stale) ? alertas.stale : []);
@@ -555,11 +803,33 @@ export default function Catalogo() {
   );
 
   // ─── Vista: métodos de carga ────────────────────────────────────────────────
+  if (vista === "pistola") return (
+    <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
+      {toast && <Toast msg={toast.msg} ok={toast.ok} />}
+      <Encabezado titulo="Modo pistola" sub="Cargá costos y productos disparando al código" atras={() => setVista("catalogo")} />
+      {token && (
+        <PistolaView
+          token={token}
+          productos={productos}
+          avisar={showToast}
+          onCambio={p => setProductos(ps => ps.some(x => x.id === p.id) ? ps.map(x => x.id === p.id ? { ...x, ...p } : x) : [...ps, p])}
+        />
+      )}
+      <Nav />
+    </main>
+  );
+
   if (vista === "metodos") return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
       <Encabezado titulo="Cargar productos" sub="Elegí cómo querés cargarlos" atras={() => setVista("catalogo")} />
       <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
+        <OpcionCarga
+          titulo="Modo pistola"
+          texto="Si tenés pistola lectora: disparale a cada producto y cargá el costo en segundos."
+          onClick={() => setVista("pistola")}
+        />
+
         <OpcionCarga
           titulo="Subir archivo"
           texto="Excel, CSV o PDF con tu lista de precios. LumoBi detecta los productos automáticamente."
@@ -720,14 +990,17 @@ export default function Catalogo() {
         <EditModal
           producto={editando}
           token={token}
-          onSave={p => { setProductos(ps => ps.map(x => x.id === p.id ? { ...x, ...p } : x)); setEditando(null); showToast("Actualizado", true); }}
+          onSave={p => { setProductos(ps => ps.map(x => x.id === p.id ? { ...x, ...normProducto(p) } : x)); setEditando(null); showToast("Actualizado", true); }}
           onClose={() => setEditando(null)}
         />
       )}
 
       <PageHeader title="Catálogo" sub={subTitulo} />
       <div style={{ padding: "0 16px 8px" }}>
-        <button onClick={() => setVista("metodos")} style={btnPrimario}>Cargar productos</button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button onClick={() => setVista("pistola")} style={btnPrimario}>Modo pistola</button>
+          <button onClick={() => setVista("metodos")} style={btnSecundario}>Otras formas de cargar</button>
+        </div>
       </div>
 
       {loadingLista ? (
@@ -872,6 +1145,8 @@ export default function Catalogo() {
               </div>
             </div>
           )}
+
+          {token && <CambiosEquipo token={token} />}
 
           {/* Lista */}
           <div style={{ padding: "12px 16px 0", display: "flex", flexDirection: "column", gap: 8 }}>
