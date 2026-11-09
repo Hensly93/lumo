@@ -235,6 +235,64 @@ const TEXTO_MODELO =
   "3. A ese día normal le aplica lo que va a pasar: el pronóstico del clima de cada sucursal, el calendario y la tendencia.\n\n" +
   "Cuánto te afecta cada cosa lo aprende de tus propias ventas. Al principio usa valores de referencia y los va corrigiendo con tus datos.";
 
+type Acierto = { fecha: string; predicho: number; vendido: number; error_pct: number };
+type RespAciertos = { dias: number; minimo?: number; error_medio_pct?: number; sesgo_pct?: number; acertados?: number; tolerancia_pct?: number; detalle?: Acierto[] };
+
+function signoPct(v: number) {
+  return (v > 0 ? "+" : v < 0 ? "-" : "") + Math.abs(v).toLocaleString("es-AR") + "%";
+}
+
+function Aciertos() {
+  const { sucursalId } = useSucursal();
+  const [d, setD] = useState<RespAciertos | null>(null);
+  useEffect(() => {
+    const t = localStorage.getItem("lumo_token");
+    if (!t) return;
+    fetch(`${API}/api/predicciones/aciertos${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers: { Authorization: `Bearer ${t}` } })
+      .then(r => r.json())
+      .then(x => setD(x && typeof x.dias === "number" ? x : null))
+      .catch(() => setD(null));
+  }, [sucursalId]);
+  if (!d) return null;
+
+  const caja: CSSProperties = { margin: "4px 12px 8px", background: "var(--card2)", borderRadius: 14, padding: "12px 14px", border: "1px solid var(--border)" };
+  if (d.error_medio_pct == null || d.sesgo_pct == null) {
+    return (
+      <div style={caja}>
+        <div style={{ ...etiqueta, marginBottom: 8 }}>Cómo viene acertando NICOLE</div>
+        <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.6 }}>
+          Todavía no hay suficientes días para medirlo ({d.dias} de {d.minimo ?? 3}). A medida que pasen los días predichos, acá vas a ver cuánto se parecieron a lo que realmente vendiste.
+        </div>
+      </div>
+    );
+  }
+  const sesgo = d.sesgo_pct;
+  const textoSesgo = sesgo > 5 ? `Tiende a predecir de más (${signoPct(sesgo)} en promedio).`
+    : sesgo < -5 ? `Tiende a quedarse corta (${signoPct(sesgo)} en promedio).`
+    : "No muestra una tendencia marcada a pasarse ni a quedarse corta.";
+  const detalle = (d.detalle ?? []).slice(0, 7);
+  return (
+    <div style={caja}>
+      <div style={{ ...etiqueta, marginBottom: 8 }}>Cómo viene acertando NICOLE</div>
+      <div style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.7, marginBottom: 8 }}>
+        En {d.dias} días medidos, la predicción se desvió en promedio un {d.error_medio_pct.toLocaleString("es-AR")}% de lo que vendiste. {d.acertados} de {d.dias} quedaron dentro de ±{d.tolerancia_pct}%. {textoSesgo}
+      </div>
+      <div style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.8 }}>
+        {detalle.map(x => (
+          <div key={x.fecha} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+            <span>{formatFecha(x.fecha)}</span>
+            <span style={{ color: "var(--muted)" }}>predijo {fmt(x.predicho)} · vendiste {fmt(x.vendido)}</span>
+            <strong style={{ color: Math.abs(x.error_pct) <= (d.tolerancia_pct ?? 15) ? "var(--emerald)" : "var(--yellow)" }}>{signoPct(x.error_pct)}</strong>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, lineHeight: 1.6 }}>
+        Se compara la última predicción hecha antes de cada día con las ventas registradas ese día. Los días sin ventas cargadas no cuentan.
+      </div>
+    </div>
+  );
+}
+
 export default function Predicciones() {
   const router = useRouter();
   const { sucursalId } = useSucursal();
@@ -425,6 +483,8 @@ export default function Predicciones() {
           {predicciones.map(p => (
             <CardDia key={p.fecha_target} p={p} />
           ))}
+
+          <Aciertos />
 
           {modelo?.tipo === "condiciones" && modelo.coeficientes && (
             <Aprendido coef={modelo.coeficientes} errorTipico={modelo.error_tipico_pct} />
