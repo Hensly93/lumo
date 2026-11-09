@@ -109,8 +109,8 @@ function CardDia({ p }: { p: Prediccion }) {
   const warningBadge = pctConf < 55 ? "Confianza baja · pocos datos" : undefined;
   const clima = climaDelDia(p);
   const extras = [
-    clima && clima !== "normal" ? `${iconoClima(clima)} ${clima === "lluvia" ? "Lluvia" : clima === "calor_extremo" ? "Calor" : "Frío"}` : "",
-    ...eventos.map(e => `${iconoEvento(e.tipo)} ${e.descripcion}`),
+    clima && clima !== "normal" ? `${clima === "lluvia" ? "Lluvia" : clima === "calor_extremo" ? "Calor" : "Frío"}` : "",
+    ...eventos.filter(e => e.tipo !== "quincena").map(e => e.descripcion),
   ].filter(Boolean).join(" · ");
 
   const rows = [{ label: "Ventas esperadas", value: fmt(p.valor_predicho) }];
@@ -230,7 +230,7 @@ type ModalData = {
 
 const TEXTO_MODELO =
   "NICOLE no compara a ciegas el martes que viene con el martes pasado.\n\n" +
-  "1. Limpia cada día pasado de lo que lo afectó: si llovió, si era quincena o feriado, y la tendencia de esas semanas.\n\n" +
+  "1. Limpia cada día pasado de lo que lo afectó: si llovió, si era principio de mes, feriado o fecha especial, y la tendencia de esas semanas.\n\n" +
   "2. Con eso calcula cómo es un día normal tuyo, para cada día de la semana y cada sucursal.\n\n" +
   "3. A ese día normal le aplica lo que va a pasar: el pronóstico del clima de cada sucursal, el calendario y la tendencia.\n\n" +
   "Cuánto te afecta cada cosa lo aprende de tus propias ventas. Al principio usa valores de referencia y los va corrigiendo con tus datos.";
@@ -434,7 +434,7 @@ export default function Predicciones() {
             <div style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.7 }}>
               {modelo?.tipo === "simple"
                 ? "Con menos de 14 días de ventas, NICOLE usa tu promedio por día de la semana y el calendario. Desde los 14 días suma clima y tendencia, y aprende cuánto te afecta cada uno."
-                : "Las predicciones combinan tus ventas, el pronóstico del clima de cada sucursal y el calendario argentino (quincenas, aguinaldo y feriados). Tocá cada día para ver qué movió el número."}
+                : "Las predicciones combinan tus ventas, el pronóstico del clima de cada sucursal y el calendario argentino (principio de mes, aguinaldo, feriados y fechas especiales). Tocá cada día para ver qué movió el número."}
             </div>
           </div>
         </>
