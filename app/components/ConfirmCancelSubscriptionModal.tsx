@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -14,6 +14,21 @@ export default function ConfirmCancelSubscriptionModal({
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [hasta, setHasta] = useState<string | null>(null);
+
+  // Hasta cuándo sigue usando LumoBi: la fecha real de fin del periodo pagado (no una fecha fija)
+  useEffect(() => {
+    if (!token) return;
+    let vigente = true;
+    fetch(`${API}/api/plan/estado`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => (r.ok ? r.json() : null))
+      .then(x => {
+        if (!vigente || !x || !x.fin) return;
+        setHasta(new Date(String(x.fin).slice(0, 10) + "T12:00:00").toLocaleDateString("es-AR"));
+      })
+      .catch(() => {});
+    return () => { vigente = false; };
+  }, [token]);
 
   const handleCancel = async () => {
     if (!token) {
@@ -105,7 +120,7 @@ export default function ConfirmCancelSubscriptionModal({
                 marginBottom: 8,
               }}
             >
-              ⚠️ Cancelar suscripción
+              Cancelar suscripción
             </h2>
             <p
               style={{
@@ -114,7 +129,7 @@ export default function ConfirmCancelSubscriptionModal({
                 lineHeight: 1.5,
               }}
             >
-              Vas a cancelar tu suscripción. Tendrás acceso durante 30 días más.
+              Vas a dejar de pagar LumoBi. No se te vuelve a cobrar.
             </p>
           </div>
 
@@ -132,13 +147,13 @@ export default function ConfirmCancelSubscriptionModal({
             }}
           >
             <div style={{ marginBottom: 8 }}>
-              ✓ Se cancelará inmediatamente en Mercado Pago
+              Se da de baja el débito automático en Mercado Pago
             </div>
             <div style={{ marginBottom: 8 }}>
-              ✓ Seguirás usando Lumo hasta el 28 de mayo
+              {hasta ? `Seguís usando LumoBi hasta el ${hasta}` : "Seguís usando LumoBi hasta el fin del período que ya pagaste"}
             </div>
             <div>
-              ✓ Podrás reactivar en cualquier momento
+              Podés reactivar cuando quieras
             </div>
           </div>
 
@@ -155,7 +170,7 @@ export default function ConfirmCancelSubscriptionModal({
                 marginBottom: 16,
               }}
             >
-              ❌ {error}
+              {error}
             </div>
           )}
 

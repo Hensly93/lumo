@@ -477,78 +477,123 @@ function SecFacturacion({ token, perfil, onSave }: { token: string; perfil: Perf
 }
 
 // ── SecSuscripcion ────────────────────────────────────────────────
-function SecSuscripcion({ perfil, onCancelSubscription }: { perfil: Perfil; onCancelSubscription: () => void }) {
-  const diasRestantes = perfil.subscription_end_date
-    ? Math.ceil((new Date(perfil.subscription_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : null;
+type EstadoPlan = {
+  suscripcion?: "trial" | "activa" | "cancelada" | "vencida" | "interna";
+  dias_restantes: number | null;
+  fin?: string | null;
+};
+
+function fechaLarga(s: string | null | undefined) {
+  if (!s) return null;
+  return new Date(String(s).slice(0, 10) + "T12:00:00").toLocaleDateString("es-AR");
+}
+
+function SecSuscripcion({ perfil, token, recarga, onCancelSubscription }: { perfil: Perfil; token: string; recarga: number; onCancelSubscription: () => void }) {
+  const [est, setEst] = useState<EstadoPlan | null>(null);
+  const [emailMP, setEmailMP] = useState(perfil.email || "");
+  const [pagando, setPagando] = useState(false);
+  const [errorPago, setErrorPago] = useState("");
+
+  useEffect(() => {
+    let vigente = true;
+    fetch(`${API}/api/plan/estado`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => (r.ok ? r.json() : null))
+      .then(x => { if (vigente && x) setEst(x); })
+      .catch(() => {});
+    return () => { vigente = false; };
+  }, [token, recarga]);
+
+  async function activar() {
+    if (pagando) return;
+    setPagando(true);
+    setErrorPago("");
+    try {
+      const r = await fetch(`${API}/api/plan/checkout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ origen: window.location.origin, email: emailMP.trim() }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (j && j.init_point) { window.location.href = j.init_point; return; }
+      if (j && j.error === "empresarial") { window.location.href = "mailto:lumobusinessintel@gmail.com?subject=LumoBi%20para%20mi%20empresa"; return; }
+      if (j && j.error === "ya_activa") { window.location.reload(); return; }
+      setErrorPago((j && j.error) || "No pudimos abrir Mercado Pago. Probá de nuevo.");
+    } catch {
+      setErrorPago("No pudimos conectar. Revisá tu internet y probá de nuevo.");
+    }
+    setPagando(false);
+  }
+
+  if (!est || !est.suscripcion) {
+    return <div style={{ fontSize: 13, color: "var(--muted)" }}>Cargando tu suscripción...</div>;
+  }
+
+  const s = est.suscripcion;
+  const fin = fechaLarga(est.fin);
+  const ROT: Record<string, { texto: string; color: string; fondo: string }> = {
+    trial:     { texto: "Prueba gratuita", color: "#0A5BD3", fondo: "rgba(10, 91, 211, 0.12)" },
+    activa:    { texto: "Activa",          color: "#00C48C", fondo: "rgba(0, 196, 140, 0.15)" },
+    cancelada: { texto: "Cancelada",       color: "#D97706", fondo: "rgba(245, 158, 11, 0.15)" },
+    vencida:   { texto: "Vencida",         color: "#EF4444", fondo: "rgba(239, 68, 68, 0.15)" },
+    interna:   { texto: "Cuenta interna",  color: "#64748B", fondo: "rgba(100, 116, 139, 0.15)" },
+  };
+  const r = ROT[s] || ROT.activa;
+  const dias = est.dias_restantes;
+  let detalle = "";
+  if (s === "trial") detalle = dias !== null ? `Te ${dias === 1 ? "queda 1 día" : "quedan " + dias + " días"} de prueba.` : "Estás en la prueba gratuita.";
+  else if (s === "activa") detalle = fin ? `Próximo cobro: ${fin}.` : "Tu plan está activo.";
+  else if (s === "cancelada") detalle = fin ? `No se te va a cobrar más. Seguís usando LumoBi hasta el ${fin}${dias !== null && dias >= 0 ? " (" + (dias === 0 ? "hoy es el último día" : dias === 1 ? "queda 1 día" : "quedan " + dias + " días") + ")" : ""}.` : "No se te va a cobrar más.";
+  else if (s === "vencida") detalle = "Tu plan venció. Tus datos están guardados y vuelven a estar completos cuando lo actives.";
+  else detalle = "Las cuentas internas no se cobran.";
+
+  const puedeActivar = s === "trial" || s === "cancelada" || s === "vencida";
+  const textoBoton = s === "cancelada" ? "Reactivar mi suscripción" : "Activar mi plan";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>Estado</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", textTransform: "capitalize" }}>
-            {perfil.subscription_status === "activa" ? "🟢 Activa" : "🔴 Cancelada"}
-          </div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{r.texto}</div>
         </div>
-        <div
-          style={{
-            padding: "6px 12px",
-            borderRadius: 6,
-            fontSize: 11,
-            fontWeight: 700,
-            background: perfil.subscription_status === "activa" ? "rgba(0, 196, 140, 0.15)" : "rgba(239, 68, 68, 0.15)",
-            color: perfil.subscription_status === "activa" ? "#00C48C" : "#EF4444",
-          }}
-        >
-          {perfil.subscription_status === "activa" ? "ACTIVA" : "CANCELADA"}
+        <div style={{ padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: r.fondo, color: r.color, textTransform: "uppercase" }}>
+          {r.texto}
         </div>
       </div>
 
-      <div>
-        <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>Plan</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", textTransform: "capitalize" }}>
-          {perfil.plan_id || "Básico"}
-        </div>
-      </div>
+      <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.6 }}>{detalle}</div>
 
-      {perfil.subscription_end_date && (
-        <div>
-          <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>Vencimiento</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
-            {new Date(perfil.subscription_end_date).toLocaleDateString("es-AR")}
+      {puedeActivar && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.5 }}>
+            Se paga con débito automático de Mercado Pago. Escribí el email de tu cuenta de Mercado Pago, el mismo con el que vas a pagar.
           </div>
-          {diasRestantes !== null && (
-            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
-              {diasRestantes > 0
-                ? `${diasRestantes} días restantes`
-                : diasRestantes === 0
-                  ? "Vence hoy"
-                  : "Vencida"}
-            </div>
-          )}
+          <input
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={emailMP}
+            onChange={e => setEmailMP(e.target.value)}
+            placeholder="email de tu cuenta de Mercado Pago"
+            style={inp()}
+          />
+          {errorPago && <div style={{ fontSize: 12, color: "#EF4444", lineHeight: 1.5 }}>{errorPago}</div>}
+          <button
+            onClick={activar}
+            disabled={pagando}
+            style={{ width: "100%", padding: "12px", borderRadius: 8, border: "none", background: "#0A5BD3", color: "#fff", fontSize: 13, fontWeight: 700, cursor: pagando ? "default" : "pointer", opacity: pagando ? 0.7 : 1 }}
+          >
+            {pagando ? "Abriendo Mercado Pago..." : textoBoton}
+          </button>
         </div>
       )}
 
-      {perfil.subscription_status === "activa" && (
+      {s === "activa" && (
         <button
           onClick={onCancelSubscription}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: 8,
-            border: "none",
-            background: "#F59E0B",
-            color: "#fff",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "background 0.2s",
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.background = "#D97706")}
-          onMouseOut={(e) => (e.currentTarget.style.background = "#F59E0B")}
+          style={{ width: "100%", padding: "12px", borderRadius: 8, border: "1px solid var(--border)", background: "transparent", color: "var(--text2)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
         >
-          ⚠️ Cancelar suscripción
+          Cancelar suscripción
         </button>
       )}
     </div>
@@ -844,6 +889,7 @@ export default function AjustesPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<string>("negocio");
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [planKey, setPlanKey] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
@@ -889,7 +935,7 @@ export default function AjustesPage() {
     { id: "acceso",         tag: "02", label: "Código de empleados", content: <CodigoAcceso token={token} /> },
     { id: "mp",             tag: "03", label: "Mercado Pago",   content: <SecMP token={token} /> },
     { id: "facturacion",    tag: "04", label: "Facturación",    content: <SecFacturacion token={token} perfil={perfil} onSave={p => setPerfil(p)} /> },
-    { id: "suscripcion",    tag: "05", label: "Mi Suscripción", content: <SecSuscripcion perfil={perfil} onCancelSubscription={() => setShowCancelModal(true)} /> },
+    { id: "suscripcion",    tag: "05", label: "Mi Suscripción", content: <SecSuscripcion perfil={perfil} token={token} recarga={planKey} onCancelSubscription={() => setShowCancelModal(true)} /> },
     { id: "notificaciones", tag: "06", label: "Notificaciones", content: <SecNotificaciones token={token} /> },
     { id: "cuenta",         tag: "07", label: "Mi Cuenta",      content: <SecCuenta perfil={perfil} onDeleteAccount={() => setShowDeleteModal(true)} /> },
     { id: "soporte",        tag: "08", label: "Soporte",        content: <SecSoporte /> },
@@ -959,6 +1005,7 @@ export default function AjustesPage() {
           onClose={() => setShowCancelModal(false)}
           onSuccess={() => {
             setShowCancelModal(false);
+            setPlanKey(k => k + 1);
             fetch(`${API}/api/usuario/perfil`, { headers: { Authorization: `Bearer ${token}` } })
               .then(r => r.json())
               .then(data => setPerfil(data))
