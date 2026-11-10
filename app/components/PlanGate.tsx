@@ -16,7 +16,7 @@ type Resumen = {
   fugas: { cantidad: number; monto: number } | null;
   bloqueado: string[];
 };
-type Cobro = { plan: "normal" | "empresarial"; neto: number | null; iva: number | null; total: number | null };
+type Cobro = { plan: "normal" | "empresarial"; neto: number | null; iva: number | null; total: number | null; email?: string };
 const pesos = (n: number) => "$" + Math.round(n).toLocaleString("es-AR");
 
 export default function PlanGate() {
@@ -28,6 +28,8 @@ export default function PlanGate() {
   const [pagando, setPagando] = useState(false);
   const [errorPago, setErrorPago] = useState("");
   const [confirmando, setConfirmando] = useState(false);
+  const [modal, setModal] = useState(false);
+  const [emailMP, setEmailMP] = useState("");
   const aplica = !SIN_PLAN.some(r => path === r || path.startsWith(r + "/"));
 
   // Si cualquier pantalla recibe "plan_vencido", se pasa a la vista resumida
@@ -98,6 +100,21 @@ export default function PlanGate() {
     return () => { vigente = false; clearInterval(iv); };
   }, [aplica]);
 
+  // emailMP: se pide el email de la cuenta de Mercado Pago con la que se va a pagar
+  async function abrirPago() {
+    setErrorPago("");
+    setModal(true);
+    if (emailMP) return;
+    const t = localStorage.getItem("lumo_token");
+    if (!t) return;
+    try {
+      const r = await fetch(`${API}/api/plan/cobro`, { headers: { Authorization: `Bearer ${t}` } });
+      const x: Cobro | null = r.ok ? await r.json() : null;
+      if (x && x.email) setEmailMP(x.email);
+      if (x && x.plan === "empresarial") { window.location.href = HABLEMOS; }
+    } catch { /* el dueño lo escribe a mano */ }
+  }
+
   async function activar() {
     const t = localStorage.getItem("lumo_token");
     if (!t || pagando) return;
@@ -107,7 +124,7 @@ export default function PlanGate() {
       const r = await fetch(`${API}/api/plan/checkout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ origen: window.location.origin }),
+        body: JSON.stringify({ origen: window.location.origin, email: emailMP.trim() }),
       });
       const j = await r.json().catch(() => ({}));
       if (j && j.init_point) { window.location.href = j.init_point; return; }
@@ -120,17 +137,47 @@ export default function PlanGate() {
     setPagando(false);
   }
 
+  const modalUI = modal ? (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(10,22,40,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div style={{ background: "var(--card2, #fff)", borderRadius: 16, padding: "22px 20px", maxWidth: 400, width: "100%" }}>
+        <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 19, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>Pagá con Mercado Pago</div>
+        <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.6, marginBottom: 14 }}>
+          Escribí el email de tu cuenta de Mercado Pago, el mismo con el que vas a pagar. Si todavía no tenés cuenta, creala primero en mercadopago.com.ar con ese email.
+        </div>
+        <input
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="tu@email.com"
+          value={emailMP}
+          onChange={e => setEmailMP(e.target.value)}
+          style={{ width: "100%", boxSizing: "border-box", padding: "12px 14px", fontSize: 15, borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontFamily: "inherit", marginBottom: 10 }}
+        />
+        {errorPago && <div style={{ fontSize: 13, color: "var(--red, #E5484D)", lineHeight: 1.5, marginBottom: 10 }}>{errorPago}</div>}
+        <button onClick={activar} disabled={pagando || !emailMP.trim()} style={{ display: "block", width: "100%", padding: "13px", background: "var(--cyan, #007AFF)", color: "#fff", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700, fontFamily: "inherit", cursor: pagando ? "default" : "pointer", opacity: pagando || !emailMP.trim() ? 0.6 : 1, marginBottom: 8 }}>
+          {pagando ? "Abriendo Mercado Pago…" : "Continuar a Mercado Pago"}
+        </button>
+        <button onClick={() => { setModal(false); setErrorPago(""); }} style={{ display: "block", width: "100%", padding: "10px", background: "none", border: "none", color: "var(--muted)", fontSize: 13, fontFamily: "inherit", cursor: "pointer" }}>
+          Cancelar
+        </button>
+      </div>
+    </div>
+  ) : null;
+
   if (!aplica || !est) return null;
 
   if (est.estado === "trial" && !est.sin_vencimiento && est.dias_restantes !== null && est.dias_restantes <= 3) {
     const d = est.dias_restantes;
     return (
+      <>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "9px 16px", background: "var(--card2, #fff)", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text)" }}>
         <span>{d <= 1 ? "Hoy termina tu prueba de LumoBi." : `Te quedan ${d} días de prueba.`}</span>
-        <button onClick={activar} disabled={pagando} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", fontSize: 13, color: "var(--cyan)", fontWeight: 700, whiteSpace: "nowrap" }}>
-          {pagando ? "Abriendo…" : "Activar plan"}
+        <button onClick={abrirPago} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", fontSize: 13, color: "var(--cyan)", fontWeight: 700, whiteSpace: "nowrap" }}>
+          Activar plan
         </button>
       </div>
+      {modalUI}
+      </>
     );
   }
 
@@ -139,6 +186,7 @@ export default function PlanGate() {
   const caja = { background: "var(--card2, #fff)", border: "1px solid var(--border)", borderRadius: 14, padding: "12px 14px" } as const;
   const empresarial = cobro?.plan === "empresarial";
   return (
+    <>
     <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--bg)", overflowY: "auto", padding: "28px 20px 40px" }}>
       <div style={{ maxWidth: 420, margin: "0 auto" }}>
         <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 22, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>
@@ -195,17 +243,13 @@ export default function PlanGate() {
           </div>
         )}
 
-        {errorPago && (
-          <div style={{ fontSize: 13, color: "var(--red, #E5484D)", textAlign: "center", marginBottom: 10, lineHeight: 1.5 }}>{errorPago}</div>
-        )}
-
         {empresarial ? (
           <a href={HABLEMOS} style={{ display: "block", textAlign: "center", padding: "14px", background: "var(--cyan, #007AFF)", color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 700, textDecoration: "none", marginBottom: 12 }}>
             Hablemos: armamos tu plan a medida
           </a>
         ) : (
-          <button onClick={activar} disabled={pagando || confirmando} style={{ display: "block", width: "100%", textAlign: "center", padding: "14px", background: "var(--cyan, #007AFF)", color: "#fff", border: "none", cursor: pagando || confirmando ? "default" : "pointer", opacity: pagando || confirmando ? 0.7 : 1, borderRadius: 12, fontSize: 15, fontWeight: 700, fontFamily: "inherit", marginBottom: 12 }}>
-            {pagando ? "Abriendo Mercado Pago…" : "Activar mi plan"}
+          <button onClick={abrirPago} disabled={confirmando} style={{ display: "block", width: "100%", textAlign: "center", padding: "14px", background: "var(--cyan, #007AFF)", color: "#fff", border: "none", cursor: confirmando ? "default" : "pointer", opacity: confirmando ? 0.7 : 1, borderRadius: 12, fontSize: 15, fontWeight: 700, fontFamily: "inherit", marginBottom: 12 }}>
+            Activar mi plan
           </button>
         )}
         <a href="/salir" style={{ display: "block", textAlign: "center", padding: "10px", color: "var(--muted)", fontSize: 13, textDecoration: "none" }}>
@@ -213,5 +257,7 @@ export default function PlanGate() {
         </a>
       </div>
     </div>
+    {modalUI}
+    </>
   );
 }
