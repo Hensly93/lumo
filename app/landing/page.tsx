@@ -5,14 +5,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import BarraCta from "./BarraCta";
+import { PAGINAS, SITIO } from "../soluciones/datos";
 
 export const metadata: Metadata = {
-  title: "LumoBi — Dónde se escapa la plata de tu negocio y qué va a pasar",
+  title: { absolute: "LumoBi: control de caja y fugas de plata para pymes y comercios" },
   description:
-    "LumoBi junta tu caja, tus ventas y Mercado Pago: te muestra por dónde se escapa la plata, te avisa antes de que crezca y te dice cuánto vas a vender los próximos días. Probalo 5 días gratis.",
+    "Control de caja y detección de pérdidas de dinero para pymes, comercios y gastronomía de Argentina. Ventas, Mercado Pago y predicción en un solo lugar. 5 días gratis.",
+  keywords: [
+    "control de caja", "arqueo de caja", "faltante de caja", "pérdidas de dinero en negocios", "fugas de plata",
+    "business intelligence para pymes", "inteligencia de negocios", "software para pymes", "comercio minorista",
+    "comercio mayorista", "gastronomía", "restaurantes", "predicción de ventas", "Mercado Pago", "Argentina",
+  ],
+  alternates: { canonical: "/landing" },
   openGraph: {
-    title: "LumoBi — Dónde se escapa la plata de tu negocio y qué va a pasar",
+    title: "LumoBi: control de caja y fugas de plata para pymes y comercios",
     description: "Juntamos tu caja, tus ventas y Mercado Pago. Te mostramos las fugas de plata, te avisamos a tiempo y anticipamos tus ventas.",
+    url: "/landing",
+    siteName: "LumoBi",
     locale: "es_AR",
     type: "website",
   },
@@ -141,12 +150,69 @@ const FAQS = [
   { q: "¿Cuánto cuesta?", a: "Desde $45.000 + IVA por mes, con 1 local y hasta 3 cajas. Si tenés más locales, cajas o empleados, el precio se ajusta y lo ves antes de pagar. Para grandes superficies o muchos locales, escribinos." },
   { q: "¿Qué pasa cuando termina la prueba?", a: "Tus datos quedan guardados. Ves un resumen del último mes y, cuando activás el plan, volvés a ver todo. Si no lo activás, no pasa nada más." },
   { q: "¿Mis datos están a salvo?", a: "Cada negocio ve únicamente su información. Los datos de un negocio nunca se mezclan con los de otro." },
+  { q: "¿Sirve para restaurantes, bares y comercios minoristas o mayoristas?", a: "Sí. LumoBi está pensado para pymes de comercio y gastronomía de Argentina: kioscos, almacenes, tiendas, restaurantes, bares, cafeterías, distribuidoras y comercios mayoristas. Funciona con un local o con varios." },
+  { q: "¿Qué es el arqueo de caja y cómo me ayuda LumoBi?", a: "El arqueo de caja es contar el efectivo al cerrar y compararlo con las ventas registradas. LumoBi hace esa comparación en cada cierre de turno, la cruza con tus cobros digitales y te muestra la diferencia en pesos." },
+  { q: "¿LumoBi es un sistema de business intelligence?", a: "Sí. Es inteligencia de negocios pensada para pymes: junta tu caja, tus ventas y Mercado Pago, detecta fugas de plata y predice tus ventas, sin tableros complicados." },
+];
+
+const JSONLD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "LumoBi",
+    url: SITIO,
+    logo: `${SITIO}/brand/lumobi-logo-email.png`,
+    description: "Software argentino de control de caja y business intelligence para pymes, comercios y gastronomía.",
+    areaServed: "AR",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "LumoBi",
+    url: SITIO,
+    inLanguage: "es-AR",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "LumoBi",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web, Android, iOS",
+    inLanguage: "es-AR",
+    url: `${SITIO}/landing`,
+    description: "Control de caja, detección de pérdidas de dinero, análisis de ventas y cobros de Mercado Pago, y predicción de ventas para pymes, comercios minoristas y mayoristas, y gastronomía de Argentina.",
+    featureList: [
+      "Control de caja y cierre de turno",
+      "Detección de fugas de plata",
+      "Avisos en el celular",
+      "Predicción de ventas",
+      "Cobros de Mercado Pago junto con ventas y caja",
+      "Varios locales en una sola pantalla",
+    ],
+    offers: {
+      "@type": "Offer",
+      price: "45000",
+      priceCurrency: "ARS",
+      priceSpecification: { "@type": "UnitPriceSpecification", price: "45000", priceCurrency: "ARS", unitText: "MONTH", valueAddedTaxIncluded: false },
+      availability: "https://schema.org/InStock",
+      description: "Desde $45.000 + IVA por mes, 1 local y hasta 3 cajas. 5 días gratis.",
+    },
+    areaServed: "AR",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  },
 ];
 
 export default function Landing() {
   return (
     <main className="lb">
       <style>{css}</style>
+      {JSONLD.map((d, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(d).replace(/</g, "\\u003c") }} />
+      ))}
 
       {/* Navegación mínima: logo, entrar y un solo botón */}
       <header style={{ background: C.tinta, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
@@ -164,10 +230,10 @@ export default function Landing() {
       <section className="hero">
         <div className="wrap hero-grid">
           <div>
-            <div className="eyebrow">Para comercios y gastronomía de Argentina</div>
+            <div className="eyebrow">Control de caja y business intelligence para pymes, comercios y gastronomía de Argentina</div>
             <h1>Tu negocio pierde plata todos los meses. LumoBi te dice dónde, cuánto y qué va a pasar.</h1>
             <p className="sub">
-              Juntamos tu caja, tus ventas y Mercado Pago en un solo lugar. Te mostramos por dónde se escapa la plata, te avisamos antes de que crezca y te decimos cuánto vas a vender los próximos días.
+              Juntamos tu caja, tus ventas y Mercado Pago en un solo lugar. Detectamos las pérdidas de dinero de tu negocio, te avisamos antes de que crezcan y te decimos cuánto vas a vender los próximos días.
             </p>
             <Link href={CTA} className="btn">Probar 5 días gratis</Link>
             <div className="micro">5 días gratis. Sin tarjeta. Cancelás cuando quieras.</div>
@@ -314,6 +380,23 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Para qué negocios */}
+      <section className="s" style={{ background: C.blanco }}>
+        <div className="wrap">
+          <div className="kicker">PARA QUÉ NEGOCIOS</div>
+          <h2 className="t">LumoBi para pymes, comercios y gastronomía</h2>
+          <p className="lead">Control de caja, pérdidas de dinero, cobros de Mercado Pago e inteligencia de negocios para comercios minoristas y mayoristas, restaurantes, bares y cafeterías.</p>
+          <div className="grid3">
+            {PAGINAS.map((p) => (
+              <Link href={`/soluciones/${p.slug}`} className="card" key={p.slug} style={{ textDecoration: "none" }}>
+                <h3>{p.corto}</h3>
+                <p>{p.resumen}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Precio */}
       <section className="s" id="precio">
         <div className="wrap">
@@ -381,6 +464,11 @@ export default function Landing() {
             <a href={`mailto:${EMAIL}`} style={{ textDecoration: "none" }}>{EMAIL}</a><br />
             Hecho en Argentina · Versión beta · {new Date().getFullYear()}
           </div>
+        </div>
+        <div className="wrap" style={{ marginTop: 20, lineHeight: 1.9, fontSize: 13 }}>
+          {PAGINAS.map((p, i) => (
+            <span key={p.slug}>{i ? " · " : ""}<Link href={`/soluciones/${p.slug}`}>{p.corto}</Link></span>
+          ))}
         </div>
       </footer>
 

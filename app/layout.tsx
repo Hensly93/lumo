@@ -12,8 +12,15 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "LumoBi",
-  description: "Detectá inconsistencias en tu caja antes de que se acumulen.",
+  metadataBase: new URL("https://lumobi.com.ar"),
+  title: {
+    default: "LumoBi: control de caja y fugas de plata para pymes y comercios",
+    template: "%s | LumoBi",
+  },
+  description:
+    "Control de caja y detección de pérdidas de dinero para pymes, comercios y gastronomía de Argentina. Ventas, Mercado Pago y predicción en un solo lugar. 5 días gratis.",
+  applicationName: "LumoBi",
+  openGraph: { siteName: "LumoBi", locale: "es_AR", type: "website" },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -37,7 +44,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={instrumentSans.variable}>
+    <html lang="es-AR" className={instrumentSans.variable}>
       <head>
         <link rel="apple-touch-icon" href="/api/pwa-icon?size=192" />
       </head>
