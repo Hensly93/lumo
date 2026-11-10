@@ -33,7 +33,8 @@ export default function MasPage() {
   const router = useRouter();
 
   const items = [
-    { label: "Equipo", desc: "Empleados y rendimiento", href: "/empleados", icon: icons.equipo },
+    { label: "Caja del local", desc: "Equipo, PIN y link para vender", href: "/mi-local", icon: icons.equipo },
+    { label: "Rendimiento", desc: "Cómo rinde cada empleado", href: "/empleados", icon: icons.equipo },
     { label: "Catálogo", desc: "Productos y precios", href: "/catalogo", icon: icons.catalogo },
     { label: "Ajustes", desc: "Configuración y cuenta", href: "/ajustes", icon: icons.ajustes },
   ];

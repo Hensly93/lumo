@@ -496,6 +496,16 @@ export default function EmpleadoPage() {
       saved = localStorage.getItem("lumo_negocio_codigo");
       if (!recordado && saved) localStorage.removeItem("lumo_negocio_codigo"); // limpia codigos guardados antes
     } catch { /* sin acceso al almacenamiento */ }
+    let desdeLink: string | null = null;
+    try { desdeLink = new URLSearchParams(window.location.search).get("c"); } catch { /* sin url */ }
+    if (desdeLink && desdeLink.trim()) {
+      // Entra desde el link que le manda el dueño: el codigo ya viene adentro
+      const c = desdeLink.trim().toUpperCase();
+      setRecordar(true);
+      setNegocioId(c);
+      cargarSucursales(c, true);
+      return;
+    }
     if (recordado && saved) {
       setRecordar(true);
       setNegocioId(saved);

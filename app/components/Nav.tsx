@@ -70,7 +70,7 @@ export default function Nav() {
       return ["/negocio", "/fugas", "/periodos", "/rentabilidad", "/predicciones", "/red"].some(p => path.startsWith(p));
     }
     if (href === "/mas") {
-      return ["/mas", "/empleados", "/catalogo", "/ajustes"].some(p => path.startsWith(p));
+      return ["/mas", "/empleados", "/catalogo", "/ajustes", "/mi-local"].some(p => path.startsWith(p));
     }
     return path.startsWith(href);
   };
