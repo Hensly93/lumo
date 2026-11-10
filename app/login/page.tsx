@@ -1,27 +1,38 @@
 "use client";
+// Login, registro y recupero de contraseña — diseño claro de LumoBi (login-claro).
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
+// Marca LumoBi (esta pantalla es siempre clara, igual que los mails)
+const TINTA = "#0A1628";
+const AZUL = "#0A5BD3";
+const TEXTO = "#334155";
+const SUAVE = "#64748B";
+const LINEA = "#E2E8F0";
+const BORDE_INPUT = "#CBD5E1";
+const FONDO = "#F1F5F9";
+const FUENTE = "var(--font-instrument),-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+
 function inp(): React.CSSProperties {
   return {
-    width: "100%", padding: "13px 16px",
-    background: "var(--card2)", border: "1px solid var(--border)",
-    borderRadius: 12, color: "var(--text)", fontSize: 14,
-    fontFamily: "var(--font-instrument),sans-serif", outline: "none", boxSizing: "border-box",
+    width: "100%", padding: "14px 16px",
+    background: "#FFFFFF", border: `1px solid ${BORDE_INPUT}`,
+    borderRadius: 10, color: TINTA, fontSize: 16,
+    fontFamily: FUENTE, outline: "none", boxSizing: "border-box",
   };
 }
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M1 12C1 12 5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" stroke="var(--muted)" strokeWidth="1.8" strokeLinejoin="round" />
-      <circle cx="12" cy="12" r="3" stroke="var(--muted)" strokeWidth="1.8" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M1 12C1 12 5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" stroke={SUAVE} strokeWidth="1.8" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" stroke={SUAVE} strokeWidth="1.8" />
     </svg>
   ) : (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22" stroke="var(--muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22" stroke={SUAVE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -37,15 +48,17 @@ function PasswordField({ placeholder, value, onChange, autoComplete }: {
       <input
         type={show ? "text" : "password"}
         placeholder={placeholder}
+        aria-label={placeholder}
         value={value}
         onChange={onChange}
         autoComplete={autoComplete}
-        style={{ width: "100%", padding: "13px 44px 13px 16px", background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--text)", fontSize: 14, fontFamily: "var(--font-instrument),sans-serif", outline: "none", boxSizing: "border-box" }}
+        style={{ ...inp(), padding: "14px 48px 14px 16px" }}
       />
       <button
         type="button"
+        aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
         onClick={() => setShow(s => !s)}
-        style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}
+        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 6, display: "flex", alignItems: "center" }}
       >
         <EyeIcon open={show} />
       </button>
@@ -57,44 +70,42 @@ type Vista = "login" | "registro" | "recupero" | "recupero-enviado";
 
 function Logo() {
   return (
-    <div style={{ textAlign: "center", marginBottom: 32 }}>
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
-        <svg width="140" height="44" viewBox="0 0 140 44" fill="none">
-          <defs>
-            <linearGradient id="ll-g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#007AFF"/><stop offset="100%" stopColor="#00C2FF"/></linearGradient>
-            <radialGradient id="ll-h" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#007AFF" stopOpacity="0.15"/><stop offset="100%" stopColor="transparent"/></radialGradient>
-            <filter id="ll-f"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <linearGradient id="ll-t" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#007AFF"/><stop offset="100%" stopColor="#00A0CC"/></linearGradient>
-            <linearGradient id="ll-s" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="transparent"/><stop offset="20%" stopColor="#007AFF" stopOpacity="0.5"/><stop offset="70%" stopColor="#00C2FF" stopOpacity="0.7"/><stop offset="100%" stopColor="transparent"/></linearGradient>
-          </defs>
-          <ellipse cx="18" cy="22" rx="20" ry="20" fill="url(#ll-h)"/>
-          <path d="M2 22 C7 11 29 11 34 22 C29 33 7 33 2 22Z" stroke="url(#ll-g)" strokeWidth="1.8" fill="none" filter="url(#ll-f)"/>
-          <circle cx="18" cy="22" r="6" fill="none" stroke="url(#ll-g)" strokeWidth="1.5" filter="url(#ll-f)"/>
-          <circle cx="18" cy="22" r="3" fill="url(#ll-g)" filter="url(#ll-f)"/>
-          <circle cx="16.5" cy="20.5" r="1.2" fill="white" fillOpacity="0.65"/>
-          <line x1="18" y1="19" x2="18" y2="6" stroke="#007AFF" strokeWidth="1.3" strokeOpacity="0.35" strokeLinecap="round"/>
-          <line x1="18" y1="19" x2="25" y2="9" stroke="#007AFF" strokeWidth="0.9" strokeOpacity="0.22" strokeLinecap="round"/>
-          <line x1="18" y1="19" x2="11" y2="9" stroke="#007AFF" strokeWidth="0.9" strokeOpacity="0.22" strokeLinecap="round"/>
-          <text x="42" y="30" fontFamily="var(--font-instrument)" fontWeight="800" fontSize="28" fill="url(#ll-t)" letterSpacing="-1">lumo</text>
-          <rect x="42" y="36" width="96" height="2" rx="1" fill="url(#ll-s)"/>
-        </svg>
-      </div>
-      <div style={{ fontSize: 13, color: "var(--muted)" }}>Tu socio operativo</div>
+    <div style={{ textAlign: "center", marginBottom: 24 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brand/lumobi-logo-light.svg" alt="LumoBi" width={170} height={44} style={{ display: "inline-block", height: 44, width: "auto" }} />
+      <div style={{ fontSize: 14, color: SUAVE, marginTop: 10 }}>Detectá las fugas de plata de tu negocio</div>
     </div>
   );
 }
 
 const btnStyle = (loading: boolean): React.CSSProperties => ({
-  width: "100%", padding: "14px",
-  background: loading ? "var(--card2)" : "linear-gradient(135deg,#007AFF,#00C2FF)",
-  border: loading ? "1px solid var(--border)" : "none",
-  borderRadius: 12, color: loading ? "var(--muted)" : "#fff",
-  fontSize: 14, fontWeight: 700,
+  width: "100%", padding: "15px",
+  background: loading ? "#E2E8F0" : AZUL,
+  border: "none",
+  borderRadius: 10, color: loading ? SUAVE : "#FFFFFF",
+  fontSize: 16, fontWeight: 700,
   cursor: loading ? "not-allowed" : "pointer",
-  fontFamily: "var(--font-instrument),sans-serif",
-  boxShadow: loading ? "none" : "0 4px 16px #007AFF20",
-  opacity: loading ? 0.7 : 1,
+  fontFamily: FUENTE,
 });
+
+function Pantalla({ children, volver }: { children: React.ReactNode; volver?: () => void }) {
+  return (
+    <main style={{ background: FONDO, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 16px", fontFamily: FUENTE, position: "relative" }}>
+      {volver && (
+        <button onClick={volver}
+          style={{ position: "absolute", top: 18, left: 18, background: "transparent", border: "none", color: SUAVE, fontSize: 14, cursor: "pointer", fontFamily: FUENTE }}>
+          ← Volver
+        </button>
+      )}
+      <div style={{ width: "100%", maxWidth: 400, background: "#FFFFFF", border: `1px solid ${LINEA}`, borderRadius: 16, padding: "32px 26px" }}>
+        {children}
+      </div>
+      <div style={{ marginTop: 18, fontSize: 12, color: SUAVE }}>
+        LumoBi · {new Date().getFullYear()}
+      </div>
+    </main>
+  );
+}
 
 export default function Login() {
   const router = useRouter();
@@ -185,109 +196,100 @@ export default function Login() {
   }
 
   const ErrorBox = () => error ? (
-    <div style={{ color: "var(--red)", fontSize: 13, background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "10px 14px", textAlign: "center" }}>{error}</div>
+    <div role="alert" style={{ color: "#B91C1C", fontSize: 14, background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "10px 14px", textAlign: "center", lineHeight: 1.5 }}>{error}</div>
   ) : null;
 
   if (vista === "recupero-enviado") return (
-    <main style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "var(--font-instrument),sans-serif" }}>
-      <div style={{ width: "100%", maxWidth: 360, textAlign: "center" }}>
+    <Pantalla>
+      <div style={{ textAlign: "center" }}>
         <Logo />
-        <div style={{ fontSize: 36, marginBottom: 16 }}>✉️</div>
-        <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>Revisá tu email</div>
-        <div style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.6, marginBottom: 28 }}>
-          Si <span style={{ color: "var(--cyan)" }}>{emailRecupero}</span> está registrado, te enviamos un link para resetear tu contraseña. Revisá también el spam.
+        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: "50%", background: "#EAF2FE", marginBottom: 16 }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={AZUL} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2.5" />
+            <path d="M3.5 7l8.5 6 8.5-6" />
+          </svg>
+        </div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: TINTA, marginBottom: 8 }}>Revisá tu email</div>
+        <div style={{ fontSize: 15, color: TEXTO, lineHeight: 1.6, marginBottom: 24 }}>
+          Si <strong style={{ color: TINTA }}>{emailRecupero}</strong> está registrado, te enviamos un link para cambiar tu contraseña. Revisá también el spam.
         </div>
         <button
           onClick={() => { setVista("login"); setError(""); setEmailRecupero(""); }}
-          style={{ padding: "12px 24px", background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--cyan)", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "var(--font-instrument),sans-serif" }}>
-          Volver al login
+          style={{ ...btnStyle(false), background: "#FFFFFF", border: `1px solid ${BORDE_INPUT}`, color: AZUL }}>
+          Volver a iniciar sesión
         </button>
       </div>
-    </main>
+    </Pantalla>
   );
 
   if (vista === "recupero") return (
-    <main style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "var(--font-instrument),sans-serif", position: "relative" }}>
-      <button onClick={() => { setVista("login"); setError(""); }}
-        style={{ position: "absolute", top: 20, left: 20, background: "transparent", border: "none", color: "var(--muted)", fontSize: 13, cursor: "pointer", fontFamily: "var(--font-instrument),sans-serif" }}>
-        ← Volver
-      </button>
-      <div style={{ width: "100%", maxWidth: 360 }}>
-        <Logo />
-        <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Recuperar contraseña</div>
-        <div style={{ fontSize: 13, color: "var(--text2)", marginBottom: 20, lineHeight: 1.5 }}>
-          Ingresá tu email y te enviamos un link para crear una nueva contraseña.
-        </div>
-        <form onSubmit={submitRecupero} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <input type="email" placeholder="Tu email" value={emailRecupero}
-            onChange={e => { setEmailRecupero(e.target.value); setError(""); }}
-            autoComplete="email" style={inp()} />
-          <ErrorBox />
-          <button type="submit" disabled={loading} style={btnStyle(loading)}>
-            {loading ? "Enviando..." : "Enviar link de recupero"}
-          </button>
-        </form>
+    <Pantalla volver={() => { setVista("login"); setError(""); }}>
+      <Logo />
+      <div style={{ fontSize: 20, fontWeight: 700, color: TINTA, marginBottom: 6 }}>Recuperar contraseña</div>
+      <div style={{ fontSize: 15, color: TEXTO, marginBottom: 20, lineHeight: 1.5 }}>
+        Escribí tu email y te enviamos un link para crear una nueva contraseña.
       </div>
-    </main>
+      <form onSubmit={submitRecupero} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <input type="email" placeholder="Tu email" aria-label="Tu email" value={emailRecupero}
+          onChange={e => { setEmailRecupero(e.target.value); setError(""); }}
+          autoComplete="email" style={inp()} />
+        <ErrorBox />
+        <button type="submit" disabled={loading} style={btnStyle(loading)}>
+          {loading ? "Enviando..." : "Enviar link"}
+        </button>
+      </form>
+    </Pantalla>
   );
 
   return (
-    <main style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "var(--font-instrument),sans-serif" }}>
-      <div style={{ width: "100%", maxWidth: 360 }}>
-        <Logo />
+    <Pantalla>
+      <Logo />
 
-        <div style={{ height: 1, background: "var(--border)", margin: "0 0 24px" }} />
-
-        {/* Tabs */}
-        <div style={{ display: "flex", background: "var(--card2)", borderRadius: 12, border: "1px solid var(--border)", overflow: "hidden", marginBottom: 24 }}>
-          {(["login", "registro"] as const).map(t => (
-            <button key={t}
-              onClick={() => { setVista(t); setError(""); setForm({ email: "", password: "", confirmPassword: "", nombre: "", negocio: "", celular: "", cuit: "" }); }}
-              style={{ flex: 1, padding: "11px", background: vista === t ? "var(--card)" : "transparent", color: vista === t ? "var(--cyan)" : "var(--muted)", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-instrument),sans-serif", transition: "all 0.15s" }}>
-              {t === "login" ? "Iniciar sesión" : "Registrarse"}
-            </button>
-          ))}
-        </div>
-
-        {vista === "login" && (
-          <form onSubmit={submitLogin} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <input type="email" placeholder="Email" value={form.email} onChange={set("email")} autoComplete="email" style={inp()} />
-            <PasswordField placeholder="Contraseña" value={form.password} onChange={set("password")} autoComplete="current-password" />
-            <div style={{ textAlign: "right", marginTop: -4 }}>
-              <button type="button" onClick={() => { setVista("recupero"); setError(""); setEmailRecupero(form.email); }}
-                style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "var(--font-instrument),sans-serif" }}>
-                ¿Olvidaste tu contraseña?
-              </button>
-            </div>
-            <ErrorBox />
-            <button type="submit" disabled={loading} style={btnStyle(loading)}>{loading ? "Conectando..." : "Ingresar"}</button>
-          </form>
-        )}
-
-        {vista === "registro" && (
-          <form onSubmit={submitRegistro} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <input placeholder="Tu nombre" value={form.nombre} onChange={set("nombre")} autoComplete="name" style={inp()} />
-            <input placeholder="Nombre del negocio" value={form.negocio} onChange={set("negocio")} style={inp()} />
-            <input type="email" placeholder="Email" value={form.email} onChange={set("email")} autoComplete="email" style={inp()} />
-            <PasswordField placeholder="Contraseña" value={form.password} onChange={set("password")} autoComplete="new-password" />
-            <PasswordField placeholder="Confirmar contraseña" value={form.confirmPassword} onChange={set("confirmPassword")} autoComplete="new-password" />
-            <input type="tel" placeholder="Celular (con código de área)" value={form.celular} onChange={set("celular")} autoComplete="tel" style={inp()} />
-            <input inputMode="numeric" placeholder="CUIT (opcional)" value={form.cuit} onChange={set("cuit")} style={inp()} />
-            <p style={{ margin: "-4px 0 0", fontSize: 11, color: "var(--muted)", lineHeight: 1.5 }}>
-              Usamos tu celular y tu CUIT solo para que cada negocio use la prueba gratis una vez.
-            </p>
-            <ErrorBox />
-            <button type="submit" disabled={loading} style={btnStyle(loading)}>{loading ? "Creando cuenta..." : "Crear cuenta"}</button>
-            <p style={{ marginTop: 4, fontSize: 11, color: "var(--muted)", textAlign: "center", lineHeight: 1.6 }}>
-              Al registrarte aceptás que LumoBi está en versión beta. Sin compromiso.
-            </p>
-          </form>
-        )}
-
-        <div style={{ textAlign: "center", marginTop: 28, fontSize: 10, color: "var(--muted)", letterSpacing: 2 }}>
-          LumoBi · BETA · {new Date().getFullYear()}
-        </div>
+      {/* Pestañas */}
+      <div style={{ display: "flex", background: FONDO, borderRadius: 10, padding: 4, marginBottom: 22, gap: 4 }}>
+        {(["login", "registro"] as const).map(t => (
+          <button key={t}
+            onClick={() => { setVista(t); setError(""); setForm({ email: "", password: "", confirmPassword: "", nombre: "", negocio: "", celular: "", cuit: "" }); }}
+            style={{ flex: 1, padding: "11px", background: vista === t ? "#FFFFFF" : "transparent", color: vista === t ? AZUL : SUAVE, border: "none", borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: FUENTE, boxShadow: vista === t ? "0 1px 3px rgba(10,22,40,0.12)" : "none" }}>
+            {t === "login" ? "Iniciar sesión" : "Registrarse"}
+          </button>
+        ))}
       </div>
-    </main>
+
+      {vista === "login" && (
+        <form onSubmit={submitLogin} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <input type="email" placeholder="Email" aria-label="Email" value={form.email} onChange={set("email")} autoComplete="email" style={inp()} />
+          <PasswordField placeholder="Contraseña" value={form.password} onChange={set("password")} autoComplete="current-password" />
+          <div style={{ textAlign: "right", marginTop: -2 }}>
+            <button type="button" onClick={() => { setVista("recupero"); setError(""); setEmailRecupero(form.email); }}
+              style={{ background: "none", border: "none", color: AZUL, fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 0, fontFamily: FUENTE }}>
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+          <ErrorBox />
+          <button type="submit" disabled={loading} style={btnStyle(loading)}>{loading ? "Conectando..." : "Ingresar"}</button>
+        </form>
+      )}
+
+      {vista === "registro" && (
+        <form onSubmit={submitRegistro} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <input placeholder="Tu nombre" aria-label="Tu nombre" value={form.nombre} onChange={set("nombre")} autoComplete="name" style={inp()} />
+          <input placeholder="Nombre del negocio" aria-label="Nombre del negocio" value={form.negocio} onChange={set("negocio")} style={inp()} />
+          <input type="email" placeholder="Email" aria-label="Email" value={form.email} onChange={set("email")} autoComplete="email" style={inp()} />
+          <PasswordField placeholder="Contraseña" value={form.password} onChange={set("password")} autoComplete="new-password" />
+          <PasswordField placeholder="Confirmar contraseña" value={form.confirmPassword} onChange={set("confirmPassword")} autoComplete="new-password" />
+          <input type="tel" placeholder="Celular (con código de área)" aria-label="Celular" value={form.celular} onChange={set("celular")} autoComplete="tel" style={inp()} />
+          <input inputMode="numeric" placeholder="CUIT (opcional)" aria-label="CUIT (opcional)" value={form.cuit} onChange={set("cuit")} style={inp()} />
+          <p style={{ margin: "-2px 0 0", fontSize: 12, color: SUAVE, lineHeight: 1.5 }}>
+            Usamos tu celular y tu CUIT solo para que cada negocio use la prueba gratis una vez.
+          </p>
+          <ErrorBox />
+          <button type="submit" disabled={loading} style={btnStyle(loading)}>{loading ? "Creando cuenta..." : "Crear cuenta"}</button>
+          <p style={{ margin: "2px 0 0", fontSize: 12, color: SUAVE, textAlign: "center", lineHeight: 1.6 }}>
+            Al registrarte aceptás que LumoBi está en versión beta. Sin compromiso.
+          </p>
+        </form>
+      )}
+    </Pantalla>
   );
 }
