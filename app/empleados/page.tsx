@@ -77,8 +77,8 @@ function nivelBadge(nivel: string): { text: string; variant: "ok" | "warn" } {
 }
 
 function nivelBadgeERM(nivel: string): { text: string; variant: "ok" | "warn" } {
-  if (nivel === "rojo") return { text: "Alto riesgo", variant: "warn" };
-  if (nivel === "amarillo") return { text: "Atención", variant: "warn" };
+  if (nivel === "rojo") return { text: "Para revisar", variant: "warn" };
+  if (nivel === "amarillo") return { text: "Para mirar", variant: "warn" };
   if (nivel === "verde") return { text: "Normal", variant: "ok" };
   return { text: "Sin datos", variant: "ok" };
 }
@@ -114,7 +114,7 @@ function DetalleRiesgo({ e, turnos }: { e: EmpleadoERM; turnos: TurnoEvidencia[]
     <div style={{ margin: "0 12px 10px", background: "var(--card2)", borderRadius: 14, padding: 14, border: "1px solid var(--border)", boxShadow: "var(--sh)" }}>
       <div style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.5 }}>
         {e.score !== null
-          ? `Puntaje ${e.score} de 100. Normal hasta 29, atención de 30 a 60, alto riesgo desde 61. Se calcula con los turnos cerrados de los últimos 30 días (mínimo 3 turnos).`
+          ? `Puntaje de referencia: ${e.score} de 100 (normal hasta 29, para mirar de 30 a 60, para revisar desde 61). Se calcula con los turnos cerrados de los últimos 30 días (mínimo 3 turnos) y muestra qué revisar, no quién hizo qué.`
           : (e.motivo || "Todavía no hay datos suficientes para calcular el puntaje.")}
       </div>
 
@@ -291,7 +291,7 @@ export default function Empleados() {
               {erm.alerta_equipo && (
                 <AlertCard variant="crit" tag="Alerta de equipo" title={erm.alerta_equipo} desc="" />
               )}
-              <div style={{ fontSize: 10, color: "var(--muted)", padding: "0 14px 8px" }}>Tocá a una persona para ver de dónde sale su puntaje.</div>
+              <div style={{ fontSize: 10, color: "var(--muted)", padding: "0 14px 8px" }}>Son señales para revisar la operación, no una acusación. Tocá a una persona para ver en qué turnos se basan.</div>
               {erm.empleados.map((e, i) => (
                 <div key={e.empleado}>
                   <div onClick={() => abrirDetalle(e.empleado)} style={{ cursor: "pointer" }}>
@@ -300,7 +300,7 @@ export default function Empleados() {
                       colorVariant={EAV_VARIANT[i % 3]}
                       name={e.empleado}
                       sub={e.score !== null && e.señales.length > 0 ? e.señales[0].descripcion : e.score === null ? "Datos insuficientes" : "Sin señales activas"}
-                      amount={e.score !== null ? `Riesgo ${e.score}` : "—"}
+                      amount={e.score !== null ? (e.señales.some(s => s.peso > 0) ? "Hay señales" : "Sin señales") : "—"}
                       badge={nivelBadgeERM(e.nivel)}
                     />
                   </div>
@@ -331,8 +331,8 @@ export default function Empleados() {
                 initials={iniciales(r.empleado)}
                 colorVariant={EAV_VARIANT[i % 3]}
                 name={r.empleado}
-                sub={`${LABEL_TURNO[turnoActivo]} · ${r.n_turnos} turnos · ${Math.round(r.tasa_inconsistencia * 100)}% incons.`}
-                amount={`Score ${r.score}`}
+                sub={`${LABEL_TURNO[turnoActivo]} · ${Math.round(r.tasa_inconsistencia * 100)}% de turnos con diferencia`}
+                amount={`${r.n_turnos} turnos`}
                 badge={nivelBadge(r.nivel)}
               />
             ))

@@ -105,8 +105,8 @@ function CardDia({ p }: { p: Prediccion }) {
   const [expandido, setExpandido] = useState(false);
   const eventos = p.senales_usadas?.eventos_contexto ?? [];
   const efectos = p.efectos ?? [];
-  const pctConf = Math.round(p.confianza * 100);
-  const warningBadge = pctConf < 55 ? "Confianza baja · pocos datos" : undefined;
+  const diasDatos = p.senales_usadas?.dias_datos ?? 0;
+  const warningBadge = diasDatos < 14 ? "Estimación preliminar · pocos datos" : undefined;
   const clima = climaDelDia(p);
   const extras = [
     clima && clima !== "normal" ? `${clima === "lluvia" ? "Lluvia" : clima === "calor_extremo" ? "Calor" : "Frío"}` : "",
@@ -123,8 +123,8 @@ function CardDia({ p }: { p: Prediccion }) {
       <PredCard
         title={`${formatFecha(p.fecha_target)}${extras ? ` — ${extras}` : ""}`}
         rows={rows}
-        confidence={pctConf}
-        confidenceLabel={`Confianza ${pctConf}% · tocá para ver por qué`}
+        confidence={Math.min(100, Math.round((diasDatos / 30) * 100))}
+        confidenceLabel={`Basada en ${diasDatos} días de ventas · tocá para ver por qué`}
         warningBadge={warningBadge}
       />
       {expandido && (
@@ -468,7 +468,9 @@ export default function Predicciones() {
                 gradient="green"
                 label="Proyección próximos 7 días"
                 value={fmt(totalSemana)}
-                sub={`Confianza ${Math.round((data.confianza ?? 0) * 100)}% · tocá para ver cómo se calcula`}
+                sub={(data.modelo?.tipo === "condiciones" && data.modelo.error_tipico_pct != null
+                  ? `Error típico en tus datos: ±${Math.round(data.modelo.error_tipico_pct)}%`
+                  : `Estimación preliminar con ${data.dias_datos ?? "pocos"} días de ventas`) + " · tocá para ver cómo se calcula"}
               />
             </div>
           )}
