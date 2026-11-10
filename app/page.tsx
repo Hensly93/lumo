@@ -3,6 +3,7 @@ import Nav from "./components/Nav";
 import EnVivoCard from "./components/EnVivoCard";
 import FugasCard from "./components/FugasCard";
 import PeriodoMesCard from "./components/PeriodoMesCard";
+import BannerPasos from "./components/BannerPasos";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
@@ -471,6 +472,8 @@ function HomeContent() {
           </div>
         ) : (
           <div style={{ padding: "0 16px" }}>
+
+            <BannerPasos token={token} />
 
             {/* Tu Negocio en Vivo */}
             <FugasCard />
