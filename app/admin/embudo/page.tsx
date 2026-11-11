@@ -16,6 +16,8 @@ type Resumen = {
   errores: { tipo: string; ruta: string; detalle: string | null; estado: string; veces: number; personas: number }[];
   scroll_landing: { pct: number; visitantes: number }[];
   cuentas: { por_estado: { estado: string; n: number; nuevas: number }[]; trial_vencido_sin_pagar: number } | null;
+  activacion?: { paso: string; n: number }[] | null;
+  cuentas_detalle?: { negocio: string | null; registro: string; mp: boolean; dias_ventas: number; vio_analisis: boolean; estado: string }[] | null;
   negocios: { negocio_id: string; nombre?: string | null; ultimo: string; dias_activos: number; pantallas: number; eventos: number }[];
 };
 
@@ -129,6 +131,33 @@ export default function AdminEmbudo() {
             ) : <div style={{ fontSize: 13, color: "#5B6B80" }}>No se pudieron leer las cuentas.</div>}
           </Seccion>
 
+          {data.activacion && data.activacion.length > 0 && (
+            <Seccion titulo="Activación de las cuentas nuevas" nota="Cuentas creadas en el período (sin las internas ni las de prueba). Sale de la base de datos, no de las visitas: conectar Mercado Pago, cargar ventas, ver el análisis y pagar.">
+              {data.activacion.map((e, i) => {
+                const m = Math.max(1, data.activacion![0].n);
+                return (
+                  <div key={e.paso} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#0A1628" }}>
+                      <span>{e.paso}</span>
+                      <span><b>{e.n}</b>{i > 0 && <span style={{ color: "#5B6B80" }}> · {pct(e.n, data.activacion![i - 1].n)} del paso anterior</span>}</span>
+                    </div>
+                    <div style={{ height: 10, background: "#E3E8F0", borderRadius: 6, marginTop: 4 }}>
+                      <div style={{ width: `${Math.max(2, (e.n / m) * 100)}%`, height: 10, background: "#00A3D9", borderRadius: 6 }} />
+                    </div>
+                  </div>
+                );
+              })}
+              <p style={{ fontSize: 12, color: "#5B6B80", margin: "8px 0 0" }}>Con menos de 30 cuentas por paso no saques conclusiones: mirá la tendencia, no el porcentaje.</p>
+            </Seccion>
+          )}
+
+          {data.cuentas_detalle && data.cuentas_detalle.length > 0 && (
+            <Seccion titulo="Cuenta por cuenta" nota="Las últimas cuentas creadas en el período y hasta dónde llegó cada una.">
+              <Tabla cab={["Negocio", "Se registró", "Mercado Pago", "Días con ventas", "Vio análisis", "Plan"]}
+                filas={data.cuentas_detalle.map((c) => [c.negocio || "-", new Date(c.registro).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }), c.mp ? "Sí" : "No", c.dias_ventas, c.vio_analisis ? "Sí" : "No", c.estado])} />
+            </Seccion>
+          )}
+
           <Seccion titulo="Hasta dónde bajan en la landing" nota="Personas que llegaron a cada punto de la página.">
             <Tabla cab={["Punto de la página", "Personas"]} filas={data.scroll_landing.map((s) => [`${s.pct}%`, s.visitantes])} />
           </Seccion>
@@ -146,7 +175,7 @@ export default function AdminEmbudo() {
             <Tabla cab={["Día", "Visitantes", "Usuarios", "Registros"]} filas={data.por_dia.map((d) => [d.dia, d.visitantes, d.usuarios, d.registros])} />
           </Seccion>
 
-          <Seccion titulo="De dónde vienen" nota="Campaña (utm) o sitio de origen. Para medir anuncios, usá enlaces con ?utm_source=instagram&utm_campaign=nombre.">
+          <Seccion titulo="De dónde vienen" nota="Origen / medio / campaña / anuncio (utm) o sitio de origen. Con los links ?utm_source=facebook&utm_medium=paid&utm_campaign=lanzamiento&utm_content=perdidas ves qué anuncio trae gente.">
             <Tabla cab={["Origen", "Visitantes", "Registros"]} filas={data.origen.map((o) => [o.origen, o.visitantes, o.registros])} />
           </Seccion>
 

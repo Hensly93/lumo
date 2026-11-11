@@ -4,6 +4,7 @@ import "./globals.css";
 import SwRegistrar from "./components/SwRegistrar";
 import AppShell from "./components/AppShell";
 import MetaPixel from "./components/MetaPixel";
+import PostHogInit from "./components/PostHogInit";
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <SwRegistrar />
         <MetaPixel />
+        <PostHogInit />
         <AppShell>{children}</AppShell>
       </body>
     </html>

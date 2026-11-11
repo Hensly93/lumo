@@ -36,7 +36,7 @@ function sesion(): string {
     try {
       sessionStorage.setItem("lb_s", s);
       const p = new URLSearchParams(window.location.search);
-      const utm = [p.get("utm_source"), p.get("utm_medium"), p.get("utm_campaign")].filter(Boolean).join("/");
+      const utm = [p.get("utm_source"), p.get("utm_medium"), p.get("utm_campaign"), p.get("utm_content")].filter(Boolean).join("/");
       let ref = "";
       try { if (document.referrer) { const h = new URL(document.referrer).hostname; if (h !== window.location.hostname) ref = h; } } catch { /* sin referrer */ }
       sessionStorage.setItem("lb_o", JSON.stringify({ utm: utm.slice(0, 120), ref: ref.slice(0, 80) }));
@@ -75,6 +75,13 @@ function enviar(final: boolean) {
   if (cola.length) enviar(final);
 }
 
+// Eventos que se mandan a PostHog (el resto queda solo en tu panel propio)
+const POSTHOG_EVENTOS: Record<string, string> = {
+  pantalla: "$pageview", cta_landing: "cta_landing", scroll: "scroll_landing",
+  registro_envio: "registro_envio", registro_ok: "registro_ok", registro_error: "registro_error",
+  login_ok: "login_ok", login_error: "login_error",
+};
+
 export function track(t: string, r?: string, d?: Ev["d"]) {
   if (apagado()) return;
   const ruta = normRuta(r ?? window.location.pathname);
@@ -88,6 +95,18 @@ export function track(t: string, r?: string, d?: Ev["d"]) {
       else if (t === "registro_ok") fbq("track", "CompleteRegistration");
     }
   } catch { /* el Pixel no debe romper nada */ }
+  // PostHog: solo nombres de eventos y la ruta. Nunca textos escritos ni montos.
+  try {
+    const nombre = POSTHOG_EVENTOS[t];
+    if (nombre) {
+      const w = window as unknown as { posthog?: { capture: (n: string, p?: Record<string, unknown>) => void }; __phq?: [string, Record<string, unknown>][] };
+      const props: Record<string, unknown> = { ruta };
+      if (t === "scroll" && d && typeof d.pct === "number") props.pct = d.pct;
+      if ((t === "registro_error" || t === "login_error") && d && typeof d.st === "number") props.estado = d.st;
+      if (w.posthog && typeof w.posthog.capture === "function") w.posthog.capture(nombre, props);
+      else { (w.__phq = w.__phq || []).push([nombre, props]); if (w.__phq.length > 50) w.__phq.shift(); }
+    }
+  } catch { /* PostHog no debe romper nada */ }
   cola.push({ t, r: ruta, d });
   if (cola.length >= 10) enviar(false);
   else if (!timer) timer = setTimeout(() => enviar(false), 4000);
