@@ -16,6 +16,16 @@ type Fila = {
   turno_activo?: { tipo: string; desde: number } | null;
   horario?: { desde: number; hasta: number };
 };
+type Zona = { id: string; nombre: string; estado: "ok" | "atencion" | "alerta" | "sin_datos"; texto: string; url: string | null };
+type ZonasResp = { zonas: Zona[]; foco: { zona: string; texto: string; url: string | null } | null };
+
+const ZONA_COLOR: Record<Zona["estado"], { punto: string; fondo: string }> = {
+  ok:        { punto: "var(--ok)",      fondo: "var(--ok-fondo)" },
+  atencion:  { punto: "#D97706",        fondo: "#FFF7E6" },
+  alerta:    { punto: "var(--critico)", fondo: "var(--critico-fondo)" },
+  sin_datos: { punto: "var(--tinta-apagada)", fondo: "var(--papel)" },
+};
+
 type Respuesta = {
   ahora: { fecha: string; hora: number; minuto: number };
   sucursales: Fila[];
@@ -51,6 +61,22 @@ function badge(f: Fila) {
 // esperaba a esta hora. Se actualiza solo cada minuto.
 export default function EnVivoCard({ sucursalId }: { sucursalId?: number | string | null }) {
   const [data, setData] = useState<Respuesta | null>(null);
+  const [zonas, setZonas] = useState<ZonasResp | null>(null);
+
+  useEffect(() => {
+    let vivo = true;
+    const cargar = () => {
+      const t = localStorage.getItem("lumo_token");
+      if (!t) return;
+      fetch(`${API}/api/zonas`, { headers: { Authorization: `Bearer ${t}` } })
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => { if (vivo && d && Array.isArray(d.zonas)) setZonas(d); })
+        .catch(() => {});
+    };
+    cargar();
+    const id = setInterval(cargar, 300_000);
+    return () => { vivo = false; clearInterval(id); };
+  }, []);
 
   useEffect(() => {
     let vivo = true;
@@ -67,8 +93,12 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
     return () => { vivo = false; clearInterval(id); };
   }, [sucursalId]);
 
-  if (!data || !data.sucursales.length) return null;
-  const { ahora, sucursales, total } = data;
+  const hayZonas = !!(zonas && zonas.zonas.length);
+  if ((!data || !data.sucursales.length) && !hayZonas) return null;
+  const ahoraLocal = new Date();
+  const ahora = data?.ahora ?? { fecha: "", hora: ahoraLocal.getHours(), minuto: ahoraLocal.getMinutes() };
+  const sucursales = data?.sucursales ?? [];
+  const total = data?.total ?? null;
   const hora = `${ahora.hora}:${String(ahora.minuto).padStart(2, "0")}`;
   const varias = sucursales.length > 1;
 
@@ -77,7 +107,7 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ width: 8, height: 8, borderRadius: 4, background: "var(--cian)", display: "inline-block", boxShadow: "0 0 6px var(--cian)" }} />
-          <span style={{ fontSize: 18, fontWeight: 600, color: "var(--tinta)", fontFamily: "var(--font-instrument), sans-serif" }}>En vivo</span>
+          <span style={{ fontSize: 18, fontWeight: 600, color: "var(--tinta)", fontFamily: "var(--font-instrument), sans-serif" }}>Tu negocio en vivo</span>
         </div>
         <span style={{ fontSize: 11, color: "var(--tinta-apagada)" }}>{hora} · se actualiza solo</span>
       </div>
@@ -132,6 +162,27 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
           </div>
         );
       })}
+
+      {zonas && zonas.zonas.length > 0 && (
+        <div style={{ marginTop: sucursales.length ? 8 : 0, paddingTop: sucursales.length ? 14 : 0, borderTop: sucursales.length ? "1px solid var(--linea)" : "none" }}>
+          {zonas.foco && (
+            <a href={zonas.foco.url || undefined} style={{ display: "block", textDecoration: "none", background: "var(--papel)", borderRadius: 8, padding: "10px 12px", marginBottom: 12, color: "var(--tinta)", fontSize: 13, lineHeight: 1.5 }}>
+              <strong>Atendé primero ({zonas.foco.zona}):</strong> {zonas.foco.texto}
+            </a>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+            {zonas.zonas.map(z => (
+              <a key={z.id} href={z.url || undefined} style={{ display: "block", textDecoration: "none", background: ZONA_COLOR[z.estado].fondo, borderRadius: 10, padding: "10px 12px", color: "var(--tinta)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 4, background: ZONA_COLOR[z.estado].punto, display: "inline-block" }} />
+                  <span style={{ fontSize: 12, fontWeight: 700 }}>{z.nombre}</span>
+                </div>
+                <div style={{ fontSize: 12, lineHeight: 1.5, color: z.estado === "sin_datos" ? "var(--tinta-apagada)" : "var(--tinta)" }}>{z.texto}</div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
