@@ -17,7 +17,7 @@ if (typeof window !== "undefined" && !(window as any).lumo_fetch_401) {
     const resp = await fetchOriginal(input, init);
     try {
       const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-      if (resp.status === 401 && url.includes("lumo-backend") && !url.includes("/api/auth/") && tieneSesion(input, init)) {
+      if (resp.status === 401 && url.includes("lumo-backend") && !url.includes("/api/auth/") && !url.includes("/api/analitica/") && tieneSesion(input, init)) {
         localStorage.removeItem("lumo_token");
         if (!location.pathname.startsWith("/login")) location.replace("/login?sesion=vencida");
         return new Promise<Response>(() => {}); // la pantalla espera mientras se va al login
