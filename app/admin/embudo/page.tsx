@@ -18,6 +18,7 @@ type Resumen = {
   cuentas: { por_estado: { estado: string; n: number; nuevas: number }[]; trial_vencido_sin_pagar: number } | null;
   activacion?: { paso: string; n: number }[] | null;
   cuentas_detalle?: { negocio: string | null; registro: string; mp: boolean; dias_ventas: number; vio_analisis: boolean; estado: string }[] | null;
+  cuentas_lista?: { usuario_id: number; nombre: string | null; email: string; registro: string | null; prueba: boolean; marcada: boolean; estado: string; mp: boolean; dias_ventas: number }[] | null;
   negocios: { negocio_id: string; nombre?: string | null; ultimo: string; dias_activos: number; pantallas: number; eventos: number }[];
 };
 
@@ -89,6 +90,16 @@ export default function AdminEmbudo() {
     } catch { setError("No hay conexión con el servidor"); setCargando(false); }
   };
 
+  const marcar = async (id: number, valor: boolean) => {
+    let k = ""; try { k = sessionStorage.getItem("lb_adm") || ""; } catch { /* */ }
+    if (!k) return;
+    try {
+      const r = await fetch(`${API}/api/analitica/marcar-prueba`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${k}` }, body: JSON.stringify({ usuario_id: id, es_prueba: valor }) });
+      if (!r.ok) { const j = await r.json().catch(() => ({})); setError(j.error || "No se pudo marcar la cuenta"); return; }
+      await cargar(k, dias);
+    } catch { setError("No hay conexión con el servidor"); }
+  };
+
   const salir = () => {
     try { sessionStorage.removeItem("lb_adm"); } catch { /* */ }
     setData(null); setClave(""); setEmail(""); setPass(""); setError("");
@@ -102,7 +113,7 @@ export default function AdminEmbudo() {
   return (
     <main style={{ maxWidth: 980, margin: "0 auto", padding: "20px 14px 60px", background: "#EEF1F5", minHeight: "100vh", fontFamily: "var(--font-instrument),sans-serif" }}>
       <h1 style={{ fontSize: 22, margin: "0 0 4px", color: "#0A1628" }}>Embudo y uso de LumoBi</h1>
-      <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5B6B80" }}>Panel privado. Los datos empiezan a juntarse desde que se publicó este panel.</p>
+      <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5B6B80" }}>Panel privado. Los datos empiezan a juntarse desde que se publicó este panel. El embudo no cuenta a los navegadores que entraron con cuentas de prueba o internas.</p>
 
       <div style={{ ...card, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
         {!data && !modoClave && (
@@ -164,7 +175,7 @@ export default function AdminEmbudo() {
             </div>
           </Seccion>
 
-          <Seccion titulo="Cuentas y planes" nota="Se lee de la base de usuarios, no de las visitas. Hoy el plan se activa a mano, así que las pagas aparecen cuando vos las activás.">
+          <Seccion titulo="Cuentas y planes" nota="Se lee de la base de usuarios. Las cuentas de prueba aparecen aparte, en la fila prueba, y no cuentan como clientes. Hoy el plan se activa a mano, así que las pagas aparecen cuando vos las activás.">
             {data.cuentas ? (
               <>
                 <Tabla cab={["Estado de la cuenta", "Total", "Nuevas en el período"]} filas={data.cuentas.por_estado.map((c) => [c.estado, c.n, c.nuevas])} />
@@ -172,6 +183,35 @@ export default function AdminEmbudo() {
               </>
             ) : <div style={{ fontSize: 13, color: "#5B6B80" }}>No se pudieron leer las cuentas.</div>}
           </Seccion>
+
+          {data.cuentas_lista && (
+            <Seccion titulo="Todas las cuentas" nota="Marcá como prueba las tuyas o las de gente que conocés. Quedan fuera de los números de clientes y del embudo. Las internas y las de mail de prueba ya cuentan como prueba solas.">
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead><tr>{["Negocio", "Email", "Creada", "Plan", "Mercado Pago", "Días con ventas", "Tipo", ""].map((c, i) => <th key={i} style={th}>{c}</th>)}</tr></thead>
+                  <tbody>{data.cuentas_lista.map((c) => (
+                    <tr key={c.usuario_id}>
+                      <td style={td}>{c.nombre || "-"}</td>
+                      <td style={td}>{c.email}</td>
+                      <td style={td}>{c.registro ? new Date(c.registro).toLocaleDateString("es-AR") : "-"}</td>
+                      <td style={td}>{c.estado}</td>
+                      <td style={td}>{c.mp ? "Sí" : "No"}</td>
+                      <td style={td}>{c.dias_ventas}</td>
+                      <td style={td}><b>{c.prueba ? "Prueba" : "Cliente"}</b></td>
+                      <td style={td}>
+                        {(c.marcada || !c.prueba) && (
+                          <button onClick={() => marcar(c.usuario_id, !c.marcada)}
+                            style={{ padding: "5px 10px", background: "#fff", color: "#0A1628", border: "1px solid #D8DEE8", borderRadius: 8, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>
+                            {c.marcada ? "Quitar prueba" : "Marcar prueba"}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+            </Seccion>
+          )}
 
           {data.activacion && data.activacion.length > 0 && (
             <Seccion titulo="Activación de las cuentas nuevas" nota="Cuentas creadas en el período (sin las internas ni las de prueba). Sale de la base de datos, no de las visitas: conectar Mercado Pago, cargar ventas, ver el análisis y pagar.">
