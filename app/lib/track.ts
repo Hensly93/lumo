@@ -80,6 +80,14 @@ export function track(t: string, r?: string, d?: Ev["d"]) {
   const ruta = normRuta(r ?? window.location.pathname);
   if (ruta.startsWith("/admin")) return;
   sesion();
+  // Pixel de Meta (solo si esta cargado): interesado = toco el boton de la landing, registro = cuenta creada
+  try {
+    const fbq = (window as unknown as { fbq?: (...a: unknown[]) => void }).fbq;
+    if (fbq) {
+      if (t === "cta_landing") fbq("track", "Lead");
+      else if (t === "registro_ok") fbq("track", "CompleteRegistration");
+    }
+  } catch { /* el Pixel no debe romper nada */ }
   cola.push({ t, r: ruta, d });
   if (cola.length >= 10) enviar(false);
   else if (!timer) timer = setTimeout(() => enviar(false), 4000);

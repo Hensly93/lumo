@@ -24,7 +24,9 @@ export const metadata: Metadata = {
     siteName: "LumoBi",
     locale: "es_AR",
     type: "website",
+    images: [{ url: "/og-lumobi.png", width: 1200, height: 630, alt: "LumoBi: tu negocio pierde plata todos los meses, LumoBi te dice dónde" }],
   },
+  twitter: { card: "summary_large_image", images: ["/og-lumobi.png"] },
 };
 
 // Si tenés un WhatsApp comercial, ponelo acá (solo números, con código de país: 5491123456789) y aparece el botón.
