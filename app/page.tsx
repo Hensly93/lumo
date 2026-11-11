@@ -1,6 +1,7 @@
 "use client";
 import Nav from "./components/Nav";
 import EnVivoCard from "./components/EnVivoCard";
+import RadiografiaCard from "./components/RadiografiaCard";
 import FugasCard from "./components/FugasCard";
 import PeriodoMesCard from "./components/PeriodoMesCard";
 import BannerPasos from "./components/BannerPasos";
@@ -478,6 +479,7 @@ function HomeContent() {
             {/* Tu Negocio en Vivo */}
             <FugasCard />
             <EnVivoCard sucursalId={sucursalId} />
+            <RadiografiaCard />
             <PeriodoMesCard sucursalId={sucursalId} />
 
             {/* Hero Card */}
