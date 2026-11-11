@@ -49,6 +49,9 @@ function Seccion({ titulo, nota, children }: { titulo: string; nota?: string; ch
 
 export default function AdminEmbudo() {
   const [clave, setClave] = useState("");
+  const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+  const [modoClave, setModoClave] = useState(false);
   const [dias, setDias] = useState(7);
   const [data, setData] = useState<Resumen | null>(null);
   const [error, setError] = useState("");
@@ -59,19 +62,37 @@ export default function AdminEmbudo() {
     try {
       const r = await fetch(`${API}/api/analitica/resumen?dias=${d}`, { headers: { Authorization: `Bearer ${k}` } });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) { setError(j.error || "No se pudo cargar"); setData(null); if (r.status === 401) { try { sessionStorage.removeItem("lb_adm"); } catch { /* */ } } }
+      if (!r.ok) { setError(r.status === 401 && !modoClave ? "Esa cuenta no tiene permiso para ver este panel. Falta cargar tu email en ADMIN_EMAILS (Render)." : (j.error || "No se pudo cargar")); setData(null); if (r.status === 401) { try { sessionStorage.removeItem("lb_adm"); } catch { /* */ } } }
       else {
         setData(j as Resumen);
         try { sessionStorage.setItem("lb_adm", k); localStorage.setItem("lb_ignorar", "1"); } catch { /* */ }
       }
     } catch { setError("No hay conexión con el servidor"); }
     setCargando(false);
-  }, []);
+  }, [modoClave]);
 
   useEffect(() => {
     try { const k = sessionStorage.getItem("lb_adm"); if (k) { setClave(k); cargar(k, dias); } } catch { /* */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const entrar = async () => {
+    if (modoClave) { if (clave) cargar(clave, dias); return; }
+    if (!email.trim() || !pass) { setError("Poné tu email y tu contraseña"); return; }
+    setCargando(true); setError("");
+    try {
+      const r = await fetch(`${API}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim(), password: pass }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.token) { setError(j.error || "Email o contraseña incorrectos"); setCargando(false); return; }
+      setPass("");
+      await cargar(j.token, dias);
+    } catch { setError("No hay conexión con el servidor"); setCargando(false); }
+  };
+
+  const salir = () => {
+    try { sessionStorage.removeItem("lb_adm"); } catch { /* */ }
+    setData(null); setClave(""); setEmail(""); setPass(""); setError("");
+  };
 
   const max = data ? Math.max(1, ...data.embudo.map((e) => e.n)) : 1;
   const usadas = new Set((data?.pantallas ?? []).map((p) => p.ruta));
@@ -84,16 +105,37 @@ export default function AdminEmbudo() {
       <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5B6B80" }}>Panel privado. Los datos empiezan a juntarse desde que se publicó este panel.</p>
 
       <div style={{ ...card, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <input type="password" value={clave} onChange={(e) => setClave(e.target.value)} placeholder="Clave del panel"
-          style={{ flex: "1 1 220px", padding: "11px 12px", border: "1px solid #D8DEE8", borderRadius: 10, fontSize: 14 }} />
-        <select value={dias} onChange={(e) => { const d = Number(e.target.value); setDias(d); if (clave) cargar(clave, d); }}
+        {!data && !modoClave && (
+          <>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Tu email de LumoBi" autoComplete="username"
+              style={{ flex: "1 1 200px", padding: "11px 12px", border: "1px solid #D8DEE8", borderRadius: 10, fontSize: 14 }} />
+            <input type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Tu contraseña" autoComplete="current-password"
+              onKeyDown={(e) => { if (e.key === "Enter") entrar(); }}
+              style={{ flex: "1 1 200px", padding: "11px 12px", border: "1px solid #D8DEE8", borderRadius: 10, fontSize: 14 }} />
+          </>
+        )}
+        {!data && modoClave && (
+          <input type="password" value={clave} onChange={(e) => setClave(e.target.value)} placeholder="Clave técnica"
+            onKeyDown={(e) => { if (e.key === "Enter") entrar(); }}
+            style={{ flex: "1 1 220px", padding: "11px 12px", border: "1px solid #D8DEE8", borderRadius: 10, fontSize: 14 }} />
+        )}
+        <select value={dias} onChange={(e) => { const d = Number(e.target.value); setDias(d); if (data) { try { const k = sessionStorage.getItem("lb_adm"); if (k) cargar(k, d); } catch { /* */ } } }}
           style={{ padding: "11px 12px", border: "1px solid #D8DEE8", borderRadius: 10, fontSize: 14, background: "#fff" }}>
           <option value={1}>Últimas 24 horas</option><option value={7}>7 días</option><option value={30}>30 días</option><option value={90}>90 días</option>
         </select>
-        <button onClick={() => clave && cargar(clave, dias)} disabled={cargando || !clave}
+        <button onClick={() => { if (data) { try { const k = sessionStorage.getItem("lb_adm"); if (k) cargar(k, dias); } catch { /* */ } } else entrar(); }} disabled={cargando}
           style={{ padding: "11px 18px", background: "#0A5BD3", color: "#fff", border: 0, borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
           {cargando ? "Cargando" : data ? "Actualizar" : "Entrar"}
         </button>
+        {data && (
+          <button onClick={salir} style={{ padding: "11px 14px", background: "#fff", color: "#0A1628", border: "1px solid #D8DEE8", borderRadius: 10, fontSize: 14, cursor: "pointer" }}>Salir</button>
+        )}
+        {!data && (
+          <button onClick={() => { setModoClave(!modoClave); setError(""); }}
+            style={{ background: "none", border: 0, color: "#5B6B80", fontSize: 12, textDecoration: "underline", cursor: "pointer" }}>
+            {modoClave ? "Entrar con mi cuenta" : "Usar clave técnica"}
+          </button>
+        )}
       </div>
       {error && <div style={{ ...card, color: "#B42318", borderColor: "#F3C4BF" }}>{error}</div>}
 
