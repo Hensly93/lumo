@@ -8,7 +8,7 @@ type Fila = {
   nombre: string;
   ventas: number;
   tickets: number;
-  estado: "por_encima" | "en_linea" | "por_debajo" | "temprano" | "antes_de_abrir" | "cerrado" | "sin_prediccion";
+  estado: "por_encima" | "en_linea" | "por_debajo" | "temprano" | "antes_de_abrir" | "cerrado" | "fuera_de_horario" | "sin_prediccion";
   esperado_hasta_ahora?: number;
   esperado_dia?: number;
   dif_pct?: number | null;
@@ -43,6 +43,7 @@ const ESTADO: Record<Fila["estado"], { texto: string; color: string; fondo: stri
   temprano:       { texto: "Recién empieza", color: "var(--tinta-apagada)", fondo: "var(--papel)" },
   antes_de_abrir: { texto: "Todavía no abre", color: "var(--tinta-apagada)", fondo: "var(--papel)" },
   cerrado:        { texto: "Cerrado",       color: "var(--tinta-apagada)", fondo: "var(--papel)" },
+  fuera_de_horario: { texto: "Abierto fuera de horario", color: "var(--azul)", fondo: "var(--azul-claro)" },
   sin_prediccion: { texto: "Aprendiendo",   color: "var(--tinta-apagada)", fondo: "var(--papel)" },
 };
 
@@ -139,20 +140,20 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
               <strong>{fmt(f.ventas)}</strong>
               {f.esperado_hasta_ahora != null && f.estado !== "antes_de_abrir" && (
                 <span style={{ color: "var(--tinta-apagada)" }}>
-                  {f.estado === "cerrado" ? ` de ${fmt(f.esperado_dia ?? 0)} esperados en el día` : ` · lo normal a esta hora: ${fmt(f.esperado_hasta_ahora)}`}
+                  {(f.estado === "cerrado" || f.estado === "fuera_de_horario") ? ` de ${fmt(f.esperado_dia ?? 0)} esperados en el día` : ` · lo normal a esta hora: ${fmt(f.esperado_hasta_ahora)}`}
                 </span>
               )}
             </div>
             {avance != null && (
               <div style={{ position: "relative", height: 6, background: "var(--papel)", borderRadius: 3, marginTop: 8 }}>
                 <div style={{ width: `${avance}%`, height: 6, background: color, borderRadius: 3 }} />
-                {marca != null && f.estado !== "cerrado" && (
+                {marca != null && f.estado !== "cerrado" && f.estado !== "fuera_de_horario" && (
                   <div title="Lo normal a esta hora" style={{ position: "absolute", left: `${marca}%`, top: -3, width: 2, height: 12, background: "var(--tinta)", opacity: 0.35 }} />
                 )}
               </div>
             )}
             <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginTop: 6, lineHeight: 1.6 }}>
-              {f.ultima_hora && f.estado !== "cerrado" && f.estado !== "antes_de_abrir" && (
+              {f.ultima_hora && f.estado !== "cerrado" && f.estado !== "fuera_de_horario" && f.estado !== "antes_de_abrir" && (
                 <div>Última hora ({f.ultima_hora.hora} a {f.ultima_hora.hora + 1} h): {fmt(f.ultima_hora.real)} · lo normal {fmt(f.ultima_hora.esperado)}</div>
               )}
               {f.turno_activo && <div>Turno {f.turno_activo.tipo} abierto desde las {f.turno_activo.desde} h</div>}
