@@ -425,6 +425,7 @@ export default function EmpleadoPage() {
   const [scanBuffer, setScanBuffer] = useState("");
   const [sugerencias, setSugerencias] = useState<any[]>([]);
   const [enfocado, setEnfocado] = useState(false);
+  const [ventaOk, setVentaOk] = useState("");
   const refBusq = useRef<any>(null);
 
   async function refrescarCarrito() {
@@ -1069,6 +1070,9 @@ export default function EmpleadoPage() {
             {error && (
               <div style={{ marginTop: 8, fontSize: 13, color: '#D92D20', fontWeight: 600 }}>{error}</div>
             )}
+            {ventaOk && (
+              <div style={{ marginTop: 8, padding: '12px 14px', borderRadius: 12, background: 'rgba(52,199,89,0.12)', border: `2px solid ${C.green}`, fontSize: 15, color: C.text, fontWeight: 700 }}>✓ {ventaOk}</div>
+            )}
             {sugerencias.length > 0 && (
               <div style={{ marginTop: 8, border: `2px solid ${C.cardBorder}`, borderRadius: 14, overflow: 'hidden', background: C.bg }}>
                 {sugerencias.map((p: any) => (
@@ -1173,6 +1177,7 @@ export default function EmpleadoPage() {
                   <button
                     key={metodo}
                     onClick={async () => {
+                      const totalVenta = carrito ? carrito.total : 0;
                       try {
                         const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
                           method: 'POST',
@@ -1182,6 +1187,8 @@ export default function EmpleadoPage() {
                         const d = await r.json();
                         if (d.error) { setError(d.error); return; }
                         setError('');
+                        setVentaOk(`Venta registrada: ${fmt(totalVenta)} con ${etiqueta.replace(/^[^A-Za-zÁ-úñÑ]+/, '')}`);
+                        setTimeout(() => setVentaOk(''), 8000);
                         setCarrito({ items: [], total: 0 });
                         document.getElementById('scan-input')?.focus();
                       } catch { setError('No se pudo registrar la venta. Probá de nuevo.'); }
