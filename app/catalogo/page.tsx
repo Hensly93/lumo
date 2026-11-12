@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import Nav from "../components/Nav";
 import { PageHeader } from "../components/ui";
 import { QRCodeSVG } from "qrcode.react";
+import PreciosMasivo from "./PreciosMasivo";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
-type Vista = "catalogo" | "metodos" | "cargando" | "preview" | "manual" | "pistola";
+type Vista = "catalogo" | "metodos" | "cargando" | "preview" | "manual" | "pistola" | "precios";
 type Orden = "nombre" | "margen" | "sin_costo";
 
 type Producto = {
@@ -879,6 +880,15 @@ export default function Catalogo() {
   );
 
   // ─── Vista: métodos de carga ────────────────────────────────────────────────
+  if (vista === "precios") return (
+    <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
+      {toast && <Toast msg={toast.msg} ok={toast.ok} />}
+      <Encabezado titulo="Actualizar precios" sub="Cambiá muchos precios juntos, viendo antes cómo quedan" atras={() => setVista("catalogo")} />
+      {token && <PreciosMasivo token={token} avisar={showToast} onListo={async () => { await cargarProductos(token); setVista("catalogo"); }} />}
+      <Nav />
+    </main>
+  );
+
   if (vista === "pistola") return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
@@ -1318,6 +1328,12 @@ export default function Catalogo() {
           <div style={{ padding: "12px 16px 0" }}>
             <button onClick={() => setVista("manual")} style={{ ...btnSecundario, width: "100%", padding: "12px", borderStyle: "dashed", color: "var(--muted)" }}>
               Agregar producto manualmente
+            </button>
+          </div>
+
+          <div style={{ padding: "8px 16px 0" }}>
+            <button onClick={() => setVista("precios")} style={{ ...btnSecundario, width: "100%", padding: "12px", color: "var(--text)" }}>
+              Actualizar precios en bloque
             </button>
           </div>
         </div>
