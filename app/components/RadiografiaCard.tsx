@@ -21,7 +21,7 @@ type Accion = { id: string; tipo: "ganar" | "perder_menos" | "probar"; titulo: s
 
 type Promo = {
   sin_promo: boolean; motivo?: string; nombre?: string; cuando?: string; precio_normal?: number; precio_promo?: number; ahorro?: number;
-  descuento_pct?: number; ganancia_por_combo?: number | null; meta_combos_por_dia?: number | null; por_que?: string[]; aviso?: string | null;
+  descuento_pct?: number; resumen?: string; ganancia_por_combo?: number | null; meta_combos_por_dia?: number | null; por_que?: string[]; aviso?: string | null;
   textos?: { whatsapp: string; instagram: string; cartel: string };
 };
 
@@ -35,7 +35,7 @@ function PromoDetalle({ p }: { p: Promo }) {
     <div style={{ marginTop: 6 }}>
       <div style={{ fontSize: 14, fontWeight: 700, color: "var(--tinta)" }}>{p.nombre}</div>
       <div style={{ fontSize: 13, color: "var(--tinta)", marginTop: 2 }}>
-        <strong>{f(p.precio_promo)}</strong> en vez de {f(p.precio_normal)} ({p.descuento_pct}% menos). Válida {p.cuando}.
+        {p.resumen ? <strong>{p.resumen}</strong> : <><strong>{f(p.precio_promo)}</strong> en vez de {f(p.precio_normal)} ({p.descuento_pct}% menos). Válida {p.cuando}.</>}
       </div>
       {p.ganancia_por_combo != null && <div style={{ fontSize: 12, color: "var(--ok)", fontWeight: 600, marginTop: 2 }}>Cada combo te deja {f(p.ganancia_por_combo)} de ganancia.</div>}
       <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: 12, color: "var(--tinta-apagada)", lineHeight: 1.6 }}>
@@ -153,6 +153,9 @@ export default function RadiografiaCard() {
         </div>
       )}
 
+      {data.suficiente && data.hallazgos.filter(h => !(h.hid && ["no_sirve", "ya_lo_sabia", "resuelto"].includes(resp[h.hid]) && !probando[h.hid])).length === 0 && (
+        <div style={{ fontSize: 13, color: "var(--tinta)", lineHeight: 1.5 }}>Por ahora no encontré nada nuevo para mostrarte. Si estás probando una acción, LumoBi la sigue midiendo.</div>
+      )}
       {data.hallazgos.filter(h => !(h.hid && ["no_sirve", "ya_lo_sabia", "resuelto"].includes(resp[h.hid]) && !probando[h.hid])).map((h, i) => h.hid && probando[h.hid] ? (
         <div key={h.id} style={{ padding: "12px 0", borderTop: i || !data.suficiente ? "1px solid var(--linea)" : "none" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ok)" }}>Anotado: vas a probar «{probando[h.hid]}».</div>

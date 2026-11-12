@@ -2,7 +2,7 @@
 // Plata que LumoBi te ayudó a recuperar: mide cuánto bajó cada problema DESPUÉS de que lo marcaste como resuelto.
 import { useEffect, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-psi.vercel.app";
+const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
 type Medido = { id: number; titulo: string; accion_titulo?: string | null; antes: number; ahora: number; recuperado: number };
 type Seguimiento = { id: number; titulo: string; accion_titulo?: string | null; antes: number; dias_faltan: number };
