@@ -348,7 +348,69 @@ function AltaModal({ codigo, turnoId, onClose, onAgregado }: { codigo: string; t
   const refNombre = useRef<HTMLInputElement>(null);
   const refPrecio = useRef<HTMLInputElement>(null);
 
+  const [marca, setMarca] = useState("");
+  const [parecidos, setParecidos] = useState<{ id: number; nombre: string; marca: string | null }[]>([]);
+  const [fuente, setFuente] = useState("");
+
   useEffect(() => { refNombre.current?.focus(); }, []);
+
+  // Código que el negocio no conoce: si hay datos en una base abierta, nombre y marca se completan solos
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      try {
+        const r = await fetchT(`${API}/api/scanner/producto?turno_id=${turnoId}&codigo=${encodeURIComponent(codigo)}`);
+        const d = await r.json();
+        if (!vivo || !d.sugerencia) return;
+        setNombre(n => n || d.sugerencia.nombre || "");
+        setMarca(m => m || d.sugerencia.marca || "");
+        setFuente("Completé nombre y marca desde una base abierta. Revisalo antes de guardar.");
+      } catch { /* sin red: se carga a mano */ }
+    })();
+    return () => { vivo = false; };
+  }, [codigo, turnoId]);
+
+  // Mientras escribe el nombre: ¿ya existe uno parecido? ¿qué marca se reconoce?
+  useEffect(() => {
+    const n = nombre.trim();
+    if (n.length < 3) { setParecidos([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetchT(`${API}/api/identidad/empleado/parecidos?nombre=${encodeURIComponent(n)}`);
+        const d = await r.json();
+        if (Array.isArray(d.parecidos)) setParecidos(d.parecidos);
+        if (d.marca_sugerida) setMarca(m => m || d.marca_sugerida);
+      } catch { /* sin sugerencias */ }
+    }, 450);
+    return () => clearTimeout(t);
+  }, [nombre]);
+
+  // "Es este": el código nuevo queda asociado al producto que ya existía y se suma a la venta
+  async function esElMismo(p: { id: number }) {
+    if (guardando) return;
+    setGuardando(true);
+    setMsg("");
+    try {
+      const r = await fetchT(`${API}/api/identidad/empleado/vincular-codigo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo, producto_id: p.id }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "No se pudo vincular");
+      await fetchT(`${API}/api/scanner/carrito`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ turno_id: turnoId, producto_id: p.id, cantidad: 1, agregado_por: 'pistola_compu' }),
+      });
+      await onAgregado();
+      onClose();
+    } catch (e: unknown) {
+      setMsg(e instanceof Error ? e.message : "Error");
+    } finally {
+      setGuardando(false);
+    }
+  }
 
   async function guardar() {
     if (guardando) return;
@@ -361,7 +423,7 @@ function AltaModal({ codigo, turnoId, onClose, onAgregado }: { codigo: string; t
       const r = await fetchT(`${API}/api/scanner/producto`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ codigo_barras: codigo, nombre: nombre.trim(), precio_venta: p }),
+        body: JSON.stringify({ codigo_barras: codigo, nombre: nombre.trim(), precio_venta: p, marca: marca.trim() || undefined }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "No se pudo guardar");
@@ -390,6 +452,20 @@ function AltaModal({ codigo, turnoId, onClose, onAgregado }: { codigo: string; t
         <div style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>El código {codigo} no está en el catálogo. Cargalo y se suma a la venta.</div>
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>Nombre</div>
         <input ref={refNombre} style={campo} value={nombre} onChange={e => setNombre(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); refPrecio.current?.focus(); } }} />
+        {fuente && <div style={{ marginTop: 6, fontSize: 12, color: C.muted }}>{fuente}</div>}
+        {parecidos.length > 0 && (
+          <div style={{ marginTop: 10, padding: 12, borderRadius: 14, background: '#FFF8E6', border: '1px solid #F5D78A' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Es alguno de estos? Ya está cargado</div>
+            {parecidos.map(p => (
+              <button key={p.id} onClick={() => esElMismo(p)} disabled={guardando} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 12px', marginBottom: 6, borderRadius: 10, border: `1px solid ${C.cardBorder}`, background: '#FFFFFF', color: C.text, fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-instrument), sans-serif' }}>
+                <b>{p.nombre}</b>{p.marca ? ` · ${p.marca}` : ''} <span style={{ color: C.primary, fontWeight: 700 }}>— Es este</span>
+              </button>
+            ))}
+            <div style={{ fontSize: 12, color: C.muted }}>Si es otro producto, seguí cargando abajo.</div>
+          </div>
+        )}
+        <div style={{ fontSize: 12, color: C.muted, margin: '12px 0 4px' }}>Marca (opcional)</div>
+        <input style={campo} value={marca} onChange={e => setMarca(e.target.value)} placeholder="Ej: Oreo" />
         <div style={{ fontSize: 12, color: C.muted, margin: '12px 0 4px' }}>Precio de venta ($)</div>
         <input ref={refPrecio} style={campo} type="number" inputMode="decimal" value={precio} onChange={e => setPrecio(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardar(); } }} />
         {msg && <div style={{ marginTop: 12, fontSize: 14, fontWeight: 600, color: C.red }}>{msg}</div>}
