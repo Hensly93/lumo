@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-psi.vercel.app";
 
-type Medido = { id: number; titulo: string; antes: number; ahora: number; recuperado: number };
-type Seguimiento = { id: number; titulo: string; antes: number; dias_faltan: number };
+type Medido = { id: number; titulo: string; accion_titulo?: string | null; antes: number; ahora: number; recuperado: number };
+type Seguimiento = { id: number; titulo: string; accion_titulo?: string | null; antes: number; dias_faltan: number };
 type Resp = { total_mensual: number; medidos: Medido[]; en_seguimiento: Seguimiento[] };
 
 const fmt = (n: number) => "$" + Math.round(n).toLocaleString("es-AR");
@@ -39,12 +39,14 @@ export default function RecuperadoCard() {
       {d.medidos.map(m => (
         <div key={m.id} style={{ padding: "10px 0", borderTop: "1px solid var(--linea)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--tinta)", lineHeight: 1.4 }}>{m.titulo}</div>
+          {m.accion_titulo && <div style={{ fontSize: 12, color: "var(--tinta)", marginTop: 2 }}>Probaste: {m.accion_titulo}</div>}
           <div style={{ fontSize: 12, color: "var(--tinta-apagada)", marginTop: 2 }}>Pasó de {fmt(m.antes)} a {fmt(m.ahora)} por mes desde que lo marcaste como resuelto.</div>
         </div>
       ))}
       {d.en_seguimiento.map(s => (
         <div key={s.id} style={{ padding: "10px 0", borderTop: "1px solid var(--linea)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--tinta)", lineHeight: 1.4 }}>{s.titulo}</div>
+          {s.accion_titulo && <div style={{ fontSize: 12, color: "var(--tinta)", marginTop: 2 }}>Probaste: {s.accion_titulo}</div>}
           <div style={{ fontSize: 12, color: "var(--tinta-apagada)", marginTop: 2 }}>
             Lo estamos midiendo. {s.dias_faltan > 0 ? `En ${s.dias_faltan} ${s.dias_faltan === 1 ? "día" : "días"} vemos si mejoró.` : "En la próxima revisión vemos si mejoró."}
           </div>
