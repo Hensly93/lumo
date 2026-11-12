@@ -60,8 +60,9 @@ function Variacion({ v, invertir = false, sufijo = "" }: { v: number | null | un
   return <span style={{ color, fontWeight: 700 }}>{v > 0 ? "▲ " : v < 0 ? "▼ " : ""}{texto}{sufijo}</span>;
 }
 
-function LineaComparacion({ c, campo, campoReal, invertir }: { c: Comparacion | null; campo: keyof Variacion; campoReal?: keyof Variacion; invertir?: boolean }) {
+function LineaComparacion({ c, campo, campoReal, invertir, pocas }: { c: Comparacion | null; campo: keyof Variacion; campoReal?: keyof Variacion; invertir?: boolean; pocas?: boolean }) {
   if (!c) return null;
+  if (pocas && c.hay_datos) return <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>vs {c.etiqueta}: todavía son pocas ventas para comparar</div>;
   if (!c.hay_datos) return <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>vs {c.etiqueta}: sin datos para comparar</div>;
   return (
     <div style={{ fontSize: 12, color: "var(--text)", marginTop: 4, lineHeight: 1.5 }}>
@@ -145,6 +146,8 @@ export default function PeriodosPage() {
   }, [periodo, sucursalId, router]);
 
   const a = data?.actual;
+  // Con muy pocas ventas en el período, comparar contra el anterior asusta sin sentido (ej: -99%)
+  const pocas = !!a && periodo !== "hoy" && a.tickets < 20;
   const items = data?.desglose?.[desglose] ?? [];
 
   return (
@@ -171,8 +174,8 @@ export default function PeriodosPage() {
           <div style={tarjeta}>
             <div style={titulo}>Facturación · {a.etiqueta} <span style={{ textTransform: "none", letterSpacing: 0 }}>({fmtFecha(a.desde)} al {fmtFecha(a.hasta)})</span></div>
             <div style={grande}>{fmt(a.facturacion)}</div>
-            <LineaComparacion c={data.vs_anterior} campo="facturacion" campoReal="facturacion_real" />
-            <LineaComparacion c={data.vs_anio_anterior} campo="facturacion" campoReal="facturacion_real" />
+            <LineaComparacion pocas={pocas} c={data.vs_anterior} campo="facturacion" campoReal="facturacion_real" />
+            <LineaComparacion pocas={pocas} c={data.vs_anio_anterior} campo="facturacion" campoReal="facturacion_real" />
           </div>
 
           {/* Tickets y ticket promedio */}
@@ -180,14 +183,14 @@ export default function PeriodosPage() {
             <div style={{ ...tarjeta, flex: 1, marginRight: 4 }}>
               <div style={titulo}>Tickets</div>
               <div style={medio}>{fmtN(a.tickets)}</div>
-              <LineaComparacion c={data.vs_anterior} campo="tickets" />
-              <LineaComparacion c={data.vs_anio_anterior} campo="tickets" />
+              <LineaComparacion pocas={pocas} c={data.vs_anterior} campo="tickets" />
+              <LineaComparacion pocas={pocas} c={data.vs_anio_anterior} campo="tickets" />
             </div>
             <div style={{ ...tarjeta, flex: 1, marginLeft: 4 }}>
               <div style={titulo}>Ticket promedio</div>
               <div style={medio}>{fmt(a.ticket_promedio)}</div>
-              <LineaComparacion c={data.vs_anterior} campo="ticket_promedio" campoReal="ticket_promedio_real" />
-              <LineaComparacion c={data.vs_anio_anterior} campo="ticket_promedio" campoReal="ticket_promedio_real" />
+              <LineaComparacion pocas={pocas} c={data.vs_anterior} campo="ticket_promedio" campoReal="ticket_promedio_real" />
+              <LineaComparacion pocas={pocas} c={data.vs_anio_anterior} campo="ticket_promedio" campoReal="ticket_promedio_real" />
             </div>
           </div>
 
@@ -201,8 +204,8 @@ export default function PeriodosPage() {
                 {a.sobrante > 0 && ` · sobrante ${fmt(a.sobrante)}`}
               </div>
             </div>
-            <LineaComparacion c={data.vs_anterior} campo="faltante" invertir />
-            <LineaComparacion c={data.vs_anio_anterior} campo="faltante" invertir />
+            <LineaComparacion pocas={pocas} c={data.vs_anterior} campo="faltante" invertir />
+            <LineaComparacion pocas={pocas} c={data.vs_anio_anterior} campo="faltante" invertir />
           </div>
 
           {/* Gráfico */}

@@ -12,6 +12,7 @@ type Hallazgo = {
   monto: number;
   url: string;
   positivo?: boolean;
+  monto_texto?: string;
 };
 type Resp = {
   suficiente: boolean;
@@ -27,6 +28,7 @@ function fmt(n: number) {
 
 function etiqueta(h: Hallazgo) {
   if (h.positivo) return "Buena noticia";
+  if (h.monto_texto) return h.monto_texto;
   if (h.tipo === "estimado") return `Hasta ~${fmt(h.monto)} más por mes (estimación)`;
   if (h.tipo === "medido") return `${fmt(h.monto)} medidos`;
   return `${fmt(h.monto)} en juego`;
