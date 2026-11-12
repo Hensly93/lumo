@@ -1105,39 +1105,33 @@ export default function EmpleadoPage() {
                 <span style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>Total</span>
                 <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 22, color: C.text }}>{fmt(carrito.total)}</span>
               </div>
-              <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-                <button
-                  onClick={async () => {
-                    try {
-                      const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ turno_id: turno.id, metodo_pago: 'efectivo' }),
-                      });
-                      const d = await r.json();
-                      if (!d.error) setCarrito({ items: [], total: 0 });
-                    } catch { /* silencioso */ }
-                  }}
-                  style={{ flex: 1, padding: '14px', borderRadius: 14, border: 'none', background: C.green, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer' }}
-                >
-                  💵 Efectivo
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ turno_id: turno.id, metodo_pago: 'mp' }),
-                      });
-                      const d = await r.json();
-                      if (!d.error) setCarrito({ items: [], total: 0 });
-                    } catch { /* silencioso */ }
-                  }}
-                  style={{ flex: 1, padding: '14px', borderRadius: 14, border: 'none', background: C.primary, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer' }}
-                >
-                  📲 MP
-                </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
+                {([
+                  ['efectivo', '💵 Efectivo', C.green],
+                  ['debito', '💳 Débito', C.primary],
+                  ['credito', '💳 Crédito', C.primary],
+                  ['transferencia', '🏦 Transferencia', C.primary],
+                  ['mp', '📲 QR / MP', C.primary],
+                ] as [string, string, string][]).map(([metodo, etiqueta, color]) => (
+                  <button
+                    key={metodo}
+                    onClick={async () => {
+                      try {
+                        const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ turno_id: turno.id, metodo_pago: metodo }),
+                        });
+                        const d = await r.json();
+                        if (d.error) { setError(d.error); return; }
+                        setCarrito({ items: [], total: 0 });
+                      } catch { setError('No se pudo registrar la venta. Probá de nuevo.'); }
+                    }}
+                    style={{ flex: '1 1 30%', padding: '14px 8px', borderRadius: 14, border: 'none', background: color, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer' }}
+                  >
+                    {etiqueta}
+                  </button>
+                ))}
               </div>
             </div>
           )}
