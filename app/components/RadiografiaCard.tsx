@@ -13,6 +13,7 @@ type Hallazgo = {
   url: string;
   positivo?: boolean;
   monto_texto?: string;
+  hid?: number;
 };
 type Resp = {
   suficiente: boolean;
@@ -37,6 +38,16 @@ function etiqueta(h: Hallazgo) {
 // Radiografía: lo más importante que LumoBi encontró en el negocio, con plata y evidencia.
 export default function RadiografiaCard() {
   const [data, setData] = useState<Resp | null>(null);
+  const [resp, setResp] = useState<Record<number, string>>({});
+
+  // El dueño le dice a LumoBi si el hallazgo le sirvió: lo que no sirve deja de mostrarse y de avisarse
+  function responder(hid: number, accion: string) {
+    setResp(r => ({ ...r, [hid]: accion }));
+    const t = localStorage.getItem("lumo_token");
+    fetch(`${API}/api/hallazgos/${hid}/feedback`, {
+      method: "POST", headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json" }, body: JSON.stringify({ accion }),
+    }).then(r => { if (!r.ok) throw new Error(); }).catch(() => setResp(r => { const n = { ...r }; delete n[hid]; return n; }));
+  }
 
   useEffect(() => {
     let vivo = true;
@@ -77,7 +88,7 @@ export default function RadiografiaCard() {
         </div>
       )}
 
-      {data.hallazgos.map((h, i) => (
+      {data.hallazgos.filter(h => !(h.hid && ["no_sirve", "ya_lo_sabia", "resuelto"].includes(resp[h.hid]))).map((h, i) => (
         <div key={h.id} style={{ padding: "12px 0", borderTop: i || !data.suficiente ? "1px solid var(--linea)" : "none" }}>
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
             <span style={{ minWidth: 22, height: 22, borderRadius: 11, background: h.positivo ? "var(--ok-fondo)" : "var(--critico-fondo)", color: h.positivo ? "var(--ok)" : "var(--critico)", fontSize: 12, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
@@ -96,6 +107,21 @@ export default function RadiografiaCard() {
                 </details>
               )}
               <a href={h.url} style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 600, color: "var(--azul)", textDecoration: "none" }}>Ver detalle →</a>
+              {h.hid && !h.positivo && (
+                <div style={{ marginTop: 10 }}>
+                  {resp[h.hid] === "util" ? (
+                    <div style={{ fontSize: 12, color: "var(--ok)", fontWeight: 600 }}>Gracias, lo tengo en cuenta.</div>
+                  ) : (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                      <span style={{ fontSize: 11, color: "var(--tinta-apagada)" }}>¿Te sirvió?</span>
+                      {([["util", "Me sirvió"], ["resuelto", "Ya lo resolví"], ["ya_lo_sabia", "Ya lo sabía"], ["no_sirve", "No me sirve"]] as const).map(([a, t]) => (
+                        <button key={a} onClick={() => responder(h.hid as number, a)}
+                          style={{ fontSize: 11, padding: "5px 10px", borderRadius: 14, border: "1px solid var(--linea)", background: "var(--blanco)", color: "var(--tinta)", cursor: "pointer" }}>{t}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
