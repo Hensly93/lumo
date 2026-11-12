@@ -14,8 +14,9 @@ function textoVar(v: number) {
   return v >= 300 ? `×${(1 + v / 100).toLocaleString("es-AR", { maximumFractionDigits: 1 })}` : `${v > 0 ? "+" : ""}${v.toLocaleString("es-AR")}%`;
 }
 
-function Linea({ c, real }: { c: Cmp | undefined; real?: boolean }) {
+function Linea({ c, real, poco }: { c: Cmp | undefined; real?: boolean; poco?: boolean }) {
   if (!c || !c.hay_datos) return null;
+  if (poco) return <div style={{ fontSize: 13, color: "var(--tinta-apagada)", marginTop: 4 }}>Todavía son pocas ventas este mes para comparar con {c.etiqueta}.</div>;
   const v = real && c.variacion.facturacion_real != null ? c.variacion.facturacion_real : c.variacion.facturacion;
   if (v == null) return null;
   const color = v > 0 ? "var(--ok)" : v < 0 ? "var(--critico)" : "var(--tinta-apagada)";
@@ -55,8 +56,8 @@ export default function PeriodoMesCard({ sucursalId }: { sucursalId: number | nu
       </div>
       <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 26, fontWeight: 800, color: "var(--tinta)" }}>{fmt(d.actual.facturacion)}</div>
       <div style={{ fontSize: 12, color: "var(--tinta-apagada)", marginBottom: 2 }}>{d.actual.tickets.toLocaleString("es-AR")} tickets</div>
-      <Linea c={d.vs_anterior} />
-      <Linea c={d.vs_anio_anterior} real />
+      <Linea c={d.vs_anterior} poco={d.actual.tickets < 20} />
+      <Linea c={d.vs_anio_anterior} real poco={d.actual.tickets < 20} />
     </div>
   );
 }
