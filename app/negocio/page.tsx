@@ -46,6 +46,13 @@ const icons = {
   ),
 };
 
+const iconoCompras = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z" stroke={iconColor} strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M9 8h6M9 12h6" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
 export default function NegocioPage() {
   const router = useRouter();
 
@@ -53,6 +60,7 @@ export default function NegocioPage() {
     { label: "Fugas", desc: "Dónde se va la plata y cómo cerrarla", href: "/fugas", icon: icons.fugas },
     { label: "Períodos", desc: "Comparar períodos y ver evolución", href: "/periodos", icon: icons.periodos },
     { label: "Rentabilidad", desc: "Análisis de ganancias y costos", href: "/rentabilidad", icon: icons.rentabilidad },
+    { label: "Facturas de proveedores", desc: "Sacá una foto y LumoBi la lee", href: "/compras", icon: iconoCompras },
     { label: "Predicciones", desc: "Proyecciones de NICOLE", href: "/predicciones", icon: icons.predicciones },
     { label: "Red", desc: "Comparar con otros locales", href: "/red", icon: icons.red },
   ];
