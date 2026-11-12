@@ -2,6 +2,7 @@
 import Nav from "./components/Nav";
 import EnVivoCard from "./components/EnVivoCard";
 import RadiografiaCard from "./components/RadiografiaCard";
+import RecuperadoCard from "./components/RecuperadoCard";
 import FugasCard from "./components/FugasCard";
 import PeriodoMesCard from "./components/PeriodoMesCard";
 import BannerPasos from "./components/BannerPasos";
@@ -480,6 +481,7 @@ function HomeContent() {
             <FugasCard />
             <EnVivoCard sucursalId={sucursalId} />
             <RadiografiaCard />
+            <RecuperadoCard />
             <PeriodoMesCard sucursalId={sucursalId} />
 
             {/* Hero Card */}

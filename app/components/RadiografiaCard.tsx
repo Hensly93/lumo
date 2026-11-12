@@ -14,6 +14,7 @@ type Hallazgo = {
   positivo?: boolean;
   monto_texto?: string;
   hid?: number;
+  accion_texto?: string;
 };
 type Resp = {
   suficiente: boolean;
@@ -106,7 +107,7 @@ export default function RadiografiaCard() {
                   </ul>
                 </details>
               )}
-              <a href={h.url} style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 600, color: "var(--azul)", textDecoration: "none" }}>Ver detalle →</a>
+              <a href={h.url} style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 600, color: "var(--azul)", textDecoration: "none" }}>{h.accion_texto ?? "Ver detalle"} →</a>
               {h.hid && !h.positivo && (
                 <div style={{ marginTop: 10 }}>
                   {resp[h.hid] === "util" ? (
