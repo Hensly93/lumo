@@ -22,7 +22,7 @@ type Accion = { id: string; tipo: "ganar" | "perder_menos" | "probar"; titulo: s
 type Promo = {
   sin_promo: boolean; motivo?: string; nombre?: string; cuando?: string; precio_normal?: number; precio_promo?: number; ahorro?: number;
   descuento_pct?: number; resumen?: string; ganancia_por_combo?: number | null; meta_combos_por_dia?: number | null; por_que?: string[]; aviso?: string | null;
-  textos?: { whatsapp: string; instagram: string; cartel: string };
+  textos?: Record<string, string>;
 };
 
 function copiar(t: string) { try { navigator.clipboard.writeText(t); } catch { /* sin portapapeles */ } }
@@ -43,7 +43,7 @@ function PromoDetalle({ p }: { p: Promo }) {
       </ul>
       {p.aviso && <div style={{ fontSize: 12, color: "var(--critico)", marginTop: 4, lineHeight: 1.5 }}>{p.aviso}</div>}
       {p.meta_combos_por_dia ? <div style={{ fontSize: 12, color: "var(--tinta-apagada)", marginTop: 4, lineHeight: 1.5 }}>Para cerrar la brecha que detectamos harían falta unos {p.meta_combos_por_dia} combos por día (cuenta orientativa, no una promesa).</div> : null}
-      {p.textos && ([["WhatsApp", p.textos.whatsapp], ["Instagram", p.textos.instagram], ["Cartel del local", p.textos.cartel]] as const).map(([t, x]) => (
+      {p.textos && Object.entries(p.textos).map(([k, x]) => [({ whatsapp: "WhatsApp", instagram: "Instagram", cartel: "Cartel del local", lista: "Precios nuevos" } as Record<string, string>)[k] ?? k, x] as const).map(([t, x]) => (
         <div key={t} style={{ marginTop: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--tinta-apagada)" }}>{t.toUpperCase()}</span>
