@@ -35,6 +35,11 @@ type PreviewItem = {
   precio_costo: number | null;
   unidad: string;
   incluir: boolean;
+  marca?: string | null;
+  codigo_barras?: string | null;
+  existente?: { id: number; nombre: string; marca: string | null; similitud: number; exacto: boolean } | null;
+  parecido_archivo?: string | null;
+  usar_id?: number | null;
 };
 
 type PrecioStale = {
@@ -739,7 +744,7 @@ export default function Catalogo() {
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Error procesando el archivo");
-      const items: PreviewItem[] = data.productos.map((p: PreviewItem, i: number) => ({ ...p, _key: i, incluir: true }));
+      const items: PreviewItem[] = data.productos.map((p: PreviewItem, i: number) => ({ ...p, _key: i, incluir: true, usar_id: p.existente?.exacto ? p.existente.id : null }));
       setPreview(items);
       setPreviewMeta({ metodo: data.metodo, total: data.total });
       setVista("preview");
@@ -757,7 +762,7 @@ export default function Catalogo() {
       const r = await fetch(`${API}/api/productos/confirmar`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token!}` },
-        body: JSON.stringify({ productos: seleccionados }),
+        body: JSON.stringify({ productos: seleccionados.map(p => ({ ...p, producto_id: p.usar_id ?? undefined })) }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
@@ -993,7 +998,24 @@ export default function Catalogo() {
                   onChange={e => setPreview(ps => ps.map((x, i) => i === idx ? { ...x, nombre: e.target.value } : x))}
                   style={inp({ padding: "6px 10px", fontSize: 13, marginBottom: 6, fontWeight: 600 })}
                 />
+                {p.existente && (p.usar_id === p.existente.id ? (
+                  <div style={{ fontSize: 11, color: "var(--emerald)", marginBottom: 6 }}>
+                    Actualiza «{p.existente.nombre}», que ya tenés.{" "}
+                    <span onClick={() => setPreview(ps => ps.map((x, i) => i === idx ? { ...x, usar_id: null } : x))} style={{ textDecoration: "underline", cursor: "pointer", color: "var(--muted)" }}>No, es otro</span>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 11, color: "var(--yellow)", marginBottom: 6 }}>
+                    Se parece a «{p.existente.nombre}»{p.existente.marca ? ` · ${p.existente.marca}` : ""}. ¿Es el mismo?{" "}
+                    <span onClick={() => setPreview(ps => ps.map((x, i) => i === idx ? { ...x, usar_id: p.existente!.id } : x))} style={{ textDecoration: "underline", cursor: "pointer", fontWeight: 700 }}>Sí, actualizar ese</span>
+                  </div>
+                ))}
+                {p.parecido_archivo && (
+                  <div style={{ fontSize: 11, color: "var(--yellow)", marginBottom: 6 }}>Parece repetido con «{p.parecido_archivo}» de este mismo archivo. Podés destildar uno.</div>
+                )}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                  {p.marca && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "var(--cyan)", border: "1px solid var(--border)", padding: "2px 8px", borderRadius: 8 }}>{p.marca}</span>
+                  )}
                   {p.categoria && (
                     <span style={{ fontSize: 10, color: "var(--muted)", border: "1px solid var(--border)", padding: "2px 8px", borderRadius: 8 }}>{p.categoria}</span>
                   )}
