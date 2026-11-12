@@ -20,7 +20,12 @@ type Producto = {
   unidad: string;
   updated_at: string;
   codigo_barras?: string | null;
+  marca?: string | null;
 };
+
+type DupProd = { id: number; nombre: string; marca: string | null; codigo_barras: string | null; unidades_vendidas: number };
+type DupGrupo = { sugerido_id: number; productos: DupProd[] };
+type MarcaGrupo = { sugerida: string; marcas: { marca: string; productos: number }[] };
 
 type PreviewItem = {
   _key: number;
@@ -173,6 +178,7 @@ function ProductCard({
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {p.nombre}
           </div>
+          {p.marca && <span style={{ fontSize: 10, fontWeight: 700, color: "var(--cyan)", border: "1px solid var(--border)", borderRadius: 6, padding: "1px 6px", whiteSpace: "nowrap" }}>{p.marca}</span>}
           {stale && (
             <span title={`Sin actualizar hace ${stale.dias_sin_actualizar} días`}
               style={{ fontSize: 9, padding: "2px 6px", border: "1px solid var(--yellow)", borderRadius: 6, color: "var(--yellow)", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>
@@ -234,6 +240,7 @@ function EditModal({
     precio_costo:  producto.precio_costo?.toString() ?? "",
     unidad:        producto.unidad,
     codigo_barras: producto.codigo_barras ?? "",
+    marca:         producto.marca ?? "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -258,6 +265,7 @@ function EditModal({
           precio_costo:  parseFloat(form.precio_costo) || null,
           unidad:        form.unidad.trim() || "unidad",
           codigo_barras: form.codigo_barras.trim() || null,
+          marca:         form.marca.trim(),
         }),
       });
       const data = await r.json();
@@ -283,6 +291,7 @@ function EditModal({
         <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 14 }}>Editar producto</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div><div style={rotulo}>Nombre</div><input style={inp()} value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} /></div>
+          <div><div style={rotulo}>Marca (opcional)</div><input style={inp()} placeholder="Ej: Oreo" value={form.marca} onChange={e => setForm(f => ({ ...f, marca: e.target.value }))} /></div>
           <div><div style={rotulo}>Categoría (opcional)</div><input style={inp()} value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))} /></div>
           <div style={{ display: "flex", gap: 10 }}>
             <div style={{ flex: 1 }}><div style={rotulo}>Precio de venta ($)</div><input style={inp()} type="number" inputMode="decimal" value={form.precio_venta} onChange={e => setForm(f => ({ ...f, precio_venta: e.target.value }))} /></div>
@@ -607,7 +616,7 @@ export default function Catalogo() {
   const [previewMeta, setPreviewMeta] = useState<{ metodo: string; total: number } | null>(null);
   const [cargandoMsg, setCargandoMsg] = useState("");
   const [editando, setEditando] = useState<Producto | null>(null);
-  const [manualForm, setManualForm] = useState({ nombre: "", categoria: "", precio_venta: "", precio_costo: "", unidad: "unidad", codigo_barras: "" });
+  const [manualForm, setManualForm] = useState({ nombre: "", marca: "", categoria: "", precio_venta: "", precio_costo: "", unidad: "unidad", codigo_barras: "" });
   const [guardandoManual, setGuardandoManual] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -620,6 +629,12 @@ export default function Catalogo() {
   const [showPendientesPanel, setShowPendientesPanel] = useState(false);
   const [pendienteForms, setPendienteForms] = useState<Record<number, { nombre: string; precio_venta: string }>>({});
   const [completandoId, setCompletandoId] = useState<number | null>(null);
+  const [dupGrupos, setDupGrupos] = useState<DupGrupo[]>([]);
+  const [marcasPar, setMarcasPar] = useState<MarcaGrupo[]>([]);
+  const [showDup, setShowDup] = useState(false);
+  const [dupQueda, setDupQueda] = useState<Record<number, number>>({});
+  const [dupOcultos, setDupOcultos] = useState<number[]>([]);
+  const [unificando, setUnificando] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const fotoRef = useRef<HTMLInputElement>(null);
 
@@ -633,6 +648,7 @@ export default function Catalogo() {
     if (!t) { router.replace("/login"); return; }
     setToken(t);
     cargarProductos(t);
+    cargarDuplicados(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -654,6 +670,60 @@ export default function Catalogo() {
       setPendientes(Array.isArray(pend) ? pend : []);
     } catch { /* silencioso */ }
     setLoadingLista(false);
+  }
+
+  // Productos y marcas que LumoBi cree que son lo mismo escrito distinto. Solo se unen si el dueño confirma.
+  async function cargarDuplicados(t: string) {
+    try {
+      const h = { Authorization: `Bearer ${t}` };
+      const [d, m] = await Promise.all([
+        fetch(`${API}/api/identidad/duplicados`, { headers: h }).then(r => r.json()).catch(() => null),
+        fetch(`${API}/api/identidad/marcas-parecidas`, { headers: h }).then(r => r.json()).catch(() => null),
+      ]);
+      setDupGrupos(Array.isArray(d?.grupos) ? d.grupos : []);
+      setMarcasPar(Array.isArray(m?.grupos) ? m.grupos : []);
+    } catch { /* silencioso */ }
+  }
+
+  async function unirGrupo(g: DupGrupo) {
+    const queda = dupQueda[g.sugerido_id] ?? g.sugerido_id;
+    setUnificando(true);
+    try {
+      const r = await fetch(`${API}/api/identidad/unificar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token!}` },
+        body: JSON.stringify({ queda_id: queda, ids: g.productos.map(p => p.id).filter(id => id !== queda) }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "No se pudo unir");
+      showToast(`Unidos: quedó un solo producto`, true);
+      await cargarProductos(token!);
+      await cargarDuplicados(token!);
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : "Error", false);
+    } finally {
+      setUnificando(false);
+    }
+  }
+
+  async function unirMarcas(destino: string, otras: string[]) {
+    setUnificando(true);
+    try {
+      const r = await fetch(`${API}/api/identidad/unificar-marca`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token!}` },
+        body: JSON.stringify({ marca: destino, desde: otras }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "No se pudo unir");
+      showToast(`Marca unificada en ${data.productos} producto${data.productos !== 1 ? "s" : ""}`, true);
+      await cargarProductos(token!);
+      await cargarDuplicados(token!);
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : "Error", false);
+    } finally {
+      setUnificando(false);
+    }
   }
 
   async function subirArchivo(file: File, tipo: "archivo" | "foto") {
@@ -715,10 +785,11 @@ export default function Catalogo() {
           precio_costo:  parseFloat(manualForm.precio_costo) || null,
           unidad:        manualForm.unidad.trim() || "unidad",
           codigo_barras: manualForm.codigo_barras.trim() || null,
+          marca:         manualForm.marca.trim() || null,
         }),
       });
       if (!r.ok) throw new Error((await r.json()).error);
-      setManualForm({ nombre: "", categoria: "", precio_venta: "", precio_costo: "", unidad: "unidad", codigo_barras: "" });
+      setManualForm({ nombre: "", marca: "", categoria: "", precio_venta: "", precio_costo: "", unidad: "unidad", codigo_barras: "" });
       showToast("Producto agregado", true);
       await cargarProductos(token!);
       setVista("catalogo");
@@ -768,7 +839,7 @@ export default function Catalogo() {
   const productosFiltrados = productos
     .filter(p => {
       const matchCat = !catFiltro || p.categoria === catFiltro;
-      const matchQ   = !busqueda || p.nombre.toLowerCase().includes(busqueda.toLowerCase());
+      const matchQ   = !busqueda || `${p.nombre} ${p.marca ?? ""}`.toLowerCase().includes(busqueda.toLowerCase());
       return matchCat && matchQ;
     })
     .sort((a, b) => {
@@ -961,6 +1032,7 @@ export default function Catalogo() {
       <div style={{ padding: "8px 16px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <input style={inp()} placeholder="Nombre del producto *" value={manualForm.nombre} onChange={e => setManualForm(f => ({ ...f, nombre: e.target.value }))} />
+          <input style={inp()} placeholder="Marca (opcional)" value={manualForm.marca} onChange={e => setManualForm(f => ({ ...f, marca: e.target.value }))} />
           <input style={inp()} placeholder="Categoría (opcional)" value={manualForm.categoria} onChange={e => setManualForm(f => ({ ...f, categoria: e.target.value }))} />
           <div style={{ display: "flex", gap: 10 }}>
             <input style={inp()} type="number" inputMode="decimal" placeholder="Precio de venta ($)" value={manualForm.precio_venta} onChange={e => setManualForm(f => ({ ...f, precio_venta: e.target.value }))} />
@@ -1090,6 +1162,66 @@ export default function Catalogo() {
                           style={{ ...btnPrimario, width: "100%", padding: 9, fontSize: 12 }}>
                           {completandoId === p.id ? "Guardando..." : "Agregar al catálogo"}
                         </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Productos y marcas que parecen ser lo mismo */}
+          {(dupGrupos.filter(g => !dupOcultos.includes(g.sugerido_id)).length > 0 || marcasPar.length > 0) && (
+            <div style={{ padding: "12px 16px 0" }}>
+              <div style={{ ...caja, border: "1px solid var(--cyan)", padding: "14px 16px" }}>
+                <div onClick={() => setShowDup(s => !s)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cyan)", marginBottom: 3 }}>
+                      Parece que hay productos o marcas repetidos
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--muted)" }}>Escritos distinto pero iguales. Unirlos mejora todo lo que LumoBi te muestra. No se une nada sin tu confirmación.</div>
+                  </div>
+                  <span style={{ color: "var(--cyan)", fontSize: 12 }}>{showDup ? "Ocultar" : "Revisar"}</span>
+                </div>
+                {showDup && (
+                  <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+                    {dupGrupos.filter(g => !dupOcultos.includes(g.sugerido_id)).map(g => {
+                      const queda = dupQueda[g.sugerido_id] ?? g.sugerido_id;
+                      return (
+                        <div key={g.sugerido_id} style={{ border: "1px solid var(--border)", borderRadius: 10, padding: 12 }}>
+                          <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 8 }}>¿Son el mismo producto? Tocá el que querés que quede.</div>
+                          {g.productos.map(p => (
+                            <div key={p.id} onClick={() => setDupQueda(q => ({ ...q, [g.sugerido_id]: p.id }))}
+                              style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", marginBottom: 6, borderRadius: 8, cursor: "pointer", border: `1px solid ${queda === p.id ? "var(--cyan)" : "var(--border)"}` }}>
+                              <div style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid var(--cyan)", background: queda === p.id ? "var(--cyan)" : "transparent", flexShrink: 0 }} />
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{p.nombre}{p.marca ? ` · ${p.marca}` : ""}</div>
+                                <div style={{ fontSize: 10, color: "var(--muted)" }}>{p.codigo_barras ? `Código ${p.codigo_barras} · ` : ""}{p.unidades_vendidas > 0 ? `${Math.round(p.unidades_vendidas)} vendidos` : "sin ventas"}</div>
+                              </div>
+                            </div>
+                          ))}
+                          <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                            <button onClick={() => setDupOcultos(o => [...o, g.sugerido_id])} style={{ ...btnSecundario, flex: 1, padding: 9, fontSize: 12 }}>No son lo mismo</button>
+                            <button onClick={() => unirGrupo(g)} disabled={unificando} style={{ ...btnPrimario, flex: 2, padding: 9, fontSize: 12 }}>
+                              {unificando ? "Uniendo..." : `Unir los ${g.productos.length} en uno`}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {marcasPar.map(g => (
+                      <div key={g.sugerida} style={{ border: "1px solid var(--border)", borderRadius: 10, padding: 12 }}>
+                        <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 8 }}>
+                          Estas marcas parecen ser la misma: {g.marcas.map(m => `${m.marca} (${m.productos})`).join(", ")}. ¿Cuál es la correcta?
+                        </div>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          {g.marcas.map(m => (
+                            <button key={m.marca} disabled={unificando} onClick={() => unirMarcas(m.marca, g.marcas.map(x => x.marca).filter(x => x !== m.marca))}
+                              style={{ ...btnSecundario, padding: "8px 12px", fontSize: 12 }}>
+                              Dejar todo como «{m.marca}»
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
