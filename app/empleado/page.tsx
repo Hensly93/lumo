@@ -423,6 +423,82 @@ export default function EmpleadoPage() {
   const [tick, setTick] = useState(0);
   const [carrito, setCarrito] = useState<{ items: any[]; total: number } | null>(null);
   const [scanBuffer, setScanBuffer] = useState("");
+  const [sugerencias, setSugerencias] = useState<any[]>([]);
+  const [enfocado, setEnfocado] = useState(false);
+  const refBusq = useRef<any>(null);
+
+  async function refrescarCarrito() {
+    if (!turno?.id) return;
+    try {
+      const r = await fetchT(`${API}/api/scanner/carrito/${turno.id}`);
+      const d = await r.json();
+      if (!d.error) setCarrito(d);
+    } catch { /* silencioso */ }
+  }
+
+  async function agregarAlCarrito(productoId: number) {
+    if (!turno?.id) return;
+    try {
+      const r = await fetchT(`${API}/api/scanner/carrito`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ turno_id: turno.id, producto_id: productoId, cantidad: 1, agregado_por: 'pistola_compu' }),
+      });
+      const d = await r.json();
+      if (d.error) setError(d.error); else setError('');
+    } catch { setError('No se pudo agregar el producto. Probá de nuevo.'); }
+    await refrescarCarrito();
+  }
+
+  async function cambiarCantidad(item: any, nueva: number) {
+    if (!turno?.id) return;
+    try {
+      if (nueva <= 0) {
+        await fetchT(`${API}/api/scanner/carrito/${turno.id}/${item.id}`, { method: 'DELETE' });
+      } else {
+        await fetchT(`${API}/api/scanner/carrito/${turno.id}/${item.id}/cantidad`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cantidad: nueva }),
+        });
+      }
+    } catch { setError('No se pudo cambiar la cantidad.'); }
+    await refrescarCarrito();
+  }
+
+  function buscarSugerencias(q: string) {
+    if (refBusq.current) clearTimeout(refBusq.current);
+    const t = q.trim();
+    // Solo numeros = codigo de barras (no se sugiere); el texto se busca por nombre
+    if (t.length < 2 || /^\d+$/.test(t)) { setSugerencias([]); return; }
+    refBusq.current = setTimeout(async () => {
+      try {
+        const r = await fetchT(`${API}/api/scanner/buscar?turno_id=${turno?.id}&q=${encodeURIComponent(t)}`);
+        const d = await r.json();
+        setSugerencias(Array.isArray(d.productos) ? d.productos : []);
+      } catch { setSugerencias([]); }
+    }, 250);
+  }
+
+  async function enviarEntrada(valor: string) {
+    const texto = valor.trim();
+    setScanBuffer('');
+    setSugerencias([]);
+    if (!texto || !turno?.id) return;
+    setError('');
+    try {
+      const r = await fetchT(`${API}/api/scanner/producto?turno_id=${turno.id}&codigo=${encodeURIComponent(texto)}`);
+      const d = await r.json();
+      if (d.existe) { await agregarAlCarrito(d.producto.id); return; }
+      if (/^\d+$/.test(texto)) { setError(`El código ${texto} no está cargado. Cargalo para venderlo.`); setAltaCodigo(texto); return; }
+      const r2 = await fetchT(`${API}/api/scanner/buscar?turno_id=${turno.id}&q=${encodeURIComponent(texto)}`);
+      const d2 = await r2.json();
+      const ps: any[] = Array.isArray(d2.productos) ? d2.productos : [];
+      if (ps.length === 1) await agregarAlCarrito(ps[0].id);
+      else if (ps.length > 1) setSugerencias(ps);
+      else setError(`No encontré "${texto}" en tus productos.`);
+    } catch { setError('Sin conexión. Probá de nuevo.'); }
+  }
   const [scanQR, setScanQR] = useState<{ url: string; expira_en: string } | null>(null);
   const [scanQRLoading, setScanQRLoading] = useState(false);
   const [precioModal, setPrecioModal] = useState(false);
@@ -957,54 +1033,60 @@ export default function EmpleadoPage() {
         </div>
 
         <div style={{ padding: 24 }}>
-          <div onClick={() => document.getElementById('scan-input')?.focus()} style={{ fontSize: 13, fontWeight: 600, color: C.muted, marginBottom: 12, cursor: 'pointer' }}>
-            Escaneá un producto con la pistola
+<div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span style={{ width: 10, height: 10, borderRadius: 5, background: enfocado ? C.green : C.amber, display: 'inline-block' }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>
+                {enfocado ? 'Listo para escanear' : 'Tocá acá para escanear'}
+              </span>
+            </div>
+            <input
+              id="scan-input"
+              type="text"
+              autoComplete="off"
+              value={scanBuffer}
+              placeholder="Escaneá con la pistola o escribí el código o el nombre"
+              onChange={(ev) => { setScanBuffer(ev.target.value); buscarSugerencias(ev.target.value); }}
+              onFocus={() => setEnfocado(true)}
+              onBlur={() => {
+                setEnfocado(false);
+                // En compu se recupera el foco para la pistola, salvo que se esté escribiendo en otro campo. En celu no, para no abrir el teclado solo.
+                setTimeout(() => {
+                  try { if (!window.matchMedia('(pointer: fine)').matches) return; } catch { return; }
+                  const a = document.activeElement as HTMLElement | null;
+                  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return;
+                  document.getElementById('scan-input')?.focus();
+                }, 150);
+              }}
+              onKeyDown={(ev) => {
+                if (ev.key !== 'Enter') return;
+                ev.preventDefault();
+                enviarEntrada(ev.currentTarget.value);
+              }}
+              autoFocus
+              style={{ width: '100%', boxSizing: 'border-box', padding: '16px 16px', fontSize: 16, borderRadius: 14, border: `2px solid ${enfocado ? C.primary : C.cardBorder}`, background: C.bg, color: C.text, outline: 'none', fontFamily: 'var(--font-instrument), sans-serif' }}
+            />
+            {error && (
+              <div style={{ marginTop: 8, fontSize: 13, color: '#D92D20', fontWeight: 600 }}>{error}</div>
+            )}
+            {sugerencias.length > 0 && (
+              <div style={{ marginTop: 8, border: `2px solid ${C.cardBorder}`, borderRadius: 14, overflow: 'hidden', background: C.bg }}>
+                {sugerencias.map((p: any) => (
+                  <div
+                    key={p.id}
+                    onClick={async () => { setSugerencias([]); setScanBuffer(''); await agregarAlCarrito(p.id); document.getElementById('scan-input')?.focus(); }}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderBottom: `1px solid ${C.cardBorder}`, cursor: 'pointer' }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>{p.nombre}</div>
+                      {p.codigo_barras && <div style={{ fontSize: 11, color: C.muted }}>{p.codigo_barras}</div>}
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 14, color: C.text }}>{fmt(parseFloat(p.precio_venta))}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <input
-            id="scan-input"
-            type="text"
-            value={scanBuffer}
-            onChange={(e) => setScanBuffer(e.target.value)}
-            onBlur={() => {
-              // Recuperar el foco para la pistola, salvo que el empleado esté escribiendo en otro campo
-              setTimeout(() => {
-                const a = document.activeElement as HTMLElement | null;
-                if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return;
-                document.getElementById('scan-input')?.focus();
-              }, 150);
-            }}
-            onKeyDown={async (e) => {
-              if (e.key !== 'Enter') return;
-              const codigo = scanBuffer.trim();
-              setScanBuffer("");
-              if (!codigo || !turno?.id) return;
-              try {
-                const r = await fetchT(`${API}/api/scanner/producto?turno_id=${turno.id}&codigo=${encodeURIComponent(codigo)}`);
-                const d = await r.json();
-                if (d.existe) {
-                  await fetchT(`${API}/api/scanner/carrito`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ turno_id: turno.id, producto_id: d.producto.id, cantidad: 1, agregado_por: 'pistola_compu' }),
-                  });
-                  const r2 = await fetchT(`${API}/api/scanner/carrito/${turno.id}`);
-                  const d2 = await r2.json();
-                  if (!d2.error) setCarrito(d2);
-                } else {
-                  setError(`Código ${codigo} no encontrado`);
-                  setAltaCodigo(codigo);
-                }
-              } catch { /* silencioso */ }
-            }}
-            autoFocus
-            style={{
-              position: 'absolute',
-              opacity: 0,
-              height: 1,
-              width: 1,
-              pointerEvents: 'none',
-            }}
-          />
           {/* Conteo pendiente alert */}
           {conteoPend && (
             <div style={{
@@ -1039,6 +1121,80 @@ export default function EmpleadoPage() {
             </div>
           )}
 
+
+{/* Carrito: siempre visible */}
+          <div style={{
+            background: C.bg,
+            border: `2px solid ${C.cardBorder}`,
+            borderRadius: 20,
+            padding: '20px',
+            marginBottom: 24,
+          }}>
+            <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 14, letterSpacing: 0.5 }}>
+              {carrito && carrito.items.length > 0
+                ? `CARRITO ACTUAL · ${carrito.items.length} ${carrito.items.length === 1 ? 'ITEM' : 'ITEMS'}`
+                : 'CARRITO ACTUAL'}
+            </div>
+            {(!carrito || carrito.items.length === 0) && (
+              <div style={{ fontSize: 14, color: C.muted, padding: '8px 0 4px' }}>Todavía no hay productos. Escaneá el primero o buscalo por nombre.</div>
+            )}
+            {carrito && carrito.items.map((item: any) => (
+              <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '10px 0', borderBottom: `1px solid ${C.cardBorder}` }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>{item.producto_nombre}</div>
+                  <div style={{ fontSize: 12, color: C.muted }}>{fmt(parseFloat(item.precio_unitario))} c/u</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) - 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>−</button>
+                  <span style={{ minWidth: 26, textAlign: 'center', fontSize: 15, fontWeight: 800, color: C.text }}>{parseFloat(item.cantidad)}</span>
+                  <button onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) + 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>+</button>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 96, justifyContent: 'flex-end' }}>
+                  <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 15, color: C.text }}>
+                    {fmt(item.cantidad * parseFloat(item.precio_unitario))}
+                  </span>
+                  <span onClick={() => cambiarCantidad(item, 0)} style={{ fontSize: 18, color: C.muted, cursor: 'pointer', padding: 4 }}>✕</span>
+                </div>
+              </div>
+            ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16 }}>
+              <span style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>Total</span>
+              <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 26, color: C.text }}>{fmt(carrito ? carrito.total : 0)}</span>
+            </div>
+            {carrito && carrito.items.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
+                {([
+                  ['efectivo', '💵 Efectivo', C.green],
+                  ['debito', '💳 Débito', C.primary],
+                  ['credito', '💳 Crédito', C.primary],
+                  ['transferencia', '🏦 Transferencia', C.primary],
+                  ['mp', '📲 QR / MP', C.primary],
+                ] as [string, string, string][]).map(([metodo, etiqueta, color]) => (
+                  <button
+                    key={metodo}
+                    onClick={async () => {
+                      try {
+                        const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ turno_id: turno.id, metodo_pago: metodo }),
+                        });
+                        const d = await r.json();
+                        if (d.error) { setError(d.error); return; }
+                        setError('');
+                        setCarrito({ items: [], total: 0 });
+                        document.getElementById('scan-input')?.focus();
+                      } catch { setError('No se pudo registrar la venta. Probá de nuevo.'); }
+                    }}
+                    style={{ flex: '1 1 30%', padding: '14px 8px', borderRadius: 14, border: 'none', background: color, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer' }}
+                  >
+                    {etiqueta}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Stats card */}
           <div style={{
             background: C.bg,
@@ -1059,82 +1215,6 @@ export default function EmpleadoPage() {
               </div>
             )}
           </div>
-
-          {/* Carrito LumoScan */}
-          {carrito && carrito.items.length > 0 && (
-            <div style={{
-              background: C.bg,
-              border: `2px solid ${C.cardBorder}`,
-              borderRadius: 20,
-              padding: '20px',
-              marginBottom: 24,
-            }}>
-              <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 14, letterSpacing: 0.5 }}>
-                CARRITO ACTUAL · {carrito.items.length} {carrito.items.length === 1 ? 'ITEM' : 'ITEMS'}
-              </div>
-              {carrito.items.map((item: any) => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.cardBorder}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 16 }}>{item.agregado_por === 'camara_celu' ? '📱' : '🔫'}</span>
-                    <div>
-                      <div style={{ fontSize: 14, color: C.text }}>{item.producto_nombre}</div>
-                      <div style={{ fontSize: 12, color: C.muted }}>{item.cantidad} x {fmt(parseFloat(item.precio_unitario))}</div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 15, color: C.text }}>
-                      {fmt(item.cantidad * parseFloat(item.precio_unitario))}
-                    </span>
-                    <span
-                      onClick={async () => {
-                        try {
-                          await fetchT(`${API}/api/scanner/carrito/${turno.id}/${item.id}`, { method: 'DELETE' });
-                          const r = await fetchT(`${API}/api/scanner/carrito/${turno.id}`);
-                          const d = await r.json();
-                          if (!d.error) setCarrito(d);
-                        } catch { /* silencioso */ }
-                      }}
-                      style={{ fontSize: 18, color: C.muted, cursor: 'pointer', padding: 4 }}
-                    >
-                      ✕
-                    </span>
-                  </div>
-                </div>
-              ))}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16 }}>
-                <span style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>Total</span>
-                <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 22, color: C.text }}>{fmt(carrito.total)}</span>
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
-                {([
-                  ['efectivo', '💵 Efectivo', C.green],
-                  ['debito', '💳 Débito', C.primary],
-                  ['credito', '💳 Crédito', C.primary],
-                  ['transferencia', '🏦 Transferencia', C.primary],
-                  ['mp', '📲 QR / MP', C.primary],
-                ] as [string, string, string][]).map(([metodo, etiqueta, color]) => (
-                  <button
-                    key={metodo}
-                    onClick={async () => {
-                      try {
-                        const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ turno_id: turno.id, metodo_pago: metodo }),
-                        });
-                        const d = await r.json();
-                        if (d.error) { setError(d.error); return; }
-                        setCarrito({ items: [], total: 0 });
-                      } catch { setError('No se pudo registrar la venta. Probá de nuevo.'); }
-                    }}
-                    style={{ flex: '1 1 30%', padding: '14px 8px', borderRadius: 14, border: 'none', background: color, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer' }}
-                  >
-                    {etiqueta}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           <button
             onClick={async () => {
