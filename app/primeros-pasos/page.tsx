@@ -8,7 +8,7 @@ import SubirVentas from "../components/SubirVentas";
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const CLAVE_CODIGO = "lumo_paso_codigo_compartido";
 const FUENTE = "var(--font-instrument), sans-serif";
-const TOTAL = 7;
+const TOTAL = 8;
 
 type Estado = {
   negocio: boolean;
@@ -62,6 +62,7 @@ export default function PrimerosPasos() {
   const [estado, setEstado] = useState<Estado | null>(null);
   const [codigo, setCodigo] = useState<string | null>(null);
   const [codigoCompartido, setCodigoCompartido] = useState(false);
+  const [hayProductos, setHayProductos] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [indice, setIndice] = useState(0);
   const pista = useRef<HTMLDivElement | null>(null);
@@ -78,6 +79,10 @@ export default function PrimerosPasos() {
       const r = await fetch(API + "/api/pasos/estado", { headers: { Authorization: "Bearer " + t } });
       if (r.ok) setEstado((await r.json()) as Estado);
     } catch { /* sin conexion: se queda como esta */ }
+    try {
+      const rp = await fetch(API + "/api/productos", { headers: { Authorization: "Bearer " + t } });
+      if (rp.ok) { const d: unknown = await rp.json(); setHayProductos(Array.isArray(d) && d.length >= 3); }
+    } catch { /* sin conexion */ }
   }, []);
 
   useEffect(() => {
@@ -155,9 +160,19 @@ export default function PrimerosPasos() {
   }
 
   const hechos = [
-    !!estado?.negocio, !!estado?.locales, !!estado?.equipo, codigoCompartido,
-    !!estado?.ventas, !!estado?.avisos, !!estado?.turno,
+    hayProductos, !!estado?.equipo, codigoCompartido, !!estado?.turno,
+    !!estado?.avisos, !!estado?.ventas, !!estado?.negocio, !!estado?.locales,
   ];
+
+  // Si llega desde el banner del inicio con ?paso=..., abre directo en esa tarjeta.
+  const saltado = useRef(false);
+  useEffect(() => {
+    if (saltado.current || !estado) return;
+    saltado.current = true;
+    const ids = ["catalogo", "equipo", "codigo", "turno", "avisos", "ventas", "negocio", "locales"];
+    const i = ids.indexOf(new URLSearchParams(window.location.search).get("paso") || "");
+    if (i > 0) setTimeout(() => irA(i), 150);
+  }, [estado]);
   const cantidadHechos = hechos.filter(Boolean).length;
 
   if (!token) {
@@ -177,24 +192,18 @@ export default function PrimerosPasos() {
           onScroll={e => setIndice(Math.round(e.currentTarget.scrollLeft / Math.max(1, e.currentTarget.clientWidth)))}
           style={{ display: "flex", overflowX: "auto", scrollSnapType: "x mandatory", scrollbarWidth: "none", gap: 0 }}
         >
-          <Tarjeta n={1} hecho={hechos[0]} titulo="Tu negocio"
-            texto="Rubro y zona de tu negocio. Con eso NICOLE lo compara con el patrón correcto y con negocios parecidos al tuyo.">
-            {hechos[0]
-              ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Rubro y zona cargados.</div>
-              : <button style={btnPrimario} onClick={() => router.push("/onboarding?desde=pasos")}>Completar los datos</button>}
+          <Tarjeta n={1} hecho={hechos[0]} titulo="Tus productos"
+            texto="Cargá lo que vendés con su precio y su costo. Con eso la caja funciona y NICOLE calcula tu margen. Con tres o cuatro alcanza para empezar.">
+            {hechos[0] && <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Ya tenés productos cargados.</div>}
+            <button style={hechos[0] ? btnSecundario : btnPrimario} onClick={() => router.push("/catalogo")}>{hechos[0] ? "Ver mi catálogo" : "Cargar mis productos"}</button>
           </Tarjeta>
 
-          <Tarjeta n={2} hecho={hechos[1]} titulo="Tus locales"
-            texto="Cargá la dirección de cada local. Así NICOLE analiza cada uno por separado y lo compara con otros de tu zona.">
-            <button style={btnPrimario} onClick={() => router.push("/red")}>Cargar mis locales</button>
+          <Tarjeta n={2} hecho={hechos[1]} titulo="Tu equipo"
+            texto="Creá a cada empleado con su nombre y un PIN de 4 dígitos. El PIN es personal: con él abre y cierra su turno. Si atendés solo, igual creá tu usuario de caja.">
+            <button style={hechos[1] ? btnSecundario : btnPrimario} onClick={() => router.push("/ajustes")}>{hechos[1] ? "Ver mi equipo" : "Crear mis empleados"}</button>
           </Tarjeta>
 
-          <Tarjeta n={3} hecho={hechos[2]} titulo="Tu equipo"
-            texto="Creá a cada empleado con su nombre y un PIN de 4 dígitos. El PIN es personal: con él abre y cierra su turno.">
-            <button style={btnPrimario} onClick={() => router.push("/ajustes")}>Crear mis empleados</button>
-          </Tarjeta>
-
-          <Tarjeta n={4} hecho={hechos[3]} titulo="Cómo entran tus empleados"
+          <Tarjeta n={3} hecho={hechos[2]} titulo="Cómo entran tus empleados"
             texto="Tus empleados entran desde la compu o el celu del local con el código de tu negocio, su nombre y su PIN.">
             <div style={{
               fontFamily: "monospace", fontSize: 28, fontWeight: 800, letterSpacing: 4, textAlign: "center",
@@ -206,23 +215,36 @@ export default function PrimerosPasos() {
             <button style={btnSecundario} disabled={!codigo} onClick={copiarCodigo}>Copiar el código</button>
           </Tarjeta>
 
-          <Tarjeta n={5} hecho={hechos[4]} titulo="Tus ventas"
-            texto="Para que NICOLE te muestre lo que descubre de tu negocio, subí tus ventas (Excel, PDF o una foto del cuaderno) o conectá Mercado Pago.">
-            {hechos[4] && <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Ya hay ventas cargadas.</div>}
+          <Tarjeta n={4} hecho={hechos[3]} titulo="Tu primer turno"
+            texto="Entrá a Modo empleado, abrí un turno con un PIN, hacé una venta de prueba y cerrá. Es la forma más rápida de ver a NICOLE funcionando con tus propios números.">
+            <button style={hechos[3] ? btnSecundario : btnPrimario} onClick={() => router.push("/empleado")}>Abrir Modo empleado</button>
+          </Tarjeta>
+
+          <Tarjeta n={5} hecho={hechos[4]} titulo="Avisos en tu celu"
+            texto="Activá las notificaciones para enterarte en el momento si algo se desvía. Usá Chrome y, si podés, instalá LumoBi en la pantalla de inicio de tu celu.">
+            {hechos[4]
+              ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Los avisos están activados.</div>
+              : <button style={btnPrimario} onClick={activarAvisos}>Activar avisos</button>}
+            <button style={btnSecundario} onClick={() => router.push("/mas")}>Instalar la app en mi celu</button>
+          </Tarjeta>
+
+          <Tarjeta n={6} hecho={hechos[5]} titulo="Tus ventas anteriores (opcional)"
+            texto="Si ya vendías antes, subí tus ventas (Excel, PDF o una foto del cuaderno) o conectá Mercado Pago y NICOLE arranca con historia. Si empezás de cero, saltealo: se llena solo con la caja.">
+            {hechos[5] && <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Ya hay ventas cargadas.</div>}
             <SubirVentas token={token} onListo={() => cargarEstado(token)} />
             <button style={btnSecundario} onClick={conectarMercadoPago}>Conectar Mercado Pago</button>
           </Tarjeta>
 
-          <Tarjeta n={6} hecho={hechos[5]} titulo="Avisos en tu celu"
-            texto="Activá las notificaciones para enterarte en el momento si algo se desvía. Usá Chrome y, si podés, instalá LumoBi en la pantalla de inicio de tu celu.">
-            {hechos[5]
-              ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Los avisos están activados.</div>
-              : <button style={btnPrimario} onClick={activarAvisos}>Activar avisos</button>}
+          <Tarjeta n={7} hecho={hechos[6]} titulo="Tu negocio"
+            texto="Rubro y zona de tu negocio. Con eso NICOLE lo compara con el patrón correcto y con negocios parecidos al tuyo.">
+            {hechos[6]
+              ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Rubro y zona cargados.</div>
+              : <button style={btnPrimario} onClick={() => router.push("/onboarding?desde=pasos")}>Completar los datos</button>}
           </Tarjeta>
 
-          <Tarjeta n={7} hecho={hechos[6]} titulo="Tu primer turno"
-            texto="Entrá a Modo empleado, abrí un turno con un PIN y cerralo. Es la forma de ver a NICOLE funcionando con tus propios números.">
-            <button style={btnPrimario} onClick={() => router.push("/empleado")}>Abrir Modo empleado</button>
+          <Tarjeta n={8} hecho={hechos[7]} titulo="Tus locales (opcional)"
+            texto="Cargá la dirección de cada local para que NICOLE los compare con otros de tu zona. Si tenés uno solo y no te urge, podés dejarlo para después.">
+            <button style={hechos[7] ? btnSecundario : btnPrimario} onClick={() => router.push("/red")}>{hechos[7] ? "Ver mis locales" : "Cargar mis locales"}</button>
           </Tarjeta>
         </div>
 

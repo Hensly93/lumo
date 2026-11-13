@@ -97,6 +97,8 @@ function HomeContent() {
   const { token, ready } = useAuth();
 
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+
+  const [hayVentas, setHayVentas] = useState<boolean | null>(null);
   const [analisis, setAnalisis] = useState<Analisis | null>(null);
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [pred, setPred] = useState<Prediccion | null>(null);
@@ -475,14 +477,25 @@ function HomeContent() {
         ) : (
           <div style={{ padding: "0 16px" }}>
 
-            <BannerPasos token={token} />
+            <BannerPasos token={token} onVentas={setHayVentas} />
 
             {/* Tu Negocio en Vivo */}
-            <FugasCard />
-            <EnVivoCard sucursalId={sucursalId} />
-            <RadiografiaCard />
-            <RecuperadoCard />
-            <PeriodoMesCard sucursalId={sucursalId} />
+            {hayVentas === false ? (
+              <div style={{ margin: "0 0 16px", padding: "16px", borderRadius: 14, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--tinta)", marginBottom: 4 }}>Tu inicio se va llenando solo</div>
+                <div style={{ fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.55 }}>
+                  Apenas haya ventas, acá aparece dónde se te va la plata, cuánto vendés por hora y qué conviene hacer. Hacé una venta de prueba desde la caja o cargá tus ventas anteriores.
+                </div>
+              </div>
+            ) : (
+              <>
+                <FugasCard />
+                <EnVivoCard sucursalId={sucursalId} />
+                <RadiografiaCard />
+                <RecuperadoCard />
+                <PeriodoMesCard sucursalId={sucursalId} />
+              </>
+            )}
 
             {/* Hero Card */}
             <div

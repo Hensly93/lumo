@@ -24,7 +24,7 @@ function hoy(): string {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
-export default function BannerPasos({ token }: { token: string | null }) {
+export default function BannerPasos({ token, onVentas }: { token: string | null; onVentas?: (hay: boolean) => void }) {
   const router = useRouter();
   const [pasos, setPasos] = useState<Paso[] | null>(null);
   const [oculto, setOculto] = useState(false);
@@ -46,6 +46,7 @@ export default function BannerPasos({ token }: { token: string | null }) {
         ]);
         if (!re.ok) return;
         const e = (await re.json()) as Estado;
+        if (onVentas) onVentas(!!e.ventas);
 
         let hayProductos: boolean | null = null;
         if (rp && rp.ok) {
@@ -69,14 +70,19 @@ export default function BannerPasos({ token }: { token: string | null }) {
             boton: "Armar mi equipo", ir: "/mi-local",
           },
           {
-            id: "ventas", hecho: !!e.ventas, titulo: "Subí tus ventas",
-            porque: "Con tus ventas NICOLE aprende cómo funciona tu negocio y empieza a predecir y a avisarte.",
-            boton: "Subir ventas", ir: "/primeros-pasos",
+            id: "turno", hecho: !!e.turno, titulo: "Hacé tu primer turno de prueba",
+            porque: "Es la forma más rápida de ver a NICOLE funcionando con tus propios números: abrís, vendés algo y cerrás.",
+            boton: "Probar la caja", ir: "/empleado",
           },
           {
             id: "avisos", hecho: !!e.avisos, titulo: "Activá los avisos en tu celu",
             porque: "Así te enterás en el momento si algo se desvía, sin tener que entrar a mirar.",
-            boton: "Activar avisos", ir: "/primeros-pasos",
+            boton: "Activar avisos", ir: "/primeros-pasos?paso=avisos",
+          },
+          {
+            id: "ventas", hecho: !!e.ventas, titulo: "Cargá tus ventas anteriores",
+            porque: "Si ya vendías antes, NICOLE arranca con historia y empieza a predecir y a avisarte desde el primer día.",
+            boton: "Subir ventas", ir: "/primeros-pasos?paso=ventas",
           },
           {
             id: "negocio", hecho: !!e.negocio, titulo: "Completá los datos de tu negocio",
@@ -87,11 +93,6 @@ export default function BannerPasos({ token }: { token: string | null }) {
             id: "locales", hecho: !!e.locales, titulo: "Cargá tus locales",
             porque: "Así NICOLE analiza cada local por separado.",
             boton: "Cargar locales", ir: "/red",
-          },
-          {
-            id: "turno", hecho: !!e.turno, titulo: "Hacé tu primer turno de prueba",
-            porque: "Es la forma de ver a NICOLE funcionando con tus propios números.",
-            boton: "Probar la caja", ir: "/empleado",
           },
         );
         if (vivo) setPasos(lista);
