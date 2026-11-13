@@ -286,7 +286,7 @@ export default function Login() {
           <ErrorBox />
           <button type="submit" disabled={loading} style={btnStyle(loading)}>{loading ? "Creando cuenta..." : "Crear cuenta"}</button>
           <p style={{ margin: "2px 0 0", fontSize: 12, color: SUAVE, textAlign: "center", lineHeight: 1.6 }}>
-            Al registrarte aceptás que LumoBi está en versión beta. Sin compromiso.
+            Al crear tu cuenta aceptás los <a href="/terminos" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>términos</a> y la <a href="/privacidad" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>política de privacidad</a>. LumoBi está en versión beta, sin compromiso.
           </p>
         </form>
       )}

@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
-const SIN_PLAN = ["/landing", "/soluciones", "/login", "/empleado", "/reset-password", "/scan", "/scan-dueno", "/salir"];
+const SIN_PLAN = ["/landing", "/soluciones", "/privacidad", "/terminos", "/login", "/empleado", "/reset-password", "/scan", "/scan-dueno", "/salir"];
 const HABLEMOS = "mailto:lumobusinessintel@gmail.com?subject=LumoBi%20para%20mi%20empresa";
 
 type Estado = { estado: "trial" | "activa" | "vencida"; dias_restantes: number | null; sin_vencimiento?: boolean };

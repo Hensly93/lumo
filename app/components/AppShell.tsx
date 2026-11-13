@@ -5,7 +5,7 @@ import PushRegistrar from "./PushRegistrar";
 import PlanGate from "./PlanGate";
 import Tracker from "./Tracker";
 
-const SIN_HEADER = ["/landing", "/soluciones", "/login", "/empleado", "/reset-password", "/onboarding", "/admin"];
+const SIN_HEADER = ["/landing", "/soluciones", "/login", "/empleado", "/reset-password", "/onboarding", "/admin", "/privacidad", "/terminos"];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();

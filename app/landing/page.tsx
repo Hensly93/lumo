@@ -471,6 +471,7 @@ export default function Landing() {
           {PAGINAS.map((p, i) => (
             <span key={p.slug}>{i ? " · " : ""}<Link href={`/soluciones/${p.slug}`}>{p.corto}</Link></span>
           ))}
+          <div style={{ marginTop: 6 }}><Link href="/terminos">Términos</Link> · <Link href="/privacidad">Privacidad</Link></div>
         </div>
       </footer>
 
