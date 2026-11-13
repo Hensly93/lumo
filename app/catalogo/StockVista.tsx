@@ -1,6 +1,7 @@
 "use client";
 // Stock liviano: ver qué hay, qué falta, qué está parado, y contar. No es un depósito: es saber cuánto tenés y cuándo reponer.
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import RankingVista from "./RankingVista";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -35,6 +36,7 @@ export default function StockVista({ token, avisar }: { token: string; avisar: (
   const [abierto, setAbierto] = useState<number | null>(null);
   const [minimo, setMinimo] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [vista, setVista] = useState<"stock" | "ventas">("stock");
 
   const h = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
@@ -83,6 +85,21 @@ export default function StockVista({ token, avisar }: { token: string; avisar: (
 
   if (!prods || !res) return <div style={{ padding: 24, color: "var(--muted)", fontSize: 13, textAlign: "center" }}>Cargando stock…</div>;
 
+  const selector = (
+    <div style={{ display: "flex", gap: 6 }}>
+      <button onClick={() => setVista("stock")} style={{ ...btn(vista === "stock"), flex: 1, padding: "10px 12px", fontSize: 13 }}>Qué tengo</button>
+      <button onClick={() => setVista("ventas")} style={{ ...btn(vista === "ventas"), flex: 1, padding: "10px 12px", fontSize: 13 }}>Qué se vende</button>
+    </div>
+  );
+  if (vista === "ventas") {
+    return (
+      <div style={{ padding: "12px 16px 0", display: "flex", flexDirection: "column", gap: 4 }}>
+        {selector}
+        <RankingVista token={token} avisar={avisar} />
+      </div>
+    );
+  }
+
   const lista = prods.filter(p => {
     if (q && !p.nombre.toLowerCase().includes(q.toLowerCase())) return false;
     if (contando) return true;
@@ -100,6 +117,7 @@ export default function StockVista({ token, avisar }: { token: string; avisar: (
 
   return (
     <div style={{ padding: "12px 16px 0", display: "flex", flexDirection: "column", gap: 10 }}>
+      {selector}
       {res.controlados === 0 ? (
         <div style={caja}>
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Empezá a controlar tu stock</div>
