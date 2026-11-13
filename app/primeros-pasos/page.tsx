@@ -200,7 +200,7 @@ export default function PrimerosPasos() {
 
           <Tarjeta n={2} hecho={hechos[1]} titulo="Tu equipo"
             texto="Creá a cada empleado con su nombre y un PIN de 4 dígitos. El PIN es personal: con él abre y cierra su turno. Si atendés solo, igual creá tu usuario de caja.">
-            <button style={hechos[1] ? btnSecundario : btnPrimario} onClick={() => router.push("/ajustes")}>{hechos[1] ? "Ver mi equipo" : "Crear mis empleados"}</button>
+            <button style={hechos[1] ? btnSecundario : btnPrimario} onClick={() => router.push("/mi-local")}>{hechos[1] ? "Ver mi equipo" : "Crear mis empleados"}</button>
           </Tarjeta>
 
           <Tarjeta n={3} hecho={hechos[2]} titulo="Cómo entran tus empleados"
