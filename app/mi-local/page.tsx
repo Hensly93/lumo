@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import Nav from "../components/Nav";
+import PinDueno from "./PinDueno";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const FUENTE = "var(--font-instrument), sans-serif";
@@ -178,7 +179,9 @@ export default function MiLocal() {
     return <main style={{ background: "var(--bg)", minHeight: "100vh" }} />;
   }
 
-  const link = codigo ? `${window.location.origin}/empleado?c=${encodeURIComponent(codigo)}` : "";
+  // El link que se le da al equipo siempre usa el dominio oficial, aunque abras la app desde la dirección vieja de Vercel
+  const origen = /vercel\.app$/i.test(window.location.hostname) ? "https://lumobi.com.ar" : window.location.origin;
+  const link = codigo ? `${origen}/empleado?c=${encodeURIComponent(codigo)}` : "";
 
   async function copiar() {
     if (!link) return;
@@ -302,6 +305,7 @@ export default function MiLocal() {
             <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Preparando tu link...</div>
           )}
         </div>
+        <PinDueno token={token} />
       </div>
       <Nav />
     </main>

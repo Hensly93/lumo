@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
+import InstalarApp from "./InstalarApp";
 
 const iconColor = "var(--azul)";
 
@@ -44,6 +45,7 @@ export default function MasPage() {
       <PageHeader title="Más" sub="Otras herramientas y configuración" />
 
       <div style={{ padding: "0 12px" }}>
+        <InstalarApp />
         {items.map((item, i) => (
           <div
             key={i}

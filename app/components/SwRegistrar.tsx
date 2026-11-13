@@ -42,6 +42,18 @@ export default function SwRegistrar() {
     window.addEventListener("error", (ev) => recargarSiFaltaArchivo(`${ev?.error?.name ?? ""} ${ev?.message ?? ""}`));
     window.addEventListener("unhandledrejection", (ev) => recargarSiFaltaArchivo(`${ev?.reason?.name ?? ""} ${ev?.reason?.message ?? ""}`));
 
+    // El navegador avisa UNA sola vez que la app se puede instalar: lo guardamos para que el botón de Más lo use en cualquier momento
+    const ventana = window as Window & { __lumoInstalar?: Event | null };
+    window.addEventListener("beforeinstallprompt", (ev) => {
+      ev.preventDefault();
+      ventana.__lumoInstalar = ev;
+      window.dispatchEvent(new Event("lumo-instalar-listo"));
+    });
+    window.addEventListener("appinstalled", () => {
+      ventana.__lumoInstalar = null;
+      window.dispatchEvent(new Event("lumo-instalar-listo"));
+    });
+
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js", { scope: "/", updateViaCache: "none" })
