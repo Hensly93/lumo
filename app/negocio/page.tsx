@@ -67,7 +67,7 @@ export default function NegocioPage() {
 
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Negocio" sub="Análisis y datos de tu negocio" />
+      <PageHeader title="Plata" sub="Dónde se va, cuánto deja y qué viene" />
 
       <div style={{ padding: "0 12px" }}>
         {items.map((item, i) => (

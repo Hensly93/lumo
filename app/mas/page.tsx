@@ -34,15 +34,11 @@ export default function MasPage() {
   const router = useRouter();
 
   const items = [
-    { label: "Catálogo", desc: "Productos, precios y stock", href: "/catalogo", icon: icons.catalogo },
-    { label: "Caja del local", desc: "Tu equipo, sus PINs y el link para vender", href: "/mi-local", icon: icons.equipo },
-    { label: "Control del equipo", desc: "Rendimiento, autorizaciones y actividad de la caja", href: "/empleados", icon: icons.equipo },
-    { label: "Ajustes", desc: "Configuración y cuenta", href: "/ajustes", icon: icons.ajustes },
+    { label: "Ajustes", desc: "Tu negocio, tu plan, avisos y cuenta", href: "/ajustes", icon: icons.ajustes },
   ];
-
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Más" sub="Otras herramientas y configuración" />
+      <PageHeader title="Cuenta" sub="Ajustes e instalación de la app" />
 
       <div style={{ padding: "0 12px" }}>
         <InstalarApp />

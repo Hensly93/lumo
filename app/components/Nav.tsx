@@ -23,39 +23,38 @@ const links: NavItem[] = [
     ),
   },
   {
-    href: "/alertas",
-    label: "Alertas",
+    href: "/negocio",
+    label: "Plata",
     icon: (a) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke={a ? C : M} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="12" cy="12" r="9" stroke={a ? C : M} strokeWidth="1.5" />
+        <path d="M12 6v12M9 9h3.5a2 2 0 010 4H9" stroke={a ? C : M} strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
   {
     href: "/nicole",
     label: "NICOLE",
-    icon: (a) => <NicoleStarIcon size={20} state="idle" />,
+    icon: () => <NicoleStarIcon size={20} state="idle" />,
   },
   {
-    href: "/negocio",
-    label: "Negocio",
+    href: "/catalogo",
+    label: "Productos",
     icon: (a) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="3" width="7" height="7" rx="1" stroke={a ? C : M} strokeWidth="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1" stroke={a ? C : M} strokeWidth="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1" stroke={a ? C : M} strokeWidth="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1" stroke={a ? C : M} strokeWidth="1.5" />
+        <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z" stroke={a ? C : M} strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M3 8l9 5 9-5M12 13v8" stroke={a ? C : M} strokeWidth="1.5" strokeLinejoin="round" />
       </svg>
     ),
   },
   {
-    href: "/mas",
-    label: "Más",
+    href: "/equipo",
+    label: "Equipo",
     icon: (a) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="6" r="1.5" fill={a ? C : M} />
-        <circle cx="12" cy="12" r="1.5" fill={a ? C : M} />
-        <circle cx="12" cy="18" r="1.5" fill={a ? C : M} />
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke={a ? C : M} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="9" cy="7" r="4" stroke={a ? C : M} strokeWidth="1.5" />
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke={a ? C : M} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -64,13 +63,14 @@ const links: NavItem[] = [
 export default function Nav() {
   const path = usePathname();
 
+  // Cada pestaña es un tema del negocio; las pantallas de adentro la dejan marcada.
   const isActive = (href: string) => {
     if (href === "/") return path === "/";
     if (href === "/negocio") {
       return ["/negocio", "/fugas", "/periodos", "/rentabilidad", "/compras", "/predicciones", "/red"].some(p => path.startsWith(p));
     }
-    if (href === "/mas") {
-      return ["/mas", "/empleados", "/catalogo", "/ajustes", "/mi-local"].some(p => path.startsWith(p));
+    if (href === "/equipo") {
+      return ["/equipo", "/empleados", "/mi-local"].some(p => path.startsWith(p));
     }
     return path.startsWith(href);
   };
