@@ -92,7 +92,7 @@ export default function PlanGate() {
     const iv = setInterval(async () => {
       intentos += 1;
       try {
-        const r = await fetch(`${API}/api/plan/estado`, { headers: { Authorization: `Bearer ${t}` } });
+        const r = await fetch(`${API}/api/plan/verificar`, { method: "POST", headers: { Authorization: `Bearer ${t}` } });
         const x: Estado | null = r.ok ? await r.json() : null;
         if (vigente && x && x.estado === "activa") {
           clearInterval(iv); lim();
