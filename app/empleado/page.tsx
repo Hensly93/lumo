@@ -508,6 +508,68 @@ export default function EmpleadoPage() {
   const [sugerencias, setSugerencias] = useState<any[]>([]);
   const [enfocado, setEnfocado] = useState(false);
   const [ventaOk, setVentaOk] = useState("");
+  const [mpDisponible, setMpDisponible] = useState(false);
+  const [qrMP, setQrMP] = useState<{ id: number; qr: string; monto: number } | null>(null);
+  const [qrMPCargando, setQrMPCargando] = useState(false);
+
+  useEffect(() => {
+    if (!turno?.id) return;
+    fetchT(`${API}/api/mp-cobro/disponible`).then((r) => r.json()).then((d) => setMpDisponible(!!d.disponible)).catch(() => {});
+  }, [turno?.id]);
+
+  // Mientras hay un QR esperando, se pregunta cada 3 segundos si ya pagó
+  useEffect(() => {
+    if (!qrMP) return;
+    let vivo = true;
+    const iv = setInterval(async () => {
+      try {
+        const r = await fetchT(`${API}/api/mp-cobro/estado/${qrMP.id}`);
+        const d = await r.json();
+        if (!vivo || !d.estado || d.estado === 'esperando') return;
+        setQrMP(null);
+        if (d.estado === 'pagado') {
+          setError('');
+          setVentaOk(`Venta registrada: ${fmt(qrMP.monto)} con Mercado Pago`);
+          setTimeout(() => setVentaOk(''), 8000);
+          setCarrito({ items: [], total: 0 });
+          document.getElementById('scan-input')?.focus();
+        } else if (d.estado === 'pagado_sin_venta') {
+          setError('El pago de Mercado Pago entró pero la venta no se pudo cerrar. Avisale al dueño.');
+        } else {
+          setError('El cobro con QR se canceló o venció. Probá de nuevo o cobrá con otro medio.');
+        }
+      } catch { /* sigue esperando */ }
+    }, 3000);
+    return () => { vivo = false; clearInterval(iv); };
+  }, [qrMP]);
+
+  async function cobrarConQR() {
+    if (!turno?.id || qrMPCargando) return;
+    setQrMPCargando(true);
+    try {
+      const r = await fetchT(`${API}/api/mp-cobro/qr`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      const d = await r.json();
+      if (!r.ok || !d.qr) { setError(d.error || 'No se pudo generar el QR.'); return; }
+      setError('');
+      setQrMP({ id: d.cobro_id, qr: d.qr, monto: d.monto });
+    } catch { setError('No se pudo generar el QR. Probá de nuevo.'); }
+    finally { setQrMPCargando(false); }
+  }
+
+  async function cancelarQR() {
+    const actual = qrMP;
+    if (!actual) return;
+    try {
+      const r = await fetchT(`${API}/api/mp-cobro/cancelar/${actual.id}`, { method: 'POST' });
+      const d = await r.json();
+      if (d.estado === 'pagado') {
+        setVentaOk(`Venta registrada: ${fmt(actual.monto)} con Mercado Pago`);
+        setTimeout(() => setVentaOk(''), 8000);
+        setCarrito({ items: [], total: 0 });
+      }
+    } catch { /* el cobro vence solo */ }
+    setQrMP(null);
+  }
   const refBusq = useRef<any>(null);
 
   async function refrescarCarrito() {
@@ -1287,6 +1349,26 @@ export default function EmpleadoPage() {
                     {etiqueta}
                   </button>
                 ))}
+                {mpDisponible && (
+                  <button
+                    onClick={cobrarConQR}
+                    disabled={qrMPCargando}
+                    style={{ flex: '1 1 100%', padding: '14px 8px', borderRadius: 14, border: 'none', background: C.primary, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer', opacity: qrMPCargando ? 0.6 : 1 }}
+                  >
+                    {qrMPCargando ? 'Generando QR…' : '📲 Cobrar con QR de Mercado Pago (monto exacto)'}
+                  </button>
+                )}
+                {qrMP && (
+                  <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                    <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%', textAlign: 'center' }}>
+                      <div style={{ fontSize: 13, color: '#5B6472', fontWeight: 600 }}>Que el cliente escanee con Mercado Pago</div>
+                      <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 30, color: '#0A1628', margin: '6px 0 14px' }}>{fmt(qrMP.monto)}</div>
+                      <QRCodeSVG value={qrMP.qr} size={240} />
+                      <div style={{ fontSize: 13, color: '#5B6472', marginTop: 14 }}>Esperando el pago… la venta se cierra sola cuando Mercado Pago la confirma.</div>
+                      <button onClick={cancelarQR} style={{ marginTop: 16, width: '100%', padding: '12px 8px', borderRadius: 12, border: '2px solid #D5DAE1', background: 'transparent', color: '#0A1628', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Cancelar</button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
