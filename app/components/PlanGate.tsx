@@ -5,6 +5,7 @@
 // "Activar mi plan" abre el débito automático de Mercado Pago (la tarjeta se carga en Mercado Pago, no en LumoBi).
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { track } from "../lib/track";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const SIN_PLAN = ["/landing", "/soluciones", "/privacidad", "/terminos", "/login", "/empleado", "/reset-password", "/scan", "/scan-dueno", "/salir"];
@@ -93,7 +94,12 @@ export default function PlanGate() {
       try {
         const r = await fetch(`${API}/api/plan/estado`, { headers: { Authorization: `Bearer ${t}` } });
         const x: Estado | null = r.ok ? await r.json() : null;
-        if (vigente && x && x.estado === "activa") { clearInterval(iv); lim(); window.location.reload(); return; }
+        if (vigente && x && x.estado === "activa") {
+          clearInterval(iv); lim();
+          try { if (sessionStorage.getItem("lb_sub_ok") !== "1") { sessionStorage.setItem("lb_sub_ok", "1"); track("suscripcion_ok"); } } catch { /* sin almacenamiento */ }
+          setTimeout(() => window.location.reload(), 600);
+          return;
+        }
       } catch { /* se reintenta */ }
       if (intentos >= 20) { clearInterval(iv); lim(); if (vigente) setConfirmando(false); }
     }, 3000);

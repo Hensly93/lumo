@@ -78,7 +78,7 @@ function enviar(final: boolean) {
 // Eventos que se mandan a PostHog (el resto queda solo en tu panel propio)
 const POSTHOG_EVENTOS: Record<string, string> = {
   pantalla: "$pageview", cta_landing: "cta_landing", scroll: "scroll_landing",
-  registro_envio: "registro_envio", registro_ok: "registro_ok", registro_error: "registro_error",
+  suscripcion_ok: "suscripcion_ok", registro_envio: "registro_envio", registro_ok: "registro_ok", registro_error: "registro_error",
   login_ok: "login_ok", login_error: "login_error",
 };
 
@@ -92,7 +92,8 @@ export function track(t: string, r?: string, d?: Ev["d"]) {
     const fbq = (window as unknown as { fbq?: (...a: unknown[]) => void }).fbq;
     if (fbq) {
       if (t === "cta_landing") fbq("track", "Lead");
-      else if (t === "registro_ok") fbq("track", "CompleteRegistration");
+      else if (t === "registro_ok") { fbq("track", "CompleteRegistration"); fbq("track", "StartTrial"); }
+      else if (t === "suscripcion_ok") fbq("track", "Subscribe");
     }
   } catch { /* el Pixel no debe romper nada */ }
   // PostHog: solo nombres de eventos y la ruta. Nunca textos escritos ni montos.
