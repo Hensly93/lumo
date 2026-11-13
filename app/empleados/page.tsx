@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import Autorizaciones from "./Autorizaciones";
+import ActividadCaja from "./ActividadCaja";
 import { PageHeader, StatRow, StatCard, SectionTitle, EmployeeCard, AlertCard, FilterChips, Divider } from "../components/ui";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -282,6 +283,7 @@ export default function Empleados() {
           )}
 
           <Autorizaciones token={token} />
+          <ActividadCaja token={token} />
 
           {erm && Array.isArray(erm.empleados) && erm.empleados.length > 0 && (
             <>
