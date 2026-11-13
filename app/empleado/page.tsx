@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { useAutorizacion } from "./Autorizacion";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -207,6 +208,7 @@ const NumpadKey = ({ value, onPress }: { value: string; onPress: () => void }) =
 );
 
 function PrecioModal({ turnoId, onClose }: { turnoId: number; onClose: () => void }) {
+  const aut = useAutorizacion(fetchT, API);
   const [codigo, setCodigo] = useState("");
   const [prod, setProd] = useState<{ id: number; nombre: string; precio_venta: number | string | null } | null>(null);
   const [precio, setPrecio] = useState("");
@@ -240,7 +242,8 @@ function PrecioModal({ turnoId, onClose }: { turnoId: number; onClose: () => voi
     }
   }
 
-  async function guardar() {
+  function guardar() { return guardarCon(); }
+  async function guardarCon(autId?: number) {
     if (!prod || guardando) return;
     const p = parseFloat(precio);
     const c = parseFloat(costo);
@@ -249,10 +252,11 @@ function PrecioModal({ turnoId, onClose }: { turnoId: number; onClose: () => voi
     try {
       const r = await fetchT(`${API}/api/scanner/producto/${prod.id}/precio`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(autId ? { 'x-autorizacion': String(autId) } : {}) },
         body: JSON.stringify({ precio_venta: p > 0 ? p : undefined, precio_costo: c > 0 ? c : undefined }),
       });
       const d = await r.json();
+      if (r.status === 403 && aut.requiere(d, (id) => guardarCon(id))) return;
       if (!r.ok) throw new Error(d.error || "No se pudo guardar");
       setHechos(h => [`${prod.nombre}: ${p > 0 ? fmt(p) : "costo actualizado"}`, ...h].slice(0, 6));
       setProd(null);
@@ -274,6 +278,7 @@ function PrecioModal({ turnoId, onClose }: { turnoId: number; onClose: () => voi
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.6)', zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', fontFamily: 'var(--font-instrument), sans-serif' }}>
+        {aut.modal}
         <div style={{ fontWeight: 800, fontSize: 20, color: C.text, marginBottom: 4 }}>Cambiar precios</div>
         <div style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.5 }}>
           Escaneá el producto con la pistola, escribí el precio nuevo y apretá Enter. Queda registrado a tu nombre.
@@ -497,6 +502,7 @@ export default function EmpleadoPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [tick, setTick] = useState(0);
+  const aut = useAutorizacion(fetchT, API);
   const [carrito, setCarrito] = useState<{ items: any[]; total: number } | null>(null);
   const [scanBuffer, setScanBuffer] = useState("");
   const [sugerencias, setSugerencias] = useState<any[]>([]);
@@ -527,17 +533,23 @@ export default function EmpleadoPage() {
     await refrescarCarrito();
   }
 
-  async function cambiarCantidad(item: any, nueva: number) {
+  async function cambiarCantidad(item: any, nueva: number, autId?: number) {
     if (!turno?.id) return;
+    const extra: Record<string, string> = autId ? { 'x-autorizacion': String(autId) } : {};
     try {
+      let r: Response;
       if (nueva <= 0) {
-        await fetchT(`${API}/api/scanner/carrito/${turno.id}/${item.id}`, { method: 'DELETE' });
+        r = await fetchT(`${API}/api/scanner/carrito/${turno.id}/${item.id}`, { method: 'DELETE', headers: extra });
       } else {
-        await fetchT(`${API}/api/scanner/carrito/${turno.id}/${item.id}/cantidad`, {
+        r = await fetchT(`${API}/api/scanner/carrito/${turno.id}/${item.id}/cantidad`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...extra },
           body: JSON.stringify({ cantidad: nueva }),
         });
+      }
+      if (r.status === 403) {
+        const d = await r.json().catch(() => null);
+        if (aut.requiere(d, (id) => cambiarCantidad(item, nueva, id))) return;
       }
     } catch { setError('No se pudo cambiar la cantidad.'); }
     await refrescarCarrito();
@@ -1084,6 +1096,7 @@ export default function EmpleadoPage() {
 
     return (
       <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', paddingBottom: 32 }}>
+        {aut.modal}
         {/* Header gradient card */}
         <div style={{
           background: `linear-gradient(135deg, ${C.primary} 0%, #00C2FF 100%)`,
