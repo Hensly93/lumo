@@ -6,10 +6,11 @@ import Nav from "../components/Nav";
 import { PageHeader } from "../components/ui";
 import { QRCodeSVG } from "qrcode.react";
 import PreciosMasivo from "./PreciosMasivo";
+import StockVista from "./StockVista";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
-type Vista = "catalogo" | "metodos" | "cargando" | "preview" | "manual" | "pistola" | "precios";
+type Vista = "catalogo" | "metodos" | "cargando" | "preview" | "manual" | "pistola" | "precios" | "stock";
 type Orden = "nombre" | "margen" | "sin_costo";
 
 type Producto = {
@@ -889,6 +890,15 @@ export default function Catalogo() {
     </main>
   );
 
+  if (vista === "stock") return (
+    <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
+      {toast && <Toast msg={toast.msg} ok={toast.ok} />}
+      <Encabezado titulo="Stock" sub="Qué tenés, qué se termina y qué está parado" atras={() => setVista("catalogo")} />
+      {token && <StockVista token={token} avisar={showToast} />}
+      <Nav />
+    </main>
+  );
+
   if (vista === "pistola") return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
@@ -1334,6 +1344,12 @@ export default function Catalogo() {
           <div style={{ padding: "8px 16px 0" }}>
             <button onClick={() => setVista("precios")} style={{ ...btnSecundario, width: "100%", padding: "12px", color: "var(--text)" }}>
               Actualizar precios en bloque
+            </button>
+          </div>
+
+          <div style={{ padding: "8px 16px 0" }}>
+            <button onClick={() => setVista("stock")} style={{ ...btnSecundario, width: "100%", padding: "12px", color: "var(--text)" }}>
+              Stock: qué tenés y qué reponer
             </button>
           </div>
         </div>
