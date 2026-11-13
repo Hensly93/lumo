@@ -244,135 +244,21 @@ function SecNegocio({ token, perfil, onSave }: { token: string; perfil: Perfil; 
   );
 }
 
-// ── SecEmpleados ──────────────────────────────────────────────────
+// ── SecEmpleados ─────────────────────────────────
+// El equipo (altas, PINs y permisos) se maneja en un solo lugar: Caja del local.
 function SecEmpleados({ token }: { token: string }) {
-  const [empleados, setEmpleados] = useState<Empleado[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ nombre: "", pin: "", pinConfirm: "" });
-  const [editando, setEditando] = useState<Empleado | null>(null);
-  const [editForm, setEditForm] = useState({ nombre: "", pin: "", pinConfirm: "", puedeCargarProductos: false });
-  const [guardando, setGuardando] = useState(false);
-  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
-
-  function toast(text: string, ok: boolean) { setMsg({ text, ok }); setTimeout(() => setMsg(null), 3000); }
-
-  const cargar = async () => {
-    setLoading(true);
-    const r = await fetch(`${API}/api/usuario/empleados`, { headers: { Authorization: `Bearer ${token}` } });
-    setEmpleados(await r.json());
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    cargar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-
-  async function agregar() {
-    if (!form.nombre.trim()) { toast("El nombre es obligatorio", false); return; }
-    if (form.pin.length !== 4) { toast("PIN debe tener 4 dígitos", false); return; }
-    if (form.pin !== form.pinConfirm) { toast("Los PINs no coinciden", false); return; }
-    setGuardando(true);
-    try {
-      const r = await fetch(`${API}/api/usuario/empleados`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ nombre: form.nombre.trim(), pin: form.pin }),
-      });
-      if (!r.ok) throw new Error((await r.json()).error);
-      setForm({ nombre: "", pin: "", pinConfirm: "" });
-      await cargar();
-      toast("Empleado agregado ✓", true);
-    } catch (e: unknown) {
-      toast(e instanceof Error ? e.message : "Error", false);
-    } finally { setGuardando(false); }
-  }
-
-  async function guardarEdicion() {
-    if (!editando) return;
-    if (editForm.pin && editForm.pin !== editForm.pinConfirm) { toast("Los PINs no coinciden", false); return; }
-    if (editForm.pin && editForm.pin.length !== 4) { toast("PIN debe tener 4 dígitos", false); return; }
-    setGuardando(true);
-    try {
-      const body: Record<string, string | boolean> = { puede_cargar_productos: editForm.puedeCargarProductos };
-      if (editForm.nombre.trim()) body.nombre = editForm.nombre.trim();
-      if (editForm.pin) body.pin = editForm.pin;
-      await fetch(`${API}/api/usuario/empleados/${editando.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      });
-      setEditando(null); await cargar(); toast("Actualizado ✓", true);
-    } catch { toast("Error al guardar", false); }
-    finally { setGuardando(false); }
-  }
-
-  async function eliminar(id: number, nombre: string) {
-    if (!confirm(`¿Desactivar a ${nombre}?`)) return;
-    await fetch(`${API}/api/usuario/empleados/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
-    await cargar(); toast("Empleado eliminado", true);
-  }
-
-  const rowStyle: React.CSSProperties = { display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 12, padding: "12px 14px" };
-
+  void token;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {msg && <Toast msg={msg.text} ok={msg.ok} />}
-      {loading ? (
-        <div style={{ color: "var(--muted)", fontSize: 13 }}>Cargando...</div>
-      ) : empleados.length === 0 ? (
-        <div style={{ color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "12px 0" }}>No hay empleados registrados todavía.</div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {empleados.map(e => (
-            <div key={e.id}>
-              {editando?.id === e.id ? (
-                <div style={{ background: "var(--card2)", border: "1px solid #007AFF25", borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-                  <input style={inp()} placeholder={`Nuevo nombre (actual: ${e.nombre})`} value={editForm.nombre} onChange={ev => setEditForm(f => ({ ...f, nombre: ev.target.value }))} />
-                  <PINInput value={editForm.pin} onChange={v => setEditForm(f => ({ ...f, pin: v }))} placeholder="Nuevo PIN (vacío = no cambiar)" />
-                  {editForm.pin.length > 0 && <PINInput value={editForm.pinConfirm} onChange={v => setEditForm(f => ({ ...f, pinConfirm: v }))} placeholder="Confirmar PIN" />}
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text)", cursor: "pointer" }}>
-                    <input type="checkbox" checked={editForm.puedeCargarProductos} onChange={ev => setEditForm(f => ({ ...f, puedeCargarProductos: ev.target.checked }))} style={{ width: 16, height: 16 }} />
-                    Puede cargar productos nuevos
-                  </label>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => setEditando(null)} style={{ flex: 1, padding: "10px", background: "none", border: "1px solid var(--border)", borderRadius: 10, color: "var(--muted)", fontSize: 13, cursor: "pointer" }}>Cancelar</button>
-                    <button onClick={guardarEdicion} disabled={guardando} style={{ flex: 2, padding: "10px", background: "linear-gradient(135deg,#007AFF12,#00C2FF08)", border: "1px solid #007AFF25", borderRadius: 10, color: "var(--cyan)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                      {guardando ? "..." : "Guardar"}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div style={rowStyle}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{e.nombre}</div>
-                    {e.sucursal_nombre && <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{e.sucursal_nombre}</div>}
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => { setEditando(e); setEditForm({ nombre: "", pin: "", pinConfirm: "", puedeCargarProductos: e.puede_cargar_productos }); }} style={{ padding: "6px 12px", background: "none", border: "1px solid var(--border)", borderRadius: 8, color: "var(--muted)", fontSize: 12, cursor: "pointer" }}>Editar</button>
-                    <button onClick={() => eliminar(e.id, e.nombre)} style={{ padding: "6px 10px", background: "none", border: "1px solid #EF444430", borderRadius: 8, color: "var(--red)", fontSize: 12, cursor: "pointer" }}>×</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-      <div style={{ background: "var(--card2)", border: "1px solid var(--border)", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>// Agregar empleado</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <input style={inp()} placeholder="Nombre del empleado" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} />
-          <PINInput value={form.pin} onChange={v => setForm(f => ({ ...f, pin: v }))} />
-          {form.pin.length === 4 && <PINInput value={form.pinConfirm} onChange={v => setForm(f => ({ ...f, pinConfirm: v }))} placeholder="Confirmar PIN" />}
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <Btn label={guardando ? "Guardando..." : "Agregar"} onClick={agregar} disabled={guardando} />
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6 }}>
+        Tus empleados, sus PIN y quién puede cambiar precios se manejan desde <strong style={{ color: "var(--text)" }}>Caja del local</strong>, junto con el link y el QR para abrir la caja.
       </div>
+      <a href="/mi-local" style={{ display: "block", textAlign: "center", padding: "13px 16px", borderRadius: 12, background: "var(--azul, #0A5BD3)", color: "#fff", fontSize: 14, fontWeight: 700, textDecoration: "none" }}>
+        Ir a Caja del local
+      </a>
     </div>
   );
 }
-
 // ── SecMP ─────────────────────────────────────────────────────────
 function SecMP({ token }: { token: string }) {
   const [mp, setMp] = useState<{ conectado: boolean; mp_email?: string; fecha_expiracion?: string } | null>(null);

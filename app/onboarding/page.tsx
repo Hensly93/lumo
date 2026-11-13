@@ -27,7 +27,7 @@ function Contador({ titulo, valor, min, max, onChange }: {
 function OnboardingInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [pantalla, setPantalla] = useState<"bienvenida"|"registro"|"nicole"|"procesando"|"wow">("bienvenida");
+  const [pantalla, setPantalla] = useState<"bienvenida"|"registro">("bienvenida");
   const [nombreNegocio, setNombreNegocio] = useState("");
   const [tipoNegocio, setTipoNegocio] = useState("");
   const [zona, setZona] = useState("");
@@ -48,7 +48,6 @@ function OnboardingInner() {
       .catch(() => { if (vigente) setCalculo(null); });
     return () => { vigente = false; };
   }, [locales, cajas, empleados]);
-  const [procesandoStep, setProcesandoStep] = useState(0);
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
 
@@ -114,54 +113,7 @@ function OnboardingInner() {
     }
   };
 
-  const handleMPConnect = () => {
-    window.location.href = `${API}/api/mp/conectar?token=${token}`;
-  };
-
-  const handleSubirArchivo = () => {
-    setPantalla("procesando");
-    simularProcesamiento();
-  };
-
-  const simularProcesamiento = () => {
-    for (let i = 1; i <= 5; i++) {
-      setTimeout(() => {
-        setProcesandoStep(i);
-        if (i === 5) {
-          setTimeout(() => {
-            setPantalla("wow");
-          }, 800);
-        }
-      }, i * 1200);
-    }
-  };
-
-  const terminar = async () => {
-    try {
-      await fetch(`${API}/api/perfil`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ onboarding_done: true })
-      });
-
-      const usuarioStr = localStorage.getItem("lumo_usuario");
-      if (usuarioStr) {
-        const usuario = JSON.parse(usuarioStr);
-        usuario.onboarding_done = true;
-        localStorage.setItem("lumo_usuario", JSON.stringify(usuario));
-      }
-
-      router.replace("/");
-    } catch (err) {
-      console.error("Error finalizando onboarding:", err);
-      router.replace("/");
-    }
-  };
-
-  const progreso = pantalla === "registro" ? 33 : pantalla === "nicole" ? 66 : 0;
+  const progreso = pantalla === "registro" ? 50 : 0;
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
@@ -388,224 +340,6 @@ function OnboardingInner() {
         </div>
       )}
 
-      {pantalla === "nicole" && (
-        <div style={{ background: "var(--bg)", padding: "24px", paddingTop: "32px", minHeight: "100vh" }}>
-          <div style={{ height: "3px", background: "var(--border)", borderRadius: "999px", overflow: "hidden", marginBottom: "8px" }}>
-            <div style={{ height: "100%", width: `${progreso}%`, background: "#007AFF", transition: "width 0.5s" }} />
-          </div>
-
-          <p style={{ fontSize: "12px", color: "#007AFF", fontWeight: 600, marginBottom: "24px", textAlign: "center" }}>
-            Tu NICOLE está al {progreso}% de su potencial
-          </p>
-
-          <h1 style={{ fontFamily: "var(--font-instrument), sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", marginBottom: "4px" }}>
-            Despertá a NICOLE
-          </h1>
-
-          <p style={{ fontSize: "14px", color: "var(--muted)", marginBottom: "24px" }}>
-            Sin tus ventas no puede ver nada
-          </p>
-
-          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "16px", padding: "24px", marginBottom: "20px", overflow: "hidden", position: "relative" }}>
-            <svg width="100%" height="160" viewBox="0 0 300 160" style={{ display: "block" }}>
-              <line x1="30" y1="80" x2="60" y2="30" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 2s infinite alternate" }} />
-              <line x1="60" y1="30" x2="90" y2="120" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 2.5s infinite alternate" }} />
-              <line x1="120" y1="50" x2="150" y2="90" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 3s infinite alternate" }} />
-              <line x1="150" y1="90" x2="170" y2="30" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 2.2s infinite alternate" }} />
-              <line x1="200" y1="70" x2="220" y2="130" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 2.8s infinite alternate" }} />
-              <line x1="240" y1="50" x2="260" y2="90" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 2.4s infinite alternate" }} />
-              <line x1="150" y1="90" x2="150" y2="140" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 2.6s infinite alternate" }} />
-              <line x1="260" y1="90" x2="280" y2="40" stroke="rgba(0,122,255,0.2)" strokeWidth="0.5" style={{ animation: "nicPulse 3s infinite alternate" }} />
-
-              <circle cx="30" cy="80" r="3" fill="#007AFF" style={{ animation: "float-0 3s ease-in-out infinite alternate, nicPulse 2s infinite" }} />
-              <circle cx="60" cy="30" r="3" fill="#00C2FF" style={{ animation: "float-1 2.5s ease-in-out infinite alternate 0.3s, nicPulse 1.8s infinite" }} />
-              <circle cx="90" cy="120" r="3" fill="#007AFF" style={{ animation: "float-2 3.5s ease-in-out infinite alternate 0.6s, nicPulse 2.2s infinite" }} />
-              <circle cx="120" cy="50" r="3" fill="#00C2FF" style={{ animation: "float-3 3s ease-in-out infinite alternate 0.9s, nicPulse 1.5s infinite" }} />
-              <circle cx="150" cy="90" r="3" fill="#007AFF" style={{ animation: "float-4 2.8s ease-in-out infinite alternate 1.2s, nicPulse 2.5s infinite" }} />
-              <circle cx="170" cy="30" r="3" fill="#00C2FF" style={{ animation: "float-5 4s ease-in-out infinite alternate 0.2s, nicPulse 1.7s infinite" }} />
-              <circle cx="200" cy="70" r="3" fill="#007AFF" style={{ animation: "float-6 3.2s ease-in-out infinite alternate 0.5s, nicPulse 2.3s infinite" }} />
-              <circle cx="220" cy="130" r="3" fill="#00C2FF" style={{ animation: "float-7 2.7s ease-in-out infinite alternate 0.8s, nicPulse 1.9s infinite" }} />
-              <circle cx="240" cy="50" r="3" fill="#007AFF" style={{ animation: "float-8 3.3s ease-in-out infinite alternate 1.1s, nicPulse 2.1s infinite" }} />
-              <circle cx="260" cy="90" r="3" fill="#00C2FF" style={{ animation: "float-9 2.9s ease-in-out infinite alternate 1.4s, nicPulse 2.7s infinite" }} />
-              <circle cx="280" cy="40" r="3" fill="#007AFF" style={{ animation: "float-10 3.4s ease-in-out infinite alternate 0.4s, nicPulse 2s infinite" }} />
-              <circle cx="150" cy="140" r="3" fill="#00C2FF" style={{ animation: "float-11 3.1s ease-in-out infinite alternate 0.7s, nicPulse 2.4s infinite" }} />
-            </svg>
-
-            <p style={{ color: "#007AFF", fontSize: "10px", letterSpacing: "4px", textAlign: "center", marginTop: "8px", fontWeight: 600 }}>
-              NICOLE
-            </p>
-            <p style={{ color: "var(--muted)", fontSize: "13px", textAlign: "center", marginTop: "4px" }}>
-              Necesito tus ventas para arrancar...
-            </p>
-          </div>
-
-          <button
-            onClick={handleMPConnect}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-              width: "100%",
-              padding: "18px 20px",
-              background: "rgba(0,122,255,0.12)",
-              border: "1px solid rgba(0,122,255,0.4)",
-              borderRadius: "14px",
-              marginBottom: "10px",
-              cursor: "pointer"
-            }}
-          >
-            <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "#007AFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>
-              💳
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--text)" }}>Conectar Mercado Pago</div>
-              <div style={{ fontSize: "12px", color: "var(--muted)" }}>Ve todo en tiempo real</div>
-            </div>
-            <div style={{ color: "#007AFF", fontSize: "24px", marginLeft: "auto" }}>›</div>
-          </button>
-
-          <button
-            onClick={handleSubirArchivo}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-              width: "100%",
-              padding: "18px 20px",
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid var(--border)",
-              borderRadius: "14px",
-              marginBottom: "10px",
-              cursor: "pointer"
-            }}
-          >
-            <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>
-              📄
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--text)" }}>Subir mis ventas</div>
-              <div style={{ fontSize: "12px", color: "var(--muted)" }}>Excel o CSV</div>
-            </div>
-            <div style={{ color: "#94A3B8", fontSize: "24px", marginLeft: "auto" }}>›</div>
-          </button>
-
-          <p onClick={terminar} style={{ fontSize: "12px", color: "#94A3B8", textAlign: "center", marginTop: "20px", cursor: "pointer" }}>
-            o lo hago después — NICOLE no podrá analizar tu negocio
-          </p>
-        </div>
-      )}
-
-      {pantalla === "procesando" && (
-        <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-          <div style={{
-            width: "100px",
-            height: "100px",
-            borderRadius: "50%",
-            border: "2px solid #007AFF",
-            background: "radial-gradient(circle at center, rgba(0,122,255,0.3), transparent)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: "32px",
-            animation: "pulse 2s infinite"
-          }}>
-            <svg width="56" height="56" viewBox="0 0 56 56">
-              <ellipse cx="28" cy="28" rx="16" ry="10" fill="none" stroke="#007AFF" strokeWidth="2" />
-              <circle cx="28" cy="28" r="6" fill="#007AFF" />
-            </svg>
-          </div>
-
-          <h1 style={{ fontFamily: "var(--font-instrument), sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--text)", textAlign: "center", marginBottom: "8px" }}>
-            NICOLE está revisando tu negocio
-          </h1>
-
-          <p style={{ fontSize: "14px", color: "var(--muted)", textAlign: "center", marginBottom: "40px" }}>
-            Ya casi. En unos segundos te contamos lo que encontramos.
-          </p>
-
-          <div style={{ width: "100%", maxWidth: "300px" }}>
-            {[
-              "Tus ventas llegaron bien",
-              "Revisando cómo venís cada turno",
-              "Buscando dónde se va la plata...",
-              "Calculando cuánto es en pesos",
-              "Armando tu primer reporte"
-            ].map((item, index) => {
-              const completado = procesandoStep > index;
-              const enProgreso = procesandoStep === index + 1;
-
-              return (
-                <div key={index} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 0", textAlign: "left", width: "100%" }}>
-                  <div style={{
-                    width: "10px",
-                    height: "10px",
-                    borderRadius: "50%",
-                    background: completado ? "#00C48C" : enProgreso ? "#007AFF" : "rgba(255,255,255,0.15)",
-                    animation: enProgreso ? "pulse 1.5s infinite" : "none"
-                  }} />
-                  <span style={{ fontSize: "14px", color: completado ? "white" : "rgba(255,255,255,0.3)" }}>
-                    {item}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {pantalla === "wow" && (
-        <div style={{ background: "var(--bg)", minHeight: "100vh", padding: "48px 24px 32px", display: "flex", flexDirection: "column" }}>
-          <p style={{ fontSize: "11px", letterSpacing: "3px", color: "#007AFF", textTransform: "uppercase", textAlign: "center", marginBottom: "32px", fontWeight: 600 }}>
-            NICOLE DETECTÓ ALGO
-          </p>
-
-
-            <div style={{ textAlign: "center", marginBottom: "20px", padding: "24px", background: "rgba(0,122,255,0.08)", borderRadius: "16px" }}>
-              <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)", marginBottom: "8px" }}>NICOLE está analizando tu negocio</div>
-              <div style={{ fontSize: "14px", color: "var(--muted)" }}>{nombreNegocio || "Tu negocio"} va a tener su primer reporte personalizado en las próximas horas.</div>
-            </div>
-
-          <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "20px 0" }} />
-
-          <div style={{ marginTop: "auto", paddingTop: "32px" }}>
-            <button
-              onClick={terminar}
-              style={{
-                background: "linear-gradient(135deg, #FF9500, #FF6B00)",
-                width: "100%",
-                padding: "16px",
-                borderRadius: "14px",
-                fontSize: "16px",
-                fontWeight: 700,
-                color: "var(--text)",
-                border: "none",
-                marginBottom: "12px",
-                cursor: "pointer",
-                boxShadow: "0 4px 20px rgba(255,149,0,0.4)"
-              }}
-            >
-              Ver qué está pasando →
-            </button>
-
-            <button
-              onClick={terminar}
-              style={{
-                background: "transparent",
-                border: "1px solid var(--border)",
-                borderRadius: "14px",
-                color: "var(--muted)",
-                fontSize: "14px",
-                fontWeight: 600,
-                width: "100%",
-                padding: "14px",
-                cursor: "pointer"
-              }}
-            >
-              Ver resumen completo
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
