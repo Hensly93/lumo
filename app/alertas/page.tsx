@@ -350,7 +350,7 @@ export default function Alertas() {
                     title: a.mensaje,
                     text: fb
                       ? (fb === "confirmada" ? "Marcaste que este aviso era cierto. LumoBi aprende y va a avisarte mejor la próxima." : "Marcaste que este aviso estaba mal. LumoBi aprende y va a avisar menos cosas así.")
-                      : a.tipo || "Algo fuera de lo normal",
+                      : (a.tipo && !/^[A-Z0-9_]+$/.test(a.tipo) ? a.tipo : "Algo fuera de lo normal en tu negocio"),
                     details: {
                       description: a.mensaje,
                       evidence,

@@ -93,6 +93,14 @@ const NOMBRE_SENAL: Record<string, { titulo: string; explica: string }> = {
   BRECHA_PROMEDIO: { titulo: "Diferencia promedio de caja", explica: "Promedio de las diferencias entre lo esperado y lo declarado al cerrar, y porcentaje de turnos con diferencia." },
   COMPORTAMIENTO_PEERS: { titulo: "Distinto del resto del equipo", explica: "Compara con otras personas que trabajaron el mismo turno." },
   OMISION_CONTEOS: { titulo: "Conteos aleatorios sin responder", explica: "Porcentaje de conteos de caja a mitad de turno que no se respondieron." },
+  CUSUM_CAMBIO_CONDUCTUAL: { titulo: "Cambió su forma de cerrar la caja", explica: "Últimamente sus cierres vienen distintos a como eran antes." },
+  ZSCORE_BRECHA: { titulo: "Diferencia de caja más grande que lo normal", explica: "La diferencia de este turno es mucho mayor que lo que pasa normalmente en tu negocio." },
+  TICKET_INFLADO: { titulo: "Pocas ventas para tanta plata", explica: "Se declaró mucha plata para las pocas ventas que se cargaron." },
+  TRAMO1_ANOMALO: { titulo: "Movimiento raro en la primera parte del turno", explica: "Entre que se abrió la caja y el conteo del medio entró o salió más plata que lo normal." },
+  TRAMO2_ANOMALO: { titulo: "Movimiento raro en la segunda parte del turno", explica: "Entre el conteo del medio y el cierre entró o salió más plata que lo normal." },
+  CONTEO_OMITIDO: { titulo: "No respondió un conteo de caja", explica: "Se le pidió contar la caja a mitad de turno y no respondió." },
+  BRECHA_CAJA: { titulo: "Diferencia de caja", explica: "Lo que había en la caja al cerrar no coincide con lo que se vendió." },
+  CRUCE_CAJA_TURNO: { titulo: "La caja no cierra con las ventas", explica: "Lo que se contó al cerrar no coincide con lo que se vendió en ese turno." },
   RACHA_POSITIVA: { titulo: "Racha sin diferencias", explica: "Turnos seguidos con diferencia de hasta $500. Baja el puntaje." },
 };
 
@@ -133,7 +141,7 @@ function DetalleRiesgo({ e, turnos }: { e: EmpleadoERM; turnos: TurnoEvidencia[]
 
       {e.score !== null && <Titulo>De dónde sale el puntaje</Titulo>}
       {e.score === null ? null : e.señales.length === 0 ? (
-        <div style={{ fontSize: 11, color: "var(--muted)" }}>Ninguna señal superó su umbral.</div>
+        <div style={{ fontSize: 11, color: "var(--muted)" }}>No vimos nada raro en sus turnos.</div>
       ) : e.señales.map(s => {
         const info = NOMBRE_SENAL[s.tipo];
         return (
