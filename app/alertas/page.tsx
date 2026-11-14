@@ -10,6 +10,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.
 
 type Alerta = {
   id_interno: string;
+  url?: string;
   tipo: string;
   prioridad: string;
   mensaje: string;
@@ -364,13 +365,16 @@ export default function Alertas() {
                     variant={alertVariant(a.prioridad)}
                     tag={alertTag(a.prioridad)}
                     title={a.mensaje}
-                    desc={fb ? (fb === "confirmada" ? "Confirmada — motor ajustado" : "Descartada — motor ajustado") : a.accion}
+                    desc={fb ? (fb === "confirmada" ? "Marcaste que es cierto: LumoBi aprende" : "Marcaste que estaba mal: LumoBi aprende") : a.accion}
                     time={a.timestamp
                       ? new Date(a.timestamp).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
                       : undefined}
-                    actions={fb ? undefined : {
-                      primary: "Es real",
-                      secondary: "Falso positivo",
+                    actions={fb ? undefined : !a.id_interno ? (a.url ? {
+                      primary: "Ver detalle",
+                      onPrimary: (e: React.MouseEvent) => { e.stopPropagation(); router.push(a.url as string); },
+                    } : undefined) : {
+                      primary: "Es cierto",
+                      secondary: "Está mal",
                       onPrimary: (e: React.MouseEvent) => {
                         e.stopPropagation();
                         darFeedback(a.id_interno, true);

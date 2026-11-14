@@ -57,6 +57,7 @@ type TurnoEvidencia = {
   brecha: number | string | null;
   conteo_aleatorio_omitido: boolean | null;
   conteo_aleatorio2_omitido: boolean | null;
+  gasto_inesperado?: boolean | null;
 };
 
 type ERMNegocio = {
@@ -187,6 +188,7 @@ function DetalleRiesgo({ e, turnos }: { e: EmpleadoERM; turnos: TurnoEvidencia[]
               {dif === null ? "Sin diferencia calculada" : Math.abs(dif) < 1 ? "Sin diferencia" : `Diferencia ${pesos(dif)} ${dif > 0 ? "de menos" : "de más"}`}
               {omitidos > 0 ? ` · ${omitidos} conteo(s) sin responder` : ""}
             </div>
+            {dif !== null && dif > 500 && <MarcaGasto turnoId={t.id} inicial={!!t.gasto_inesperado} />}
           </div>
         );
       })}
@@ -194,6 +196,34 @@ function DetalleRiesgo({ e, turnos }: { e: EmpleadoERM; turnos: TurnoEvidencia[]
       <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 12, lineHeight: 1.45 }}>
         Estos datos describen diferencias de caja y conteos. Por sí solos no indican la causa: pueden deberse a errores de registro, gastos no cargados o cambios en la forma de trabajar.
       </div>
+    </div>
+  );
+}
+
+// Si la plata que faltó fue un gasto que no se cargó (un proveedor, un retiro), el dueño lo marca
+// y ese cierre deja de contar como faltante en Fugas, Alertas, Períodos y avisos.
+function MarcaGasto({ turnoId, inicial }: { turnoId: number; inicial: boolean }) {
+  const [marcado, setMarcado] = useState(inicial);
+  const [enviando, setEnviando] = useState(false);
+  const cambiar = async () => {
+    setEnviando(true);
+    try {
+      const r = await fetch(`${API}/api/caja/gasto-inesperado`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("lumo_token")}` },
+        body: JSON.stringify({ turno_id: turnoId, valor: !marcado }),
+      });
+      if (r.ok) setMarcado(!marcado);
+    } catch { /* sin conexión: queda como estaba */ }
+    setEnviando(false);
+  };
+  return (
+    <div style={{ marginTop: 4, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+      {marcado && <span style={{ fontSize: 10, color: "var(--emerald)", fontWeight: 700 }}>Marcado como gasto: no cuenta como faltante</span>}
+      <button disabled={enviando} onClick={(e) => { e.stopPropagation(); cambiar(); }}
+        style={{ fontSize: 10, fontWeight: 700, padding: "4px 8px", borderRadius: 6, border: "1px solid var(--border)", background: "var(--card2)", color: "var(--text)", cursor: "pointer" }}>
+        {marcado ? "Deshacer" : "Fue un gasto que no se cargó"}
+      </button>
     </div>
   );
 }

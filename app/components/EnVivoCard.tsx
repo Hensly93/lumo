@@ -49,7 +49,8 @@ const ESTADO: Record<Fila["estado"], { texto: string; color: string; fondo: stri
 
 function badge(f: Fila) {
   const e = ESTADO[f.estado];
-  const conPct = (f.estado === "por_encima" || f.estado === "por_debajo" || f.estado === "cerrado") && f.dif_pct != null;
+  // Sin ventas registradas no hay "-100%": puede ser que no se usó la caja, no que no se vendió
+  const conPct = (f.estado === "por_encima" || f.estado === "por_debajo" || f.estado === "cerrado") && f.dif_pct != null && (f.ventas ?? 0) > 0;
   const pct = conPct ? ` ${f.dif_pct! > 0 ? "+" : ""}${f.dif_pct}%` : "";
   return (
     <span style={{ fontSize: 11, fontWeight: 700, color: e.color, background: e.fondo, borderRadius: 8, padding: "3px 8px", whiteSpace: "nowrap" }}>
@@ -140,7 +141,7 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
               <strong>{fmt(f.ventas)}</strong>
               {f.esperado_hasta_ahora != null && f.estado !== "antes_de_abrir" && (
                 <span style={{ color: "var(--tinta-apagada)" }}>
-                  {(f.estado === "cerrado" || f.estado === "fuera_de_horario") ? ` de ${fmt(f.esperado_dia ?? 0)} esperados en el día` : ` · lo normal a esta hora: ${fmt(f.esperado_hasta_ahora)}`}
+                  {(f.estado === "cerrado" || f.estado === "fuera_de_horario") ? ((f.ventas ?? 0) > 0 ? ` de ${fmt(f.esperado_dia ?? 0)} esperados en el día` : " · hoy no se cobró nada con la caja de LumoBi") : ` · lo normal a esta hora: ${fmt(f.esperado_hasta_ahora)}`}
                 </span>
               )}
             </div>

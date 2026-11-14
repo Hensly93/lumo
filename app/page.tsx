@@ -22,6 +22,7 @@ type Alerta = {
   accion: string;
   timestamp: string;
   datos?: Record<string, unknown>;
+  url?: string;
 };
 
 type Prediccion = {
@@ -64,8 +65,8 @@ function alertVariant(prioridad: string): "ok" | "warn" | "crit" {
 }
 
 function alertTag(prioridad: string): string {
-  if (["critico", "inconsistencia"].includes(prioridad)) return "Crítico";
-  if (["atencion", "ineficiencia"].includes(prioridad)) return "Atención";
+  if (["critico", "inconsistencia"].includes(prioridad)) return "Urgente";
+  if (["atencion", "ineficiencia"].includes(prioridad)) return "Para mirar";
   if (prioridad === "positivo") return "Todo ok";
   return "Info";
 }
@@ -902,7 +903,9 @@ function HomeContent() {
                 return (
                   <div
                     key={i}
+                    onClick={() => router.push(a.url || "/alertas")}
                     style={{
+                      cursor: "pointer",
                       background: "white",
                       borderRadius: 16,
                       padding: 20,
