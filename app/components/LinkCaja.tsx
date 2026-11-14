@@ -15,7 +15,7 @@ const btnS: CSSProperties = {
   color: "var(--text, #0A1628)", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: FUENTE,
 };
 
-export default function LinkCaja() {
+export default function LinkCaja({ alCompartir }: { alCompartir?: () => void }) {
   const [codigo, setCodigo] = useState<string | null>(null);
   const [aviso, setAviso] = useState("");
   const [verQR, setVerQR] = useState(false);
@@ -36,12 +36,13 @@ export default function LinkCaja() {
 
   async function copiar() {
     if (!link) return;
-    try { await navigator.clipboard.writeText(link); dec("Link copiado"); } catch { dec("No se pudo copiar"); }
+    try { await navigator.clipboard.writeText(link); dec("Link copiado"); if (alCompartir) alCompartir(); } catch { dec("No se pudo copiar"); }
   }
   function whatsapp() {
     if (!link) return;
     const texto = `Para entrar a la caja de LumoBi abrí este link: ${link}\nElegí tu nombre y poné tu PIN.`;
     window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank");
+    if (alCompartir) alCompartir();
   }
 
   if (!link) return <div style={{ fontSize: 13, color: "var(--muted, #64748B)", padding: "8px 0" }}>Preparando el link de tu caja…</div>;

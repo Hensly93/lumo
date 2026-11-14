@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { subscribePush, getMotivoPush } from "../hooks/usePush";
 import SubirVentas from "../components/SubirVentas";
+import LinkCaja from "../components/LinkCaja";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const CLAVE_CODIGO = "lumo_paso_codigo_compartido";
@@ -113,21 +114,6 @@ export default function PrimerosPasos() {
     try { localStorage.setItem(CLAVE_CODIGO, "1"); } catch { /* sin almacenamiento */ }
   }
 
-  async function copiarCodigo() {
-    if (!codigo) return;
-    try { await navigator.clipboard.writeText(codigo); setMensaje("Código copiado"); marcarCodigoCompartido(); }
-    catch { setMensaje("No se pudo copiar: anotalo a mano"); }
-  }
-
-  function mandarPorWhatsApp() {
-    if (!codigo) return;
-    const texto =
-      "Para entrar a LumoBi como empleado: 1) Abrí " + window.location.origin + "/empleado " +
-      "2) Poné el código del negocio: " + codigo + " 3) Elegí tu nombre y poné tu PIN.";
-    window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank");
-    marcarCodigoCompartido();
-  }
-
   async function activarAvisos() {
     if (!token) return;
     const ok = await subscribePush(token);
@@ -204,20 +190,13 @@ export default function PrimerosPasos() {
           </Tarjeta>
 
           <Tarjeta n={3} hecho={hechos[2]} titulo="Cómo entran tus empleados"
-            texto="Tus empleados entran desde la compu o el celu del local con el código de tu negocio, su nombre y su PIN.">
-            <div style={{
-              fontFamily: "monospace", fontSize: 28, fontWeight: 800, letterSpacing: 4, textAlign: "center",
-              padding: "14px 10px", borderRadius: 12, background: "var(--card2, #F1F5F9)", color: "var(--text, #0A1628)",
-            }}>
-              {codigo ?? "········"}
-            </div>
-            <button style={btnPrimario} disabled={!codigo} onClick={mandarPorWhatsApp}>Mandar por WhatsApp</button>
-            <button style={btnSecundario} disabled={!codigo} onClick={copiarCodigo}>Copiar el código</button>
+            texto="Mandales este link: cada uno lo abre en la compu o el celu del local, elige su nombre y pone su PIN. No hay que escribir ningún código.">
+            <LinkCaja alCompartir={marcarCodigoCompartido} />
           </Tarjeta>
 
           <Tarjeta n={4} hecho={hechos[3]} titulo="Tu primer turno"
             texto="Entrá a Modo empleado, abrí un turno con un PIN, hacé una venta de prueba y cerrá. Es la forma más rápida de ver a NICOLE funcionando con tus propios números.">
-            <button style={hechos[3] ? btnSecundario : btnPrimario} onClick={() => router.push("/empleado")}>Abrir Modo empleado</button>
+            <button style={hechos[3] ? btnSecundario : btnPrimario} onClick={() => router.push(codigo ? "/empleado?c=" + encodeURIComponent(codigo) : "/empleado")}>Abrir Modo empleado</button>
           </Tarjeta>
 
           <Tarjeta n={5} hecho={hechos[4]} titulo="Avisos en tu celu"
