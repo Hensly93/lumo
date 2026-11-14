@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback, useRef } from "react";
+import type { CSSProperties } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useAutorizacion } from "./Autorizacion";
 import CajaSinInternet from "./CajaSinInternet";
@@ -35,6 +36,18 @@ function duracionLabel(min: number) {
   const s = 0; // We don't track seconds, just for display
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
+
+function haceLabel(min: number) {
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 48) return `${h} h ${min % 60} min`;
+  return `${Math.floor(h / 24)} días`;
+}
+
+const estiloBtn = (bg: string, extra: CSSProperties = {}): CSSProperties => ({
+  padding: '15px 8px', borderRadius: 14, border: 'none', background: bg, color: '#FFFFFF', fontSize: 15, fontWeight: 800,
+  fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer', ...extra,
+});
 
 function getInitials(name: string) {
   const parts = name.trim().split(' ');
@@ -512,10 +525,15 @@ export default function EmpleadoPage() {
   const [mpDisponible, setMpDisponible] = useState(false);
   const [qrMP, setQrMP] = useState<{ id: number; qr: string; monto: number } | null>(null);
   const [qrMPCargando, setQrMPCargando] = useState(false);
+  const [terminalId, setTerminalId] = useState<string | null>(null);
+  const [puntoMP, setPuntoMP] = useState<{ id: number; monto: number; tipo: 'debito' | 'credito'; cancelando?: boolean } | null>(null);
+  const [puntoCargando, setPuntoCargando] = useState(false);
+  const [elegirTerm, setElegirTerm] = useState<{ lista: { id: string; nombre: string }[]; tipo: 'debito' | 'credito' } | null>(null);
+  const [mostrarManual, setMostrarManual] = useState(false);
 
   useEffect(() => {
     if (!turno?.id) return;
-    fetchT(`${API}/api/mp-cobro/disponible`).then((r) => r.json()).then((d) => setMpDisponible(!!d.disponible)).catch(() => {});
+    fetchT(`${API}/api/mp-cobro/disponible`).then((r) => r.json()).then((d) => { setMpDisponible(!!d.disponible); setTerminalId(d.terminal_id || null); }).catch(() => {});
   }, [turno?.id]);
 
   // Mientras hay un QR esperando, se pregunta cada 3 segundos si ya pagó
@@ -571,6 +589,102 @@ export default function EmpleadoPage() {
     } catch { /* el cobro vence solo */ }
     setQrMP(null);
   }
+  // Mientras hay un cobro esperando en el posnet, se pregunta cada 3 segundos si el cliente ya pagó
+  useEffect(() => {
+    if (!puntoMP) return;
+    let vivo = true;
+    const iv = setInterval(async () => {
+      try {
+        const r = await fetchT(`${API}/api/mp-cobro/estado/${puntoMP.id}`);
+        const d = await r.json();
+        if (!vivo || !d.estado || d.estado === 'esperando') return;
+        setPuntoMP(null);
+        if (d.estado === 'pagado') {
+          setError('');
+          setVentaOk(`Venta registrada: ${fmt(puntoMP.monto)} con ${puntoMP.tipo === 'debito' ? 'débito' : 'crédito'} (posnet)`);
+          setTimeout(() => setVentaOk(''), 8000);
+          setCarrito({ items: [], total: 0 });
+          document.getElementById('scan-input')?.focus();
+        } else if (d.estado === 'pagado_sin_venta') {
+          setError('El pago entró en Mercado Pago pero la venta no se pudo cerrar. Avisale al dueño.');
+        } else if (d.estado === 'rechazado') {
+          setError('El pago fue rechazado en el posnet. Probá con otra tarjeta u otro medio.');
+        } else {
+          setError('El cobro en el posnet se canceló o venció. Probá de nuevo o cobrá con otro medio.');
+        }
+      } catch { /* sigue esperando */ }
+    }, 3000);
+    return () => { vivo = false; clearInterval(iv); };
+  }, [puntoMP]);
+
+  async function elegirTerminal(id: string): Promise<boolean> {
+    try {
+      const r = await fetchT(`${API}/api/mp-cobro/terminal`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ terminal_id: id }) });
+      const d = await r.json();
+      if (!r.ok) { setError(d.error || 'No se pudo elegir el posnet.'); return false; }
+      setTerminalId(id);
+      return true;
+    } catch { setError('No se pudo elegir el posnet. Probá de nuevo.'); return false; }
+  }
+
+  async function cobrarConPoint(tipo: 'debito' | 'credito', terminal?: string | null) {
+    if (!turno?.id || puntoCargando) return;
+    setPuntoCargando(true);
+    try {
+      if (!(terminal || terminalId)) {
+        const r0 = await fetchT(`${API}/api/mp-cobro/terminales`);
+        const d0 = await r0.json();
+        if (!r0.ok) { setError(d0.error || 'No se pudieron leer los posnets.'); return; }
+        const lista = d0.terminales || [];
+        if (!lista.length) { setError('No encontramos ningún posnet Point en la cuenta de Mercado Pago.'); return; }
+        if (lista.length > 1) { setElegirTerm({ lista, tipo }); return; }
+        if (!(await elegirTerminal(lista[0].id))) return;
+      }
+      const r = await fetchT(`${API}/api/mp-cobro/point`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tipo }) });
+      const d = await r.json();
+      if (!r.ok || !d.cobro_id) { setError(d.error || 'No se pudo mandar el cobro al posnet.'); return; }
+      setError('');
+      setPuntoMP({ id: d.cobro_id, monto: d.monto, tipo });
+    } catch { setError('No se pudo mandar el cobro al posnet. Probá de nuevo.'); }
+    finally { setPuntoCargando(false); }
+  }
+
+  async function cancelarPoint() {
+    const actual = puntoMP;
+    if (!actual) return;
+    try {
+      const r = await fetchT(`${API}/api/mp-cobro/cancelar/${actual.id}`, { method: 'POST' });
+      const d = await r.json();
+      if (d.cancelando) { setPuntoMP({ ...actual, cancelando: true }); return; }   // el posnet ya la tiene: se confirma cuando la cancelen ahí
+      if (d.estado === 'pagado') {
+        setVentaOk(`Venta registrada: ${fmt(actual.monto)} con tarjeta (posnet)`);
+        setTimeout(() => setVentaOk(''), 8000);
+        setCarrito({ items: [], total: 0 });
+      }
+    } catch { /* el cobro vence solo */ }
+    setPuntoMP(null);
+  }
+
+  // Venta que se carga a mano (efectivo, transferencia, o tarjeta cuando no se usa el posnet)
+  async function cobrarManual(metodo: string, etiqueta: string) {
+    if (!turno?.id) return;
+    const totalVenta = carrito ? carrito.total : 0;
+    try {
+      const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ turno_id: turno.id, metodo_pago: metodo }),
+      });
+      const d = await r.json();
+      if (d.error) { setError(d.error); return; }
+      setError('');
+      setVentaOk(`Venta registrada: ${fmt(totalVenta)} con ${etiqueta.replace(/^[^A-Za-zÁ-úñÑ]+/, '')}`);
+      setTimeout(() => setVentaOk(''), 8000);
+      setCarrito({ items: [], total: 0 });
+      document.getElementById('scan-input')?.focus();
+    } catch { setError('No se pudo registrar la venta. Probá de nuevo.'); }
+  }
+
   const refBusq = useRef<any>(null);
 
   async function refrescarCarrito() {
@@ -651,8 +765,6 @@ export default function EmpleadoPage() {
       else setError(`No encontré "${texto}" en tus productos.`);
     } catch { setError('Sin conexión. Probá de nuevo.'); }
   }
-  const [scanQR, setScanQR] = useState<{ url: string; expira_en: string } | null>(null);
-  const [scanQRLoading, setScanQRLoading] = useState(false);
   const [precioModal, setPrecioModal] = useState(false);
   const [altaCodigo, setAltaCodigo] = useState<string | null>(null);
 
@@ -1160,30 +1272,28 @@ export default function EmpleadoPage() {
     return (
       <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', paddingBottom: 32 }}>
         {aut.modal}
-        {/* Header gradient card */}
-        <div style={{
-          background: `linear-gradient(135deg, ${C.primary} 0%, #00C2FF 100%)`,
-          padding: '32px 24px',
-          color: '#FFFFFF',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-            <Avatar name={turno?.nombre_empleado || empleadoSel} size={64} />
-            <div>
-              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Turno en curso</div>
-              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 24 }}>{turno?.nombre_empleado}</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Duración</div>
-              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, letterSpacing: 2 }}>{duracionLabel(durMin)}</div>
+        {/* Encabezado compacto */}
+        <div style={{ background: `linear-gradient(135deg, ${C.primary} 0%, #00C2FF 100%)`, padding: '20px 24px', color: '#FFFFFF' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Avatar name={turno?.nombre_empleado || empleadoSel} size={44} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, opacity: 0.85 }}>Turno en curso</div>
+              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 20 }}>{turno?.nombre_empleado}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Caja inicial</div>
-              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 24 }}>{fmt(turno?.caja_apertura || 0)}</div>
+              <div style={{ fontSize: 12, opacity: 0.85 }}>Caja inicial</div>
+              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 18 }}>{fmt(turno?.caja_apertura || 0)}</div>
             </div>
           </div>
+          <div style={{ marginTop: 10, fontSize: 13, opacity: 0.9 }}>Abierto hace {haceLabel(durMin)}</div>
         </div>
+        {durMin > 14 * 60 && (
+          <div style={{ margin: '16px 24px 0', padding: '14px 16px', borderRadius: 14, background: 'rgba(255,59,48,0.08)', border: `2px solid ${C.red}` }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: C.red }}>Este turno lleva {haceLabel(durMin)} abierto</div>
+            <div style={{ fontSize: 13, color: C.text, margin: '4px 0 10px' }}>Si ya terminó, cerralo y abrí uno nuevo. Si queda abierto, la caja y los controles del equipo se mezclan.</div>
+            <button onClick={() => { setCierreMonto(""); setError(""); setPaso("cierre"); }} style={estiloBtn(C.red, { width: '100%' })}>Cerrar turno</button>
+          </div>
+        )}
 
         <div style={{ padding: 24 }}>
           {turno && <CajaSinInternet api={API} getToken={() => SESION_TOKEN} turnoId={turno.id} />}
@@ -1319,46 +1429,32 @@ export default function EmpleadoPage() {
               <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 26, color: C.text }}>{fmt(carrito ? carrito.total : 0)}</span>
             </div>
             {carrito && carrito.items.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
-                {([
-                  ['efectivo', '💵 Efectivo', C.green],
-                  ['debito', '💳 Débito', C.primary],
-                  ['credito', '💳 Crédito', C.primary],
-                  ['transferencia', '🏦 Transferencia', C.primary],
-                  ['mp', '📲 QR / MP', C.primary],
-                ] as [string, string, string][]).map(([metodo, etiqueta, color]) => (
-                  <button
-                    key={metodo}
-                    onClick={async () => {
-                      const totalVenta = carrito ? carrito.total : 0;
-                      try {
-                        const r = await fetchT(`${API}/api/scanner/finalizar-venta`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ turno_id: turno.id, metodo_pago: metodo }),
-                        });
-                        const d = await r.json();
-                        if (d.error) { setError(d.error); return; }
-                        setError('');
-                        setVentaOk(`Venta registrada: ${fmt(totalVenta)} con ${etiqueta.replace(/^[^A-Za-zÁ-úñÑ]+/, '')}`);
-                        setTimeout(() => setVentaOk(''), 8000);
-                        setCarrito({ items: [], total: 0 });
-                        document.getElementById('scan-input')?.focus();
-                      } catch { setError('No se pudo registrar la venta. Probá de nuevo.'); }
-                    }}
-                    style={{ flex: '1 1 30%', padding: '14px 8px', borderRadius: 14, border: 'none', background: color, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer' }}
-                  >
-                    {etiqueta}
-                  </button>
-                ))}
-                {mpDisponible && (
-                  <button
-                    onClick={cobrarConQR}
-                    disabled={qrMPCargando}
-                    style={{ flex: '1 1 100%', padding: '14px 8px', borderRadius: 14, border: 'none', background: C.primary, color: '#FFFFFF', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif', cursor: 'pointer', opacity: qrMPCargando ? 0.6 : 1 }}
-                  >
-                    {qrMPCargando ? 'Generando QR…' : '📲 Cobrar con QR de Mercado Pago (monto exacto)'}
-                  </button>
+              <div style={{ marginTop: 16 }}>
+                <button onClick={() => cobrarManual('efectivo', '💵 Efectivo')} style={estiloBtn(C.green, { width: '100%', fontSize: 16, padding: '16px 8px' })}>💵 Efectivo</button>
+                {mpDisponible ? (
+                  <>
+                    <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, margin: '16px 0 8px', letterSpacing: 0.5 }}>CON MERCADO PAGO · LA VENTA SE CARGA SOLA</div>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button disabled={puntoCargando} onClick={() => cobrarConPoint('debito')} style={estiloBtn(C.primary, { flex: 1, opacity: puntoCargando ? 0.6 : 1 })}>{puntoCargando ? 'Enviando…' : '💳 Débito'}</button>
+                      <button disabled={puntoCargando} onClick={() => cobrarConPoint('credito')} style={estiloBtn(C.primary, { flex: 1, opacity: puntoCargando ? 0.6 : 1 })}>{puntoCargando ? 'Enviando…' : '💳 Crédito'}</button>
+                    </div>
+                    <button onClick={cobrarConQR} disabled={qrMPCargando} style={estiloBtn(C.primary, { width: '100%', marginTop: 10, opacity: qrMPCargando ? 0.6 : 1 })}>{qrMPCargando ? 'Generando QR…' : '📲 QR de Mercado Pago'}</button>
+                    <div onClick={() => setMostrarManual(!mostrarManual)} style={{ marginTop: 14, textAlign: 'center', fontSize: 13, color: C.muted, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>{mostrarManual ? 'Ocultar' : 'Otro medio (transferencia, o si el posnet no anda)'}</div>
+                    {mostrarManual && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
+                    <button onClick={() => cobrarManual('transferencia', '🏦 Transferencia')} style={estiloBtn(C.primary, { flex: '1 1 30%' })}>🏦 Transferencia</button>
+                    <button onClick={() => cobrarManual('debito', '💳 Débito')} style={estiloBtn(C.muted, { flex: '1 1 30%' })}>💳 Débito (a mano)</button>
+                    <button onClick={() => cobrarManual('credito', '💳 Crédito')} style={estiloBtn(C.muted, { flex: '1 1 30%' })}>💳 Crédito (a mano)</button>
+                  </div>}
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 13, color: C.muted, margin: '14px 0 0' }}>Cuando el dueño conecte Mercado Pago, las ventas con tarjeta y QR se van a cargar solas.</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
+                    <button onClick={() => cobrarManual('transferencia', '🏦 Transferencia')} style={estiloBtn(C.primary, { flex: '1 1 30%' })}>🏦 Transferencia</button>
+                    <button onClick={() => cobrarManual('debito', '💳 Débito')} style={estiloBtn(C.muted, { flex: '1 1 30%' })}>💳 Débito</button>
+                    <button onClick={() => cobrarManual('credito', '💳 Crédito')} style={estiloBtn(C.muted, { flex: '1 1 30%' })}>💳 Crédito</button>
+                  </div>
+                  </>
                 )}
                 {qrMP && (
                   <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -1371,65 +1467,38 @@ export default function EmpleadoPage() {
                     </div>
                   </div>
                 )}
+                {puntoMP && (
+                  <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                    <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%', textAlign: 'center' }}>
+                      <div style={{ fontSize: 13, color: '#5B6472', fontWeight: 600 }}>Cobro enviado al posnet · {puntoMP.tipo === 'debito' ? 'Débito' : 'Crédito'}</div>
+                      <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 34, color: '#0A1628', margin: '8px 0 12px' }}>{fmt(puntoMP.monto)}</div>
+                      <div style={{ fontSize: 15, color: '#0A1628', fontWeight: 700 }}>{puntoMP.cancelando ? 'Cancelá también el cobro en el posnet (botón rojo).' : 'Pedile al cliente que pague en el posnet.'}</div>
+                      <div style={{ fontSize: 13, color: '#5B6472', marginTop: 10 }}>Si el posnet no muestra el monto, tocá Actualizar en el posnet. La venta se cierra sola cuando Mercado Pago confirma el pago.</div>
+                      <button onClick={cancelarPoint} style={{ marginTop: 16, width: '100%', padding: '12px 8px', borderRadius: 12, border: '2px solid #D5DAE1', background: 'transparent', color: '#0A1628', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>{puntoMP.cancelando ? 'Esperando que cancelen en el posnet…' : 'Cancelar cobro'}</button>
+                    </div>
+                  </div>
+                )}
+                {elegirTerm && (
+                  <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                    <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%' }}>
+                      <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 18, color: '#0A1628', marginBottom: 6 }}>¿Qué posnet usa esta caja?</div>
+                      <div style={{ fontSize: 13, color: '#5B6472', marginBottom: 14 }}>Se elige una sola vez y queda guardado para este local.</div>
+                      {elegirTerm.lista.map((t) => (
+                        <button key={t.id} onClick={async () => { const ok = await elegirTerminal(t.id); if (ok) { const tp = elegirTerm.tipo; setElegirTerm(null); cobrarConPoint(tp, t.id); } }} style={estiloBtn(C.primary, { width: '100%', marginBottom: 8 })}>{t.nombre}</button>
+                      ))}
+                      <button onClick={() => setElegirTerm(null)} style={{ width: '100%', padding: '10px 8px', background: 'transparent', border: 'none', color: '#5B6472', fontWeight: 700, cursor: 'pointer' }}>Cancelar</button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-
-          {/* Stats card */}
-          <div style={{
-            background: C.bg,
-            border: `2px solid ${C.cardBorder}`,
-            borderRadius: 20,
-            padding: '24px',
-            marginBottom: 24,
-          }}>
-            <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 16 }}>ÚLTIMA DECLARACIÓN</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-              <span style={{ fontSize: 14, color: C.text }}>Efectivo en apertura</span>
-              <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 16, color: C.text }}>{fmt(turno?.caja_apertura || 0)}</span>
+          {turno?.total_egresos > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, fontSize: 14, color: C.text }}>
+              <span>Egresos registrados</span>
+              <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, color: C.amber }}>{fmt(turno?.total_egresos || 0)}</span>
             </div>
-            {turno?.total_egresos > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 14, color: C.text }}>Egresos registrados</span>
-                <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 16, color: C.amber }}>{fmt(turno?.total_egresos || 0)}</span>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={async () => {
-              if (!turno?.id) return;
-              setScanQRLoading(true);
-              try {
-                const r = await fetchT(`${API}/api/scanner/sesion`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ turno_id: turno.id }),
-                });
-                const d = await r.json();
-                if (!d.error) {
-                  const url = `${window.location.origin}/scan/${d.token}`;
-                  setScanQR({ url, expira_en: d.expira_en });
-                }
-              } catch { /* silencioso */ }
-              setScanQRLoading(false);
-            }}
-            style={{
-              width: '100%',
-              padding: '14px',
-              borderRadius: 14,
-              border: `2px solid ${C.primary}`,
-              background: 'transparent',
-              color: C.primary,
-              fontSize: 15,
-              fontWeight: 700,
-              fontFamily: 'var(--font-instrument), sans-serif',
-              cursor: 'pointer',
-              marginBottom: 24,
-            }}
-          >
-            {scanQRLoading ? 'Generando...' : '📷 Escanear con el celu'}
-          </button>
+          )}
 
           {precioModal && turno?.id && (
             <PrecioModal turnoId={turno.id} onClose={() => { setPrecioModal(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />
@@ -1446,47 +1515,9 @@ export default function EmpleadoPage() {
               }}
             />
           )}
-          {scanQR && (
-            <div
-              onClick={() => setScanQR(null)}
-              style={{
-                position: 'fixed',
-                inset: 0,
-                background: 'rgba(0,0,0,0.6)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 100,
-                padding: 24,
-              }}
-            >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: 20,
-                  padding: 32,
-                  textAlign: 'center',
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 18, color: C.text, marginBottom: 16 }}>
-                  Escaneá con la cámara del celu
-                </div>
-                <QRCodeSVG value={scanQR.url} size={220} />
-                <div
-                  onClick={() => setScanQR(null)}
-                  style={{ marginTop: 20, fontSize: 14, color: C.muted, cursor: 'pointer' }}
-                >
-                  Cerrar
-                </div>
-              </div>
-            </div>
-          )}
-
+          <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, letterSpacing: 0.5, margin: '8px 0 10px' }}>TURNO</div>
           <SecondaryButton label="Cambiar precios" onPress={() => setPrecioModal(true)} color={C.primary} />
-
-          {/* Actions */}
-          <PrimaryButton loading={loading} label="💰 Declaración mid-turno" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.yellow} icon="" />
+          <SecondaryButton label="💰 Declarar la caja (a mitad de turno)" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.amber} />
           <SecondaryButton label="Cerrar turno" onPress={() => { setCierreMonto(""); setError(""); setPaso("cierre"); }} color={C.red} />
         </div>
       </main>
