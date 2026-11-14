@@ -189,6 +189,7 @@ function DetalleRiesgo({ e, turnos }: { e: EmpleadoERM; turnos: TurnoEvidencia[]
               {omitidos > 0 ? ` · ${omitidos} conteo(s) sin responder` : ""}
             </div>
             {dif !== null && dif > 500 && <MarcaGasto turnoId={t.id} inicial={!!t.gasto_inesperado} />}
+            <CuentaTurno turnoId={t.id} />
           </div>
         );
       })}
@@ -196,6 +197,65 @@ function DetalleRiesgo({ e, turnos }: { e: EmpleadoERM; turnos: TurnoEvidencia[]
       <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 12, lineHeight: 1.45 }}>
         Estos datos describen diferencias de caja y conteos. Por sí solos no indican la causa: pueden deberse a errores de registro, gastos no cargados o cambios en la forma de trabajar.
       </div>
+    </div>
+  );
+}
+
+// "Cómo se calculó": la cuenta completa del cierre (Palantir: ningún número sin su porqué)
+type Cruce = {
+  formula?: { caja_apertura: number; total_ventas: number; total_mp: number; total_efectivo: number; total_egresos: number;
+    efectivo_esperado: number; caja_cierre: number; brecha: number; cantidad_tx: number; ticket_promedio: number };
+  grado_brecha?: string; señales?: { tipo: string; descripcion: string }[]; turnos_historicos_usados?: number; error?: string;
+};
+function CuentaTurno({ turnoId }: { turnoId: number }) {
+  const [abierto, setAbierto] = useState(false);
+  const [c, setC] = useState<Cruce | null | "error">(null);
+  const abrir = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nuevo = !abierto;
+    setAbierto(nuevo);
+    if (nuevo && c === null) {
+      fetch(`${API}/api/caja/cruce/${turnoId}`, { headers: { Authorization: `Bearer ${localStorage.getItem("lumo_token")}` } })
+        .then(r => (r.ok ? r.json() : null)).then(d => setC(d && d.formula ? d : "error")).catch(() => setC("error"));
+    }
+  };
+  const fila = (k: string, v: string, fuerte = false) => (
+    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, padding: "2px 0", fontWeight: fuerte ? 700 : 400, color: "var(--text)" }}><span>{k}</span><span>{v}</span></div>
+  );
+  return (
+    <div style={{ marginTop: 4 }}>
+      <button onClick={abrir} style={{ fontSize: 10, fontWeight: 700, padding: 0, border: "none", background: "transparent", color: "var(--blue, #007AFF)", cursor: "pointer" }}>
+        {abierto ? "Ocultar la cuenta" : "Ver cómo se calculó"}
+      </button>
+      {abierto && (c === null ? <div style={{ fontSize: 10, color: "var(--muted)" }}>Calculando…</div>
+        : c === "error" ? <div style={{ fontSize: 10, color: "var(--muted)" }}>No se pudo traer la cuenta de este cierre.</div>
+        : (() => {
+          const f = c.formula!;
+          const dif = f.brecha;
+          return (
+            <div style={{ marginTop: 6, padding: 10, borderRadius: 8, background: "var(--card2)", border: "1px solid var(--border)" }}>
+              {fila("Abrió la caja con", pesos(f.caja_apertura))}
+              {fila("+ Cobró en efectivo", pesos(f.total_efectivo))}
+              {f.total_egresos > 0 && fila("− Sacó de la caja (gastos cargados)", pesos(f.total_egresos))}
+              {fila("= Tenía que haber", pesos(f.efectivo_esperado), true)}
+              {fila("Contaron al cerrar", pesos(f.caja_cierre))}
+              <div style={{ fontSize: 11, fontWeight: 700, marginTop: 4, color: Math.abs(dif) >= 500 ? "var(--yellow)" : "var(--emerald)" }}>
+                {Math.abs(dif) < 1 ? "La caja cerró justa." : `${dif > 0 ? "Faltaron" : "Sobraron"} ${pesos(Math.abs(dif))}.`}
+              </div>
+              <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 6, lineHeight: 1.5 }}>
+                En total vendió {pesos(f.total_ventas)} en {f.cantidad_tx} ventas (cada cliente gastó en promedio {pesos(f.ticket_promedio)}).
+                {f.total_mp > 0 ? ` ${pesos(f.total_mp)} entraron por tarjeta, QR o transferencia: esa plata no está en la caja.` : ""}
+              </div>
+              {c.grado_brecha && (
+                <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 4 }}>
+                  {c.grado_brecha === "normal" ? "Para este negocio es una diferencia normal" : "Es una diferencia más grande que lo normal en este negocio"}
+                  {c.turnos_historicos_usados ? ` (comparado con ${c.turnos_historicos_usados} cierres anteriores).` : "."}
+                </div>
+              )}
+              {(c.señales || []).map(sg => <div key={sg.tipo} style={{ fontSize: 10, color: "var(--text)", marginTop: 4 }}>· {sg.descripcion}</div>)}
+            </div>
+          );
+        })())}
     </div>
   );
 }
