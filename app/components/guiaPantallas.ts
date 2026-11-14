@@ -101,6 +101,18 @@ export const GUIAS: Record<string, Guia> = {
     vos: "Cargá la dirección de cada local. Con uno solo, alcanza con cargarlo una vez.",
     requisitos: ["locales"],
   },
+  "/mas": {
+    titulo: "Tu cuenta",
+    lumobi: "Acá están tus datos, tu plan, los ajustes de avisos y la opción de instalar LumoBi en el celu.",
+    vos: "Instalá LumoBi en la pantalla de inicio de tu celu: se abre más rápido y los avisos llegan mejor.",
+    requisitos: ["avisos"],
+  },
+  "/guia": {
+    titulo: "Cómo hacer cada cosa",
+    lumobi: "Junta las tareas más comunes con los pasos y el botón que te lleva.",
+    vos: "Buscá lo que querés hacer y seguí los pasos. Si algo no está, preguntale a NICOLE.",
+    requisitos: [],
+  },
   "/ajustes": {
     titulo: "Ajustes",
     lumobi: "Acá decidís qué avisos te llegan y conectás Mercado Pago.",

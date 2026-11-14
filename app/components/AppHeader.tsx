@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import Logo from "./Logo";
 import Link from "next/link";
 import SucursalSelector from "./SucursalSelector";
+import { ActivacionChip } from "./Activacion";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -49,6 +50,7 @@ export default function AppHeader() {
           {perfil?.negocio || "LumoBi"}
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          <ActivacionChip />
           <Link href="/guia" aria-label="Guía: cómo hacer cada cosa" style={{ width: 36, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" stroke="#6B8099" strokeWidth="1.5" />

@@ -1,4 +1,5 @@
 "use client";
+import { ActivacionCard } from "./components/Activacion";
 import { UltimoTurnoCard, ProyeccionCard, AprendizajeCard, type InformeTurno, type Proyeccion, type Aprendizaje } from "./components/PrimerosDias";
 import Nav from "./components/Nav";
 import EnVivoCard from "./components/EnVivoCard";
@@ -490,7 +491,8 @@ function HomeContent() {
         ) : (
           <div style={{ padding: "0 16px" }}>
 
-            <BannerPasos token={token} onVentas={setHayVentas} />
+            <BannerPasos token={token} onVentas={setHayVentas} soloVentas />
+            <ActivacionCard />
 
             {proyeccion && <ProyeccionCard p={proyeccion} />}
             {informe && <UltimoTurnoCard informe={informe} />}

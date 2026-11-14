@@ -24,7 +24,8 @@ function hoy(): string {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
-export default function BannerPasos({ token, onVentas }: { token: string | null; onVentas?: (hay: boolean) => void }) {
+// soloVentas: no dibuja nada, solo avisa si hay ventas (la tarjeta de Activación ocupa su lugar en el Inicio)
+export default function BannerPasos({ token, onVentas, soloVentas }: { token: string | null; onVentas?: (hay: boolean) => void; soloVentas?: boolean }) {
   const router = useRouter();
   const [pasos, setPasos] = useState<Paso[] | null>(null);
   const [oculto, setOculto] = useState(false);
@@ -97,7 +98,7 @@ export default function BannerPasos({ token, onVentas }: { token: string | null;
     return () => { vivo = false; document.removeEventListener("visibilitychange", refrescar); };
   }, [token]);
 
-  if (!pasos || oculto) return null;
+  if (soloVentas || !pasos || oculto) return null;
   const total = pasos.length;
   const hechos = pasos.filter(p => p.hecho).length;
   if (hechos >= total) return null;
