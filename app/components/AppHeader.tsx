@@ -49,6 +49,12 @@ export default function AppHeader() {
           {perfil?.negocio || "LumoBi"}
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          <Link href="/guia" aria-label="Guía: cómo hacer cada cosa" style={{ width: 36, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="#6B8099" strokeWidth="1.5" />
+              <path d="M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.1-1.5 2.2M12 17h.01" stroke="#6B8099" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
           <Link href="/alertas" aria-label="Alertas" style={{ width: 36, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="#6B8099" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
+import LinkCaja from "../components/LinkCaja";
 
 const iconColor = "var(--azul)";
 
@@ -33,6 +34,11 @@ export default function EquipoPage() {
       <PageHeader title="Equipo" sub="Tu gente y cómo se maneja la caja" />
 
       <div style={{ padding: "0 12px" }}>
+        <div style={{ background: "var(--blanco)", border: "1px solid var(--linea)", borderRadius: 14, padding: "16px 18px", marginBottom: 14 }}>
+          <div style={{ fontFamily: "var(--font-instrument), sans-serif", fontSize: 15, fontWeight: 700, color: "var(--tinta)", marginBottom: 4 }}>Que tu equipo entre a la caja</div>
+          <div style={{ fontSize: 12, color: "var(--tinta-apagada)", marginBottom: 12, lineHeight: 1.5 }}>Mandales este link: cada uno elige su nombre y pone su PIN. No hay que escribir ningún código.</div>
+          <LinkCaja />
+        </div>
         {items.map((item, i) => (
           <div
             key={i}

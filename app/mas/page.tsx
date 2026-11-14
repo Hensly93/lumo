@@ -34,6 +34,7 @@ export default function MasPage() {
   const router = useRouter();
 
   const items = [
+    { label: "Guía", desc: "Cómo hacer cada cosa en LumoBi, paso a paso", href: "/guia", icon: icons.catalogo },
     { label: "Ajustes", desc: "Tu negocio, tu plan, avisos y cuenta", href: "/ajustes", icon: icons.ajustes },
   ];
   return (
