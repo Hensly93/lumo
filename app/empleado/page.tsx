@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useAutorizacion } from "./Autorizacion";
+import CajaSinInternet from "./CajaSinInternet";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -1185,6 +1186,7 @@ export default function EmpleadoPage() {
         </div>
 
         <div style={{ padding: 24 }}>
+          {turno && <CajaSinInternet api={API} getToken={() => SESION_TOKEN} turnoId={turno.id} />}
 <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ width: 10, height: 10, borderRadius: 5, background: enfocado ? C.green : C.amber, display: 'inline-block' }} />
