@@ -187,7 +187,7 @@ export default function PeriodosPage() {
               <LineaComparacion pocas={pocas} c={data.vs_anio_anterior} campo="tickets" />
             </div>
             <div style={{ ...tarjeta, flex: 1, marginLeft: 4 }}>
-              <div style={titulo}>Ticket promedio</div>
+              <div style={titulo}>Gasto promedio por cliente</div>
               <div style={medio}>{fmt(a.ticket_promedio)}</div>
               <LineaComparacion pocas={pocas} c={data.vs_anterior} campo="ticket_promedio" campoReal="ticket_promedio_real" />
               <LineaComparacion pocas={pocas} c={data.vs_anio_anterior} campo="ticket_promedio" campoReal="ticket_promedio_real" />

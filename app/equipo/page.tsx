@@ -25,8 +25,8 @@ export default function EquipoPage() {
   const router = useRouter();
 
   const items = [
-    { label: "Control del equipo", desc: "Rendimiento, autorizaciones y actividad de la caja", href: "/empleados", icon: icons.control },
-    { label: "Caja del local", desc: "Tu equipo, sus PINs y el link para vender", href: "/mi-local", icon: icons.caja },
+    { label: "Control del equipo", desc: "Cómo trabaja cada uno y si la caja cierra bien", href: "/empleados", icon: icons.control },
+    { label: "Caja del local", desc: "Quién atiende, su clave y el link para cobrar", href: "/mi-local", icon: icons.caja },
   ];
 
   return (

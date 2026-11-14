@@ -213,12 +213,12 @@ function ProductCard({
           {p.precio_costo ? (
             <span style={{ color: negativo ? ROJO : "var(--text)" }}>
               <span style={{ color: "var(--muted)" }}>Costo {fmt(p.precio_costo)} · </span>
-              {margen != null && <strong style={{ color: negativo ? ROJO : "var(--emerald)" }}>Margen {pctTxt(margen)}</strong>}
+              {margen != null && <strong style={{ color: negativo ? ROJO : "var(--emerald)" }}>Te deja {pctTxt(margen)}</strong>}
               {negativo && <strong> · te cuesta más de lo que cobrás</strong>}
             </span>
           ) : (
             <button onClick={() => onEdit(p)} style={{ background: "none", border: "none", padding: 0, color: "var(--yellow)", fontSize: 12, cursor: "pointer", textDecoration: "underline", fontFamily: "var(--font-instrument), sans-serif" }}>
-              Sin costo cargado: cargalo para ver tu margen
+              Sin costo cargado: cargalo para ver cuánto te deja
             </button>
           )}
         </div>
@@ -312,7 +312,7 @@ function EditModal({
 
         {/* Margen y simulador */}
         <div style={{ ...caja, marginTop: 16, padding: "14px 14px", background: "transparent" }}>
-          <div style={etiqueta}>Tu margen</div>
+          <div style={etiqueta}>Cuánto te deja cada venta</div>
           {margen != null ? (
             <div style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.6 }}>
               Ganás <strong>{fmt(venta - costo)}</strong> por unidad, un <strong style={{ color: margen >= 0 ? "var(--emerald)" : ROJO }}>{pctTxt(margen)}</strong> del precio.
@@ -902,7 +902,7 @@ export default function Catalogo() {
   if (vista === "pistola") return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
-      <Encabezado titulo="Modo pistola" sub="Cargá costos y productos disparando al código" atras={() => setVista("catalogo")} />
+      <Encabezado titulo="Modo pistola" sub="Pasá cada producto por el lector y cargá su costo" atras={() => setVista("catalogo")} />
       {token && (
         <PistolaView
           token={token}
@@ -1109,7 +1109,7 @@ export default function Catalogo() {
         />
       )}
 
-      <PageHeader title="Catálogo" sub={subTitulo} />
+      <PageHeader title="Productos" sub={subTitulo} />
       <div style={{ padding: "0 16px 8px" }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button onClick={() => setVista("pistola")} style={btnPrimario}>Modo pistola</button>
@@ -1155,7 +1155,7 @@ export default function Catalogo() {
 
           <div style={{ padding: "10px 16px 0", display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none" }}>
             <Chip label="Por nombre" active={orden === "nombre"} onClick={() => setOrden("nombre")} />
-            <Chip label="Menor margen" active={orden === "margen"} onClick={() => setOrden("margen")} />
+            <Chip label="Los que menos dejan" active={orden === "margen"} onClick={() => setOrden("margen")} />
             <Chip label="Sin costo primero" active={orden === "sin_costo"} onClick={() => setOrden("sin_costo")} />
           </div>
 

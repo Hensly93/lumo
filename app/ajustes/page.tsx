@@ -314,7 +314,7 @@ function SecMP({ token }: { token: string }) {
         </>
       ) : (
         <>
-          <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.6 }}>Conectá tu Mercado Pago para que Lumo importe ventas automáticamente y detecte inconsistencias con datos reales.</div>
+          <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.6 }}>Conectá tu Mercado Pago para que Lumo importe ventas automáticamente y te avise de cosas raras con datos reales.</div>
           <Btn label="Conectar Mercado Pago" onClick={conectar} />
         </>
       )}

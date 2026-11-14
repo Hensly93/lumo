@@ -269,7 +269,7 @@ export default function Empleados() {
           {patrones && patrones.turnos_analizados > 0 && (
             <StatRow>
               <StatCard
-                label="Inconsistencias"
+                label="Turnos raros"
                 value={`${Math.round(patrones.tasa_inconsistencia_global)}%`}
                 color={patrones.tasa_inconsistencia_global > 30 ? "red" : patrones.tasa_inconsistencia_global > 15 ? "yellow" : "green"}
               />
@@ -289,8 +289,8 @@ export default function Empleados() {
             <>
               <SectionTitle>Riesgo del equipo</SectionTitle>
               <StatRow>
-                <StatCard label="Rojo" value={String(erm.resumen.rojos)} color="red" />
-                <StatCard label="Atención" value={String(erm.resumen.amarillos)} color="yellow" />
+                <StatCard label="Para revisar" value={String(erm.resumen.rojos)} color="red" />
+                <StatCard label="Para mirar" value={String(erm.resumen.amarillos)} color="yellow" />
                 <StatCard label="Normal" value={String(erm.resumen.verdes)} color="green" />
               </StatRow>
               {erm.alerta_equipo && (
@@ -330,7 +330,7 @@ export default function Empleados() {
               variant="ok"
               tag="Sin datos"
               title={`Sin turnos cerrados en ${LABEL_TURNO[turnoActivo]}`}
-              desc="Se necesitan al menos 3 turnos para calcular el ranking."
+              desc="Cuando cada uno cierre 3 turnos, acá vas a ver cómo trabaja."
             />
           ) : (
             ranking.map((r, i) => (
@@ -352,7 +352,7 @@ export default function Empleados() {
               <AlertCard
                 variant="crit"
                 tag={`Goteo${patrones.goteo.acelerando ? " · acelerando" : ""}`}
-                title="Goteo detectado en el negocio"
+                title="Se está yendo plata de a poco"
                 desc={`Promedio $${Math.round(patrones.goteo.promedio_por_turno).toLocaleString("es-AR")} por turno · ${patrones.goteo.total_brechas} brechas acumuladas`}
               />
             </>
@@ -363,7 +363,7 @@ export default function Empleados() {
               variant="warn"
               tag="Patrón detectado"
               title={`Turno con más inconsistencias: ${LABEL_TURNO[patrones.turno_mas_problematico] || patrones.turno_mas_problematico}`}
-              desc="Revisá los empleados asignados a este turno."
+              desc="Mirá quiénes atendieron en ese turno y cómo cerraron la caja."
             />
           )}
 
@@ -389,8 +389,8 @@ export default function Empleados() {
             <AlertCard
               variant="ok"
               tag="Sin datos"
-              title="No hay empleados registrados"
-              desc="Los empleados se registran desde /empleado"
+              title="Todavía no cargaste a nadie"
+              desc="Andá a Equipo → Caja del local y agregá a quien atiende, con su clave de 4 números."
             />
           )}
         </>

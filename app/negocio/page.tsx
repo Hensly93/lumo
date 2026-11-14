@@ -58,11 +58,11 @@ export default function NegocioPage() {
 
   const items = [
     { label: "Fugas", desc: "Dónde se va la plata y cómo cerrarla", href: "/fugas", icon: icons.fugas },
-    { label: "Períodos", desc: "Comparar períodos y ver evolución", href: "/periodos", icon: icons.periodos },
-    { label: "Rentabilidad", desc: "Análisis de ganancias y costos", href: "/rentabilidad", icon: icons.rentabilidad },
+    { label: "Períodos", desc: "Este mes contra el anterior: ¿vendés más o menos?", href: "/periodos", icon: icons.periodos },
+    { label: "Rentabilidad", desc: "Cuánto te queda de verdad después de pagar todo", href: "/rentabilidad", icon: icons.rentabilidad },
     { label: "Facturas de proveedores", desc: "Sacá una foto y LumoBi la lee", href: "/compras", icon: iconoCompras },
-    { label: "Predicciones", desc: "Proyecciones de NICOLE", href: "/predicciones", icon: icons.predicciones },
-    { label: "Red", desc: "Comparar con otros locales", href: "/red", icon: icons.red },
+    { label: "Predicciones", desc: "Cuánto vas a vender los próximos días", href: "/predicciones", icon: icons.predicciones },
+    { label: "Red", desc: "Cómo te va comparado con negocios parecidos", href: "/red", icon: icons.red },
   ];
 
   return (

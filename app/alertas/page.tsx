@@ -39,7 +39,7 @@ type AlertasResp = {
   };
 };
 
-const FILTROS = ["Todas", "Críticas", "Atención", "Positivas"] as const;
+const FILTROS = ["Todas", "Urgentes", "Para mirar", "Buenas"] as const;
 type Filtro = typeof FILTROS[number];
 
 function alertVariant(prioridad: string): "ok" | "warn" | "crit" {
@@ -49,17 +49,17 @@ function alertVariant(prioridad: string): "ok" | "warn" | "crit" {
 }
 
 function alertTag(prioridad: string): string {
-  if (["critico", "inconsistencia"].includes(prioridad)) return "Crítico";
-  if (["atencion", "ineficiencia", "error_operativo"].includes(prioridad)) return "Atención";
-  if (prioridad === "positivo") return "Todo ok";
+  if (["critico", "inconsistencia"].includes(prioridad)) return "Urgente";
+  if (["atencion", "ineficiencia", "error_operativo"].includes(prioridad)) return "Para mirar";
+  if (prioridad === "positivo") return "Buena noticia";
   return "Info";
 }
 
 function matchFiltro(a: Alerta, f: Filtro) {
   if (f === "Todas") return true;
-  if (f === "Críticas") return ["critico", "inconsistencia"].includes(a.prioridad);
-  if (f === "Atención") return ["atencion", "ineficiencia", "error_operativo"].includes(a.prioridad);
-  if (f === "Positivas") return ["positivo", "info"].includes(a.prioridad);
+  if (f === "Urgentes") return ["critico", "inconsistencia"].includes(a.prioridad);
+  if (f === "Para mirar") return ["atencion", "ineficiencia", "error_operativo"].includes(a.prioridad);
+  if (f === "Buenas") return ["positivo", "info"].includes(a.prioridad);
   return true;
 }
 
@@ -128,11 +128,11 @@ export default function Alertas() {
   const chips = FILTROS.map(f => ({
     label: f === "Todas"
       ? `Todas (${alertas.length})`
-      : f === "Críticas"
-      ? `Críticas (${stats?.criticos ?? 0})`
-      : f === "Atención"
-      ? `Atención (${stats?.atencion ?? 0})`
-      : `Positivas (${stats?.positivos ?? 0})`,
+      : f === "Urgentes"
+      ? `Urgentes (${stats?.criticos ?? 0})`
+      : f === "Para mirar"
+      ? `Para mirar (${stats?.atencion ?? 0})`
+      : `Buenas (${stats?.positivos ?? 0})`,
     active: filtro === f,
     onClick: () => setFiltro(f),
   }));
@@ -311,22 +311,22 @@ export default function Alertas() {
           {stats && (
             <StatRow>
               <div onClick={() => openModal({
-                title: "Alertas Críticas",
-                text: "Alertas críticas son inconsistencias con z-score mayor a 3.0. Requieren atención inmediata. NICOLE detectó al menos 2 señales simultáneas fuera del rango normal para generarlas."
+                title: "Urgentes",
+                text: "Cosas muy fuera de lo normal en tu negocio, que te pueden estar haciendo perder plata. Miralas primero."
               })} style={{ cursor: "pointer" }}>
-                <StatCard label="Críticas" value={String(stats.criticos)} color="red" />
+                <StatCard label="Urgentes" value={String(stats.criticos)} color="red" />
               </div>
               <div onClick={() => openModal({
-                title: "Alertas de Atención",
-                text: "Alertas de atención son inconsistencias moderadas. No son urgentes pero conviene revisarlas dentro del turno. Pueden indicar patrones que se están desarrollando."
+                title: "Para mirar",
+                text: "Cosas un poco raras. No son urgentes, pero conviene mirarlas hoy: a veces es el principio de un problema."
               })} style={{ cursor: "pointer" }}>
-                <StatCard label="Atención" value={String(stats.atencion)} color="yellow" />
+                <StatCard label="Para mirar" value={String(stats.atencion)} color="yellow" />
               </div>
               <div onClick={() => openModal({
-                title: "Alertas Positivas",
-                text: "Registros positivos son turnos o períodos donde todo operó dentro del rango esperado o mejor. Celebramos lo que funciona bien."
+                title: "Buenas noticias",
+                text: "Turnos o días que salieron bien o mejor que lo normal. También te contamos lo que anda bien."
               })} style={{ cursor: "pointer" }}>
-                <StatCard label="Positivas" value={String(stats.positivos)} color="green" />
+                <StatCard label="Buenas" value={String(stats.positivos)} color="green" />
               </div>
             </StatRow>
           )}
@@ -335,13 +335,13 @@ export default function Alertas() {
             <AlertCard
               variant={nControl > 0 ? recVariant("alta") : "ok"}
               tag={nControl > 0 ? "Revisar" : "Todo ok"}
-              title={nControl > 0 ? `${nControl} ${nControl === 1 ? "posible inconsistencia" : "posibles inconsistencias"} de caja para revisar` : "Sin alertas en esta categoría"}
-              desc={nControl > 0 ? "Las ventas están dentro de lo esperado, pero NICOLE encontró patrones en los cierres de caja. Mirá las recomendaciones de abajo." : "Todo dentro del rango esperado."}
+              title={nControl > 0 ? `${nControl} ${nControl === 1 ? "cosa rara" : "cosas raras"} en la caja para revisar` : "Sin alertas en esta categoría"}
+              desc={nControl > 0 ? "Las ventas están normales, pero NICOLE vio algo raro en cómo se cerró la caja. Mirá abajo qué conviene hacer." : "No hay nada para mirar acá."}
             />
           ) : (
             filtradas.map((a, i) => {
               const fb = feedbacks[a.id_interno];
-              const evidence = a.datos ? Object.entries(a.datos).map(([k, v]) => `${k}: ${v}`).join(", ") : undefined;
+              const evidence = a.datos ? Object.entries(a.datos).filter(([k]) => !/z|sigma|score|baseline|mad|cusum|umbral|desv/i.test(k)).map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join(", ") || undefined : undefined;
 
               return (
                 <div
@@ -349,13 +349,13 @@ export default function Alertas() {
                   onClick={() => openModal({
                     title: a.mensaje,
                     text: fb
-                      ? (fb === "confirmada" ? "Esta alerta fue confirmada. NICOLE ajustó su motor para detectar mejor este tipo de inconsistencias." : "Esta alerta fue descartada como falso positivo. NICOLE ajustó su motor para reducir este tipo de alertas.")
-                      : a.tipo || "Inconsistencia detectada",
+                      ? (fb === "confirmada" ? "Marcaste que este aviso era cierto. LumoBi aprende y va a avisarte mejor la próxima." : "Marcaste que este aviso estaba mal. LumoBi aprende y va a avisar menos cosas así.")
+                      : a.tipo || "Algo fuera de lo normal",
                     details: {
                       description: a.mensaje,
                       evidence,
                       action: a.accion,
-                      calculation: "NICOLE analiza múltiples señales en tiempo real (ticket promedio, ratio efectivo/digital, volumen por turno) y compara cada métrica con tu baseline histórico. Cuando detecta al menos 2 desviaciones simultáneas con z-score fuera del rango normal, genera una alerta.",
+                      calculation: "LumoBi compara lo de hoy con cómo es normalmente tu negocio: cuánto gasta cada cliente, cuánto se paga en efectivo y cuánto se vende en cada turno. Si dos cosas a la vez salen muy distintas a lo normal, te avisa.",
                     }
                   })}
                   style={{ cursor: "pointer" }}

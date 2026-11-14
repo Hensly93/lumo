@@ -117,7 +117,7 @@ function CardDia({ p }: { p: Prediccion }) {
 
   const rows = [{ label: "Ventas esperadas", value: fmt(p.valor_predicho) }];
   if (p.rango_min != null && p.rango_max != null) {
-    rows.push({ label: "Rango probable", value: `${fmt(p.rango_min)} – ${fmt(p.rango_max)}` });
+    rows.push({ label: "Entre cuánto y cuánto", value: `${fmt(p.rango_min)} – ${fmt(p.rango_max)}` });
   }
 
   return (
@@ -450,7 +450,7 @@ export default function Predicciones() {
       )}
 
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Predicciones" sub="NICOLE · próximos 7 días" />
+      <PageHeader title="Predicciones" sub="Cuánto vas a vender los próximos 7 días" />
 
       {loading ? (
         <div style={{ padding: "60px 20px", textAlign: "center" }}>
@@ -487,7 +487,7 @@ export default function Predicciones() {
             <div onClick={() => openModal({ title: "¿Cómo predice NICOLE?", text: TEXTO_MODELO })} style={{ cursor: "pointer" }}>
               <HeroCard
                 gradient="green"
-                label="Proyección próximos 7 días"
+                label="Los próximos 7 días"
                 value={fmt(totalSemana)}
                 sub={(data.modelo?.tipo === "condiciones" && data.modelo.error_tipico_pct != null
                   ? `Error típico en tus datos: ±${Math.round(data.modelo.error_tipico_pct)}%`

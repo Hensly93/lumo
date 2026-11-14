@@ -112,7 +112,7 @@ export default function RentabilidadPage() {
 
   return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Rentabilidad" sub="Ganancia operativa antes de impuestos" />
+      <PageHeader title="Rentabilidad" sub="Lo que te queda después de pagar mercadería y gastos (antes de impuestos)" />
 
       {error && <div style={{ ...tarjeta, color: "var(--red, #E5484D)", fontSize: 13 }}>{error}</div>}
       {!r && !error && <div style={{ textAlign: "center", padding: 40, fontSize: 11, color: "var(--muted)", letterSpacing: 3, textTransform: "uppercase" }}>Calculando...</div>}

@@ -224,7 +224,7 @@ export default function PlanGate() {
               <div style={{ fontSize: 12, color: "var(--text2)", marginTop: 2 }}>{res.ventas.cantidad} ventas</div>
             </div>
             <div style={{ ...caja, flex: 1 }}>
-              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>Ticket promedio</div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>Gasto promedio por cliente</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)" }}>{pesos(res.ventas.ticket_promedio)}</div>
             </div>
           </div>

@@ -28,7 +28,7 @@ const etiqueta = { fontSize: 12, fontWeight: 600, color: "var(--tinta-apagada)",
 export function UltimoTurnoCard({ informe }: { informe: InformeTurno }) {
   const datos: [string, string][] = [
     ["Ventas", String(informe.ventas)],
-    ["Ticket promedio", fmt(informe.ticket_promedio)],
+    ["Gasto promedio por cliente", fmt(informe.ticket_promedio)],
     ["En efectivo", `${informe.efectivo_pct}%`],
   ];
   if (informe.hora_pico) datos.push(["Hora pico", `${informe.hora_pico.hora} a ${(informe.hora_pico.hora + 1) % 24} h`]);
