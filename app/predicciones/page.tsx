@@ -73,6 +73,8 @@ type RespuestaPredicciones = {
   };
   predicciones?: Prediccion[];
   mensaje_nicole?: string;
+  preliminar?: { esperado_dia: number; rango: [number, number]; dias_base: number; texto: string } | null;
+  proyeccion_hoy?: { proyectado: number; hasta_ahora: number; texto: string } | null;
 };
 
 function iconoEvento(tipo: string) {
@@ -321,7 +323,8 @@ export default function Predicciones() {
   if (data?.motivo === "sin_ventas_recientes") {
     textoNoDisponible = `No hay ventas en los últimos ${data.ventana_dias ?? 60} días. NICOLE predice con tus ventas recientes: cuando vuelvas a registrar al menos ${data.minimo_requerido ?? 3} días, aparecen las predicciones.`;
   } else if (data?.dias_con_ventas != null) {
-    textoNoDisponible = `Seguí registrando tus ventas. Tenés ${data.dias_con_ventas} de ${data.minimo_requerido ?? 3} días mínimos.`;
+    const faltan = Math.max(0, (data.minimo_requerido ?? 3) - data.dias_con_ventas);
+    textoNoDisponible = `La predicción de 7 días con clima y calendario arranca con ${data.minimo_requerido ?? 3} días completos de ventas. ${faltan === 1 ? "Falta 1 día" : `Faltan ${faltan} días`}.`;
   }
 
   return (
@@ -454,12 +457,30 @@ export default function Predicciones() {
           <div style={{ fontSize: 11, color: "var(--muted)", letterSpacing: 3, textTransform: "uppercase" }}>Analizando...</div>
         </div>
       ) : !data?.disponible ? (
-        <AlertCard
-          variant="ok"
-          tag="Aprendiendo"
-          title="NICOLE necesita más datos para predecir"
-          desc={textoNoDisponible}
-        />
+        <>
+          {data?.proyeccion_hoy && (
+            <HeroCard
+              gradient="green"
+              label="Hoy, a este ritmo"
+              value={fmt(data.proyeccion_hoy.proyectado)}
+              sub={`Llevás ${fmt(data.proyeccion_hoy.hasta_ahora)} · ${data.proyeccion_hoy.texto}`}
+            />
+          )}
+          {data?.preliminar && (
+            <HeroCard
+              gradient="green"
+              label="Un día normal tuyo (preliminar)"
+              value={fmt(data.preliminar.esperado_dia)}
+              sub={`Entre ${fmt(data.preliminar.rango[0])} y ${fmt(data.preliminar.rango[1])} · ${data.preliminar.texto}`}
+            />
+          )}
+          <AlertCard
+            variant="ok"
+            tag="Aprendiendo"
+            title={data?.preliminar ? "La predicción completa ya casi está" : "NICOLE necesita más datos para predecir"}
+            desc={textoNoDisponible}
+          />
+        </>
       ) : (
         <>
           {totalSemana > 0 && (

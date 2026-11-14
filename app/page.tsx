@@ -1,4 +1,5 @@
 "use client";
+import { UltimoTurnoCard, ProyeccionCard, AprendizajeCard, type InformeTurno, type Proyeccion, type Aprendizaje } from "./components/PrimerosDias";
 import Nav from "./components/Nav";
 import EnVivoCard from "./components/EnVivoCard";
 import RadiografiaCard from "./components/RadiografiaCard";
@@ -101,6 +102,10 @@ function HomeContent() {
   const [hayVentas, setHayVentas] = useState<boolean | null>(null);
   const [analisis, setAnalisis] = useState<Analisis | null>(null);
   const [motorCaido, setMotorCaido] = useState(false);
+  const [informe, setInforme] = useState<InformeTurno | null>(null);
+  const [proyeccion, setProyeccion] = useState<Proyeccion | null>(null);
+  const [aprendizaje, setAprendizaje] = useState<Aprendizaje | null>(null);
+  const [predPreliminar, setPredPreliminar] = useState(false);
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [pred, setPred] = useState<Prediccion | null>(null);
   const [loading, setLoading] = useState(true);
@@ -134,6 +139,10 @@ function HomeContent() {
       setAlertas(ini?.revisar?.items || []);
       // Si el motor no pudo analizar, no mostrar "En orden": no sabemos si está en orden
       setMotorCaido(!ini || !!ini.error || ini.motor_ok === false);
+      setInforme(ini?.informe_turno ?? null);
+      setProyeccion(ini?.proyeccion_hoy ?? null);
+      setAprendizaje(ini?.aprendizaje ?? null);
+      setPredPreliminar(!!ini?.hoy?.preliminar);
       setPred(ini?.hoy?.disponible ? { disponible: true, facturacion: { disponible: true, venta_diaria_esperada: ini.hoy.esperado_dia, confianza: { pct: ini.hoy.confianza_pct } } } as any : null);
       setWowPatterns(wow?.patrones || []);
       setLoading(false);
@@ -483,6 +492,10 @@ function HomeContent() {
 
             <BannerPasos token={token} onVentas={setHayVentas} />
 
+            {proyeccion && <ProyeccionCard p={proyeccion} />}
+            {informe && <UltimoTurnoCard informe={informe} />}
+            {aprendizaje && !aprendizaje.completo && <AprendizajeCard a={aprendizaje} />}
+
             {/* Tu Negocio en Vivo */}
             {hayVentas === false ? (
               <div style={{ margin: "0 0 16px", padding: "16px", borderRadius: 14, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
@@ -522,7 +535,7 @@ function HomeContent() {
                 color: "var(--tinta-apagada)",
                 marginBottom: 6,
               }}>
-                Facturación estimada hoy
+                {predPreliminar ? "Un día normal tuyo (preliminar)" : "Facturación estimada hoy"}
               </div>
 
               <div style={{
@@ -784,14 +797,16 @@ function HomeContent() {
                           }}>
                             💡 {textoRecomendacion(pattern.recomendacion)}
                           </div>
-                          <div style={{
-                            fontFamily: "monospace",
-                            fontSize: 16,
-                            fontWeight: 700,
-                            color: "#EF4444",
-                          }}>
-                            {fmt(pattern.impacto_pesos)}
-                          </div>
+                          {pattern.impacto_pesos > 0 && (
+                            <div style={{
+                              fontFamily: "monospace",
+                              fontSize: 16,
+                              fontWeight: 700,
+                              color: "#EF4444",
+                            }}>
+                              {fmt(pattern.impacto_pesos)}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
