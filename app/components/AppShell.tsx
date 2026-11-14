@@ -4,6 +4,7 @@ import AppHeader from "./AppHeader";
 import PushRegistrar from "./PushRegistrar";
 import PlanGate from "./PlanGate";
 import Tracker from "./Tracker";
+import GuiaPantalla from "./GuiaPantalla";
 
 const SIN_HEADER = ["/landing", "/soluciones", "/login", "/empleado", "/reset-password", "/onboarding", "/admin", "/privacidad", "/terminos"];
 
@@ -14,6 +15,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       {showHeader && <AppHeader />}
+      {showHeader && <GuiaPantalla />}
       <PushRegistrar />
       <Tracker />
       <PlanGate />
