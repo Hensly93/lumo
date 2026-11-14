@@ -86,7 +86,7 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
       if (!t) return;
       fetch(`${API}/api/multilocal/en-vivo${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers: { Authorization: `Bearer ${t}` } })
         .then(r => (r.ok ? r.json() : null))
-        .then(d => { if (vivo && d) setData(d); })
+        .then(d => { if (vivo && d && Array.isArray(d.sucursales)) setData(d); })
         .catch(() => {});
     };
     cargar();

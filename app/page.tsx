@@ -501,10 +501,14 @@ function HomeContent() {
             {/* Tu Negocio en Vivo */}
             {hayVentas === false ? (
               <div style={{ margin: "0 0 16px", padding: "16px", borderRadius: 14, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--tinta)", marginBottom: 4 }}>Tu inicio se va llenando solo</div>
-                <div style={{ fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.55 }}>
-                  Apenas haya ventas, acá aparece dónde se te va la plata, cuánto vendés por hora y qué conviene hacer. Hacé una venta de prueba desde la caja o cargá tus ventas anteriores.
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--tinta)", marginBottom: 4 }}>Todavía no hay ventas</div>
+                <div style={{ fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.55, marginBottom: 12 }}>
+                  Cuando cobres tu primera venta con la caja, acá vas a ver cuánto vendiste, cuánto vas a vender y dónde se te va la plata.
                 </div>
+                <button onClick={() => router.push("/primeros-pasos?paso=caja")}
+                  style={{ width: "100%", padding: "12px", borderRadius: 8, border: "none", background: "var(--tinta)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                  Ir a la caja y cobrar
+                </button>
               </div>
             ) : (
               <>
@@ -516,11 +520,12 @@ function HomeContent() {
               </>
             )}
 
+            {hayVentas !== false && (<>
             {/* Hero Card */}
             <div
               onClick={() => openModal({
                 title: "Facturación estimada hoy",
-                text: "NICOLE proyecta tus ventas de hoy en base a tu historial de transacciones. Cuantos más datos tenga, más precisa será la proyección. El número se actualiza cada vez que registrás una venta."
+                text: "Es lo que LumoBi calcula que vas a vender hoy, mirando cómo vendiste los otros días. Cuantos más días de ventas tenga, más le pega. Cambia con cada venta que cobrás."
               })}
               style={{
                 background: "var(--blanco)",
@@ -537,7 +542,7 @@ function HomeContent() {
                 color: "var(--tinta-apagada)",
                 marginBottom: 6,
               }}>
-                {predPreliminar ? "Un día normal tuyo (preliminar)" : "Facturación estimada hoy"}
+                {predPreliminar ? "Un día normal tuyo (preliminar)" : "Lo que vas a vender hoy (calculado)"}
               </div>
 
               <div style={{
@@ -549,7 +554,7 @@ function HomeContent() {
                 marginTop: 4,
                 marginBottom: 12,
               }}>
-                {facturacion != null ? fmt(facturacion) : "Sin datos"}
+                {facturacion != null ? fmt(facturacion) : "Juntando datos…"}
               </div>
 
               <div style={{ display: "flex", gap: 8 }}>
@@ -559,11 +564,11 @@ function HomeContent() {
                     borderRadius: 8,
                     padding: "8px 12px",
                   }}>
-                    <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginBottom: 3 }}>Pérdida est. mes</div>
+                    <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginBottom: 3 }}>Plata que se te escapa este mes</div>
                     <div style={{ fontSize: 16, fontWeight: 600, color: "var(--tinta)" }}>{fmt(perdidaMes)}</div>
                   </div>
                 )}
-                <div style={{
+                {dq != null && <div style={{
                   background: "var(--papel)",
                   borderRadius: 8,
                   padding: "8px 12px",
@@ -579,10 +584,10 @@ function HomeContent() {
                     display: "inline-block",
                   }} />
                   <div>
-                    <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginBottom: 3 }}>Calidad datos</div>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: "var(--tinta)" }}>{dq != null ? `${Math.round(dq)}%` : "—"}</div>
+                    <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginBottom: 3 }}>Qué tan seguro está</div>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: "var(--tinta)" }}>{`${Math.round(dq)}%`}</div>
                   </div>
-                </div>
+                </div>}
               </div>
             </div>
 
@@ -596,8 +601,8 @@ function HomeContent() {
               {/* Críticas */}
               <div
                 onClick={() => openModal({
-                  title: "Alertas críticas",
-                  text: "Cantidad de inconsistencias críticas detectadas hoy. NICOLE requiere mínimo 2 señales simultáneas para generar una alerta crítica.",
+                  title: "Urgentes",
+                  text: "Cosas que LumoBi vio hoy y que te pueden estar haciendo perder plata ahora. Si hay alguna, miralas primero.",
                   actionButton: { text: "Ver alertas →", href: "/alertas" }
                 })}
                 style={{
@@ -614,7 +619,7 @@ function HomeContent() {
                   color: "var(--tinta-apagada)",
                   marginBottom: 6,
                 }}>
-                  Críticas
+                  Urgentes
                 </div>
                 <div style={{
                   fontSize: 28,
@@ -642,8 +647,8 @@ function HomeContent() {
               {/* Atención */}
               <div
                 onClick={() => openModal({
-                  title: "Alertas de atención",
-                  text: "Cantidad de situaciones que requieren atención detectadas hoy. Menor prioridad que las críticas pero vale revisarlas.",
+                  title: "Para mirar",
+                  text: "Cosas raras que no son urgentes, pero conviene que les eches un ojo cuando puedas.",
                   actionButton: { text: "Ver alertas →", href: "/alertas" }
                 })}
                 style={{
@@ -660,7 +665,7 @@ function HomeContent() {
                   color: "var(--tinta-apagada)",
                   marginBottom: 6,
                 }}>
-                  Atención
+                  Para mirar
                 </div>
                 <div style={{
                   fontSize: 28,
@@ -688,8 +693,8 @@ function HomeContent() {
               {/* Score */}
               <div
                 onClick={() => openModal({
-                  title: "Score",
-                  text: "El score resume el nivel de inconsistencia operativa del negocio. Se calcula combinando ticket promedio, ratio efectivo/digital y volumen por turno. Sin datos suficientes aparece como —."
+                  title: "Nota del negocio",
+                  text: "Es una nota de 0 a 100 de qué tan ordenado anda tu negocio: si la caja cierra bien, si las ventas son parejas y si no hay cosas raras. Más alto es mejor. Aparece cuando LumoBi tiene unos días de ventas."
                 })}
                 style={{
                   background: "var(--blanco)",
@@ -705,7 +710,7 @@ function HomeContent() {
                   color: "var(--tinta-apagada)",
                   marginBottom: 6,
                 }}>
-                  Score
+                  Nota
                 </div>
                 <div style={{
                   fontSize: 28,
@@ -714,10 +719,12 @@ function HomeContent() {
                   fontFamily: "var(--font-instrument), sans-serif",
                   lineHeight: 1,
                 }}>
-                  {analisis?.score != null ? String(analisis.score) : "—"}
+                  {analisis?.score != null ? String(analisis.score) : <span style={{ fontSize: 14, fontWeight: 600, color: "var(--tinta-apagada)" }}>Pronto</span>}
                 </div>
               </div>
             </div>
+
+            </>)}
 
             {/* Sección WOW */}
             {wowPatterns.length > 0 && (
@@ -737,7 +744,7 @@ function HomeContent() {
                     color: "var(--tinta-apagada)",
                     marginBottom: 8,
                   }}>
-                    Análisis de tus últimos 30 días · Preliminar
+                    Mirando tus últimos 30 días · todavía aprendiendo
                   </div>
                 </div>
 
@@ -817,24 +824,23 @@ function HomeContent() {
               </>
             )}
 
+            {hayVentas !== false && (<>
             {/* Sección Alertas activas */}
             <div style={{
-              fontFamily: "monospace",
-              fontSize: 9,
-              letterSpacing: 3,
-              color: "#94A3B8",
-              textTransform: "uppercase",
-              marginBottom: 16,
+              fontSize: 16,
+              fontWeight: 700,
+              color: "var(--tinta)",
+              marginBottom: 12,
               marginTop: 24,
             }}>
-              // ALERTAS ACTIVAS
+              Lo que tenés que mirar hoy
             </div>
 
             {alertas.length === 0 ? (
               <div
                 onClick={() => openModal({
-                  title: "Sin anomalías detectadas",
-                  text: "Tu negocio opera dentro del rango esperado hoy. NICOLE no detectó patrones fuera de lo normal. Esto es una buena señal."
+                  title: "Hoy está todo normal",
+                  text: "LumoBi revisó tus ventas, tu caja y tu equipo y no vio nada raro. Si aparece algo, te avisa al celu."
                 })}
                 style={{
                   background: "white",
@@ -868,13 +874,13 @@ function HomeContent() {
                       color: "#0A1628",
                       marginBottom: 4,
                     }}>
-                      Sin anomalías detectadas
+                      Hoy está todo normal
                     </div>
                     <div style={{
                       fontSize: 12,
                       color: "#64748B",
                     }}>
-                      Tu negocio opera dentro del rango esperado.
+                      LumoBi no vio nada raro. Si aparece algo, te avisa.
                     </div>
                   </div>
                   <div style={{
@@ -947,6 +953,7 @@ function HomeContent() {
                 );
               })
             )}
+            </>)}
           </div>
         )}
 

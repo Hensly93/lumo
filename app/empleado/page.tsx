@@ -252,7 +252,7 @@ function PrecioModal({ turnoId, onClose }: { turnoId: number; onClose: () => voi
         setMsg({ texto: `El código ${c} no está cargado`, ok: false });
       }
     } catch {
-      setMsg({ texto: "Error de conexión", ok: false });
+      setMsg({ texto: "No hay internet o se cortó. Probá de nuevo.", ok: false });
     }
   }
 
@@ -824,7 +824,7 @@ export default function EmpleadoPage() {
     return () => clearInterval(id);
   }, [paso, turno?.id]);
 
-  // "Recordar este dispositivo": casilla de la pantalla del codigo (apagada por defecto)
+  // "Que este celu o compu se acuerde del código": casilla de la pantalla del codigo (apagada por defecto)
   const [recordar, setRecordar] = useState(false);
 
   // Cargar el codigo guardado SOLO si el dispositivo fue marcado como "recordado"
@@ -859,7 +859,7 @@ export default function EmpleadoPage() {
     try {
       const r = await fetch(`${API}/api/multilocal/sucursales-publicas/${nid}`);
       const d = await r.json();
-      if (!Array.isArray(d)) { setError("Código de negocio incorrecto"); return; }
+      if (!Array.isArray(d)) { setError("Ese código no existe. Revisalo con el dueño."); return; }
       try {
         if (guardar === true) {
           localStorage.setItem("lumo_negocio_codigo", nid);
@@ -882,7 +882,7 @@ export default function EmpleadoPage() {
         setPaso("sucursal");
       }
     } catch {
-      setError("Error de conexión");
+      setError("No hay internet o se cortó. Probá de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -897,19 +897,19 @@ export default function EmpleadoPage() {
         : `${API}/api/caja/empleados/${nid}`;
       const r = await fetch(url);
       const d = await r.json();
-      if (!Array.isArray(d)) { setError("Código de negocio incorrecto"); return; }
-      if (d.length === 0) { setError("No hay empleados registrados para este local"); return; }
+      if (!Array.isArray(d)) { setError("Ese código no existe. Revisalo con el dueño."); return; }
+      if (d.length === 0) { setError("Todavía no hay nadie cargado para esta caja. El dueño tiene que agregarte en LumoBi, en Equipo."); return; }
       setEmpleados(d);
       setPaso("empleado");
     } catch {
-      setError("Error de conexión");
+      setError("No hay internet o se cortó. Probá de nuevo.");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleValidarPin() {
-    if (pin.length !== 4) { setError("El PIN tiene 4 dígitos"); return; }
+    if (pin.length !== 4) { setError("La clave tiene 4 números"); return; }
     setLoading(true);
     setError("");
     try {
@@ -927,14 +927,14 @@ export default function EmpleadoPage() {
         setPaso("apertura");
       }
     } catch {
-      setError("Error de conexión");
+      setError("No hay internet o se cortó. Probá de nuevo.");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleApertura() {
-    if (!aperturaEfectivo) { setError("Ingresá el efectivo en caja"); return; }
+    if (!aperturaEfectivo) { setError("Escribí cuánta plata hay en la caja (si no hay, poné 0)"); return; }
     setLoading(true);
     setError("");
     try {
@@ -954,7 +954,7 @@ export default function EmpleadoPage() {
       SESION_TOKEN = d.sesion_token || ""; setTurno({ ...d.turno, duracion_minutos: 0, total_egresos: 0 });
       setPaso("activo");
     } catch {
-      setError("Error de conexión");
+      setError("No hay internet o se cortó. Probá de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -977,14 +977,14 @@ export default function EmpleadoPage() {
       setTurno((t: any) => ({ ...t, total_egresos: (t.total_egresos || 0) + parseFloat(egresoMonto) }));
       setPaso("activo");
     } catch {
-      setError("Error de conexión");
+      setError("No hay internet o se cortó. Probá de nuevo.");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleConteo() {
-    if (!conteoMonto) { setError("Ingresá el efectivo contado"); return; }
+    if (!conteoMonto) { setError("Escribí cuánta plata contaste"); return; }
     setLoading(true);
     setError("");
     try {
@@ -999,14 +999,14 @@ export default function EmpleadoPage() {
       setConteoPend(null);
       setPaso("activo");
     } catch {
-      setError("Error de conexión");
+      setError("No hay internet o se cortó. Probá de nuevo.");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleCierre() {
-    if (!cierreMonto) { setError("Ingresá el efectivo final"); return; }
+    if (!cierreMonto) { setError("Escribí cuánta plata hay en la caja"); return; }
     setLoading(true);
     setError("");
     try {
@@ -1020,7 +1020,7 @@ export default function EmpleadoPage() {
       setResumen(d.resumen);
       setPaso("resumen");
     } catch {
-      setError("Error de conexión");
+      setError("No hay internet o se cortó. Probá de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -1043,9 +1043,10 @@ export default function EmpleadoPage() {
     <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ maxWidth: 420, width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div style={{ fontSize: 14, letterSpacing: 3, color: C.muted, marginBottom: 12, fontWeight: 600 }}>LUMO</div>
-          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 40, color: C.text, margin: '0 0 12px 0' }}>Modo empleado</h1>
-          <p style={{ fontSize: 16, color: C.muted, margin: 0 }}>Ingresá el código de tu negocio</p>
+          <div style={{ fontSize: 14, letterSpacing: 3, color: C.muted, marginBottom: 12, fontWeight: 600 }}>LUMOBI</div>
+          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 40, color: C.text, margin: '0 0 12px 0' }}>Caja</h1>
+          <p style={{ fontSize: 16, color: C.muted, margin: 0 }}>Escribí el código de tu negocio</p>
+          <p style={{ fontSize: 13, color: C.muted, margin: "8px 0 0 0" }}>Te lo da el dueño. Lo encuentra en LumoBi, en Equipo.</p>
         </div>
         <ErrorBox error={error} />
         <input
@@ -1175,7 +1176,7 @@ export default function EmpleadoPage() {
       <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
         <Avatar name={empleadoSel} size={100} />
         <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 28, color: C.text, margin: '24px 0 8px 0' }}>{empleadoSel}</h1>
-        <p style={{ fontSize: 16, color: C.muted, marginBottom: 40 }}>Ingresá tu PIN de 4 dígitos</p>
+        <p style={{ fontSize: 16, color: C.muted, marginBottom: 40 }}>Escribí tu clave de 4 números</p>
         <ErrorBox error={error} />
 
         {/* PIN Dots */}
@@ -1254,8 +1255,8 @@ export default function EmpleadoPage() {
       <div style={{ maxWidth: 420, width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <h2 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 24, color: C.muted, margin: '0 0 12px 0' }}>Bienvenido/a, {empleadoSel}</h2>
-          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Cuánto efectivo hay en caja ahora?</h1>
-          <p style={{ fontSize: 14, color: C.muted, marginTop: 12 }}>Declaración de apertura de turno</p>
+          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Cuánta plata en efectivo hay en la caja?</h1>
+          <p style={{ fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.5 }}>Contá los billetes antes de empezar. Así, al cerrar, se sabe si la caja cerró bien. Si no hay nada, poné 0.</p>
         </div>
         <ErrorBox error={error} />
         <CurrencyInput value={aperturaEfectivo} onChange={v => { setAperturaEfectivo(v); setError(""); }} placeholder="15000" />
@@ -1309,7 +1310,7 @@ export default function EmpleadoPage() {
               type="text"
               autoComplete="off"
               value={scanBuffer}
-              placeholder="Escaneá con la pistola o escribí el código o el nombre"
+              placeholder="Pasá el producto por el lector o escribí su nombre"
               onChange={(ev) => { setScanBuffer(ev.target.value); buscarSugerencias(ev.target.value); }}
               onFocus={() => setEnfocado(true)}
               onBlur={() => {
@@ -1364,7 +1365,7 @@ export default function EmpleadoPage() {
               marginBottom: 24,
             }}>
               <div style={{ fontSize: 12, letterSpacing: 2, color: C.amber, fontWeight: 700, marginBottom: 8 }}>⚠️ CONTEO SOLICITADO</div>
-              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 20, color: C.text, marginBottom: 8 }}>Contá la caja ahora</div>
+              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 20, color: C.text, marginBottom: 8 }}>El dueño te pide que cuentes la caja</div>
               <div style={{ fontSize: 14, color: C.muted, marginBottom: 16 }}>
                 Tenés <span style={{ color: C.amber, fontWeight: 700 }}>{conteoPend.minutos_restantes} min</span> para responder
               </div>
@@ -1403,7 +1404,7 @@ export default function EmpleadoPage() {
                 : 'CARRITO ACTUAL'}
             </div>
             {(!carrito || carrito.items.length === 0) && (
-              <div style={{ fontSize: 14, color: C.muted, padding: '8px 0 4px' }}>Todavía no hay productos. Escaneá el primero o buscalo por nombre.</div>
+              <div style={{ fontSize: 14, color: C.muted, padding: '8px 0 4px' }}>Todavía no hay productos. Pasá el primero por el lector o escribí su nombre.</div>
             )}
             {carrito && carrito.items.map((item: any) => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '10px 0', borderBottom: `1px solid ${C.cardBorder}` }}>
@@ -1573,7 +1574,7 @@ export default function EmpleadoPage() {
       <div style={{ maxWidth: 420, width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: '0 0 12px 0' }}>Cerrando turno</h1>
-          <p style={{ fontSize: 16, color: C.muted }}>¿Cuánto efectivo hay en caja al cerrar?</p>
+          <p style={{ fontSize: 16, color: C.muted, lineHeight: 1.5 }}>Contá los billetes que hay en la caja y escribí el total. Contá bien: con esto se ve si la caja cerró bien.</p>
         </div>
         <ErrorBox error={error} />
         <div style={{
