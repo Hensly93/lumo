@@ -35,7 +35,7 @@ type AlertasResp = {
     criticos: number;
     atencion: number;
     positivos: number;
-    caps: { fuertes_usadas: number; fuertes_max: number; total_usadas: number; total_max: number };
+    caps?: { fuertes_usadas: number; fuertes_max: number; total_usadas: number; total_max: number };
   };
 };
 
@@ -107,11 +107,15 @@ export default function Alertas() {
 
   async function darFeedback(idInterno: string, confirmada: boolean) {
     setFeedbacks(f => ({ ...f, [idInterno]: confirmada ? "confirmada" : "descartada" }));
-    await fetch(`${API}/api/alertas/feedback`, {
+    const r = await fetch(`${API}/api/alertas/feedback`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ alerta_id: idInterno, confirmada }),
     }).catch(() => null);
+    // Si no se guardó, se saca la marca: no mostrar "confirmada" cuando no quedó registrado
+    if (!r || !r.ok) {
+      setFeedbacks(f => { const n = { ...f }; delete n[idInterno]; return n; });
+    }
   }
 
   const alertas = alertasResp?.alertas || [];

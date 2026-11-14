@@ -100,6 +100,7 @@ function HomeContent() {
 
   const [hayVentas, setHayVentas] = useState<boolean | null>(null);
   const [analisis, setAnalisis] = useState<Analisis | null>(null);
+  const [motorCaido, setMotorCaido] = useState(false);
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [pred, setPred] = useState<Prediccion | null>(null);
   const [loading, setLoading] = useState(true);
@@ -131,6 +132,8 @@ function HomeContent() {
     ]).then(([ini, wow]) => {
       setAnalisis(ini?.analisis ?? null);
       setAlertas(ini?.revisar?.items || []);
+      // Si el motor no pudo analizar, no mostrar "En orden": no sabemos si está en orden
+      setMotorCaido(!ini || !!ini.error || ini.motor_ok === false);
       setPred(ini?.hoy?.disponible ? { disponible: true, facturacion: { disponible: true, venta_diaria_esperada: ini.hoy.esperado_dia, confianza: { pct: ini.hoy.confianza_pct } } } as any : null);
       setWowPatterns(wow?.patrones || []);
       setLoading(false);
@@ -138,6 +141,7 @@ function HomeContent() {
   }, [ready, token, sucursalId]);
 
   const dq = dqScore(analisis?.data_quality_score);
+  const enOrden = motorCaido ? "Sin analizar" : "En orden";
   const critCount = alertas.filter(a => ["critico", "inconsistencia"].includes(a.prioridad)).length;
   const warnCount = alertas.filter(a => ["atencion", "ineficiencia"].includes(a.prioridad)).length;
   const facturacion = pred?.facturacion?.disponible ? pred.facturacion.venta_diaria_esperada : null;
@@ -616,7 +620,7 @@ function HomeContent() {
                   borderRadius: 6,
                   display: "inline-block",
                 }}>
-                  {critCount > 0 ? "Crítico" : "En orden"}
+                  {critCount > 0 ? "Crítico" : enOrden}
                 </div>
               </div>
 
@@ -662,7 +666,7 @@ function HomeContent() {
                   borderRadius: 6,
                   display: "inline-block",
                 }}>
-                  {warnCount > 0 ? "Para revisar" : "En orden"}
+                  {warnCount > 0 ? "Para revisar" : enOrden}
                 </div>
               </div>
 

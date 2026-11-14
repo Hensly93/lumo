@@ -310,7 +310,10 @@ export default function Empleados() {
                     />
                   </div>
                   {abierto === e.empleado && (
-                    <DetalleRiesgo e={{ ...(info[e.empleado]?.erm ?? {}), ...e }} turnos={info[e.empleado]?.turnos} />
+                    <>
+                      <DetalleRiesgo e={{ ...(info[e.empleado]?.erm ?? {}), ...e }} turnos={info[e.empleado]?.turnos} />
+                      {e.score !== null && e.nivel !== "verde" && token && <FeedbackERM empleado={e.empleado} token={token} />}
+                    </>
                   )}
                 </div>
               ))}
@@ -395,5 +398,33 @@ export default function Empleados() {
 
       <Nav />
     </main>
+  );
+}
+
+// Respuesta del dueño sobre el riesgo de un empleado: entrena el ERM (POST /api/erm/:empleado/feedback)
+function FeedbackERM({ empleado, token }: { empleado: string; token: string }) {
+  const [estado, setEstado] = useState<"idle" | "enviando" | "ok" | "error">("idle");
+  const enviar = async (tipo: "confirma_riesgo_real" | "descarta_como_normal") => {
+    setEstado("enviando");
+    const r = await fetch(`${API}/api/erm/${encodeURIComponent(empleado)}/feedback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ tipo_feedback: tipo }),
+    }).catch(() => null);
+    setEstado(r && r.ok ? "ok" : "error");
+  };
+  const btn = { flex: 1, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 13, fontWeight: 600, cursor: "pointer" } as const;
+  if (estado === "ok") {
+    return <div style={{ margin: "0 20px 16px", fontSize: 12, color: "var(--muted)" }}>Gracias. LumoBi usa tu respuesta para ajustar el riesgo de este empleado.</div>;
+  }
+  return (
+    <div style={{ margin: "0 20px 16px" }}>
+      <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8 }}>¿Lo revisaste? Tu respuesta ajusta el cálculo.</div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button style={btn} disabled={estado === "enviando"} onClick={() => enviar("confirma_riesgo_real")}>Había un problema</button>
+        <button style={btn} disabled={estado === "enviando"} onClick={() => enviar("descarta_como_normal")}>Estaba todo bien</button>
+      </div>
+      {estado === "error" && <div style={{ fontSize: 12, color: "var(--critico)", marginTop: 6 }}>No se pudo guardar. Probá de nuevo.</div>}
+    </div>
   );
 }
