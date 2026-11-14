@@ -488,7 +488,24 @@ function SecSuscripcion({ perfil, token, recarga, onCancelSubscription }: { perf
 
 // ── SecNotificaciones ─────────────────────────────────────────────
 function SecNotificaciones({ token }: { token: string }) {
-  const [toggles, setToggles] = useState({ alertas_criticas: true, alertas_medias: true, resumen_diario: false, conteos_perdidos: true });
+  const [toggles, setToggles] = useState({ alertas_criticas: true, alertas_medias: true, resumen_diario: true, conteos_perdidos: true });
+  const [prueba, setPrueba] = useState<string | null>(null);
+
+  async function probarAviso() {
+    setPrueba("Enviando…");
+    try {
+      // Primero se asegura que este celu esté guardado para esta cuenta
+      await subscribePush(token);
+      const r = await fetch(`${API}/api/push/probar`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+      const j = await r.json();
+      if (!r.ok) { setPrueba("No se pudo probar: " + (j.error || r.status)); return; }
+      if (j.entregados > 0) setPrueba(`Enviado a ${j.entregados} celu${j.entregados === 1 ? "" : "s"}. Si no te llegó en un minuto, revisá que el celu no tenga las notificaciones de Chrome silenciadas o en ahorro de batería.`);
+      else if (!j.celus.length) setPrueba("Esta cuenta no tiene ningún celu guardado. Tocá \"Activar notificaciones\".");
+      else setPrueba("El servidor no pudo entregarlo: " + j.celus.map((c: { status: number | null; borrada: boolean }) => `error ${c.status ?? "?"}${c.borrada ? " (se borró, activá de nuevo)" : ""}`).join(", "));
+    } catch {
+      setPrueba("No se pudo probar. Revisá la conexión.");
+    }
+  }
   const [saving, setSaving] = useState(false);
   const [pushStatus, setPushStatus] = useState<"unknown" | "granted" | "denied" | "default">("unknown");
   const [subscribing, setSubscribing] = useState(false);
@@ -632,7 +649,15 @@ function SecNotificaciones({ token }: { token: string }) {
       <ToggleRow on={toggles.alertas_criticas} onChange={set("alertas_criticas")} label="Alertas críticas" sub="Inconsistencias con z-score > 3.0" />
       <ToggleRow on={toggles.alertas_medias} onChange={set("alertas_medias")} label="Alertas de atención" sub="Patrones repetidos y brechas moderadas" />
       <ToggleRow on={toggles.conteos_perdidos} onChange={set("conteos_perdidos")} label="Conteos no respondidos" sub="Cuando un empleado no responde en 15 min" />
-      <ToggleRow on={toggles.resumen_diario} onChange={set("resumen_diario")} label="Resumen diario" sub="Un resumen cada noche con lo del día" />
+      <ToggleRow on={toggles.resumen_diario} onChange={set("resumen_diario")} label="Resumen y predicciones del día" sub="Informe de cada turno, tu franja fuerte, cómo viene el día y qué esperar mañana" />
+      {pushStatus === "granted" && (
+        <div style={{ marginTop: 14 }}>
+          <button onClick={probarAviso} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid var(--border)", background: "transparent", color: "var(--text)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+            Mandarme un aviso de prueba
+          </button>
+          {prueba && <div style={{ marginTop: 8, fontSize: 12, color: "var(--muted)", lineHeight: 1.5 }}>{prueba}</div>}
+        </div>
+      )}
       {saving && (
         <div style={{ marginTop: 12, fontSize: 11, color: "var(--cyan)" }}>
           Guardando...

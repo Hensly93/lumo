@@ -29,6 +29,21 @@ async function swListo(): Promise<ServiceWorkerRegistration | null> {
   }
 }
 
+// Guarda (o vuelve a atar a este usuario) la suscripción del celu en el servidor
+async function guardarEnServidor(sub: PushSubscription, token: string): Promise<boolean> {
+  try {
+    const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } };
+    const resp = await fetch(`${API}/api/push/subscribe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
+    });
+    return resp.ok;
+  } catch {
+    return false;
+  }
+}
+
 // Función exportable para suscribirse a push (se llama desde un click handler)
 export async function subscribePush(token: string): Promise<boolean> {
   motivoPush = "";
@@ -50,9 +65,14 @@ export async function subscribePush(token: string): Promise<boolean> {
       return false;
     }
 
-    // Verificar si ya existe suscripción
+    // Si este celu ya tiene suscripción, igual se le vuelve a mandar al servidor: el servidor pudo
+    // haberla borrado, o este celu ahora está con otra cuenta. Antes se devolvía "ok" y el aviso nunca llegaba.
     const existing = await reg.pushManager.getSubscription();
-    if (existing) return true; // Ya está suscrito
+    if (existing) {
+      const ok = await guardarEnServidor(existing, token);
+      if (!ok) motivoPush = "No se pudo guardar el aviso en el servidor. Probá de nuevo.";
+      return ok;
+    }
 
     // Pedir permiso (se llama desde un click, Chrome no bloquea)
     const perm = await Notification.requestPermission();
@@ -70,17 +90,10 @@ export async function subscribePush(token: string): Promise<boolean> {
     });
 
     // Enviar al backend
-    const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } };
-    const resp = await fetch(`${API}/api/push/subscribe`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
-    });
-    if (!resp.ok) {
-      motivoPush = `No se pudo guardar el aviso en el servidor (error ${resp.status}).`;
+    if (!(await guardarEnServidor(sub, token))) {
+      motivoPush = "No se pudo guardar el aviso en el servidor. Probá de nuevo.";
       return false;
     }
-
     return true;
   } catch (e) {
     console.error("Error en subscribePush:", e);
@@ -97,14 +110,12 @@ export function usePush(token: string | null) {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
     if (Notification.permission === "denied") return;
 
-    // Solo verificar si ya existe suscripción, NO crear nueva
+    // Cada vez que se abre la app: si el celu ya tiene suscripción, se la reenvía al servidor.
+    // Así se arregla sola si el servidor la había borrado o si en este celu se entró con otra cuenta.
+    // Si no hay suscripción NO se crea: eso lo hace el botón (Chrome pide un toque del usuario).
     navigator.serviceWorker.ready.then(async (reg) => {
       const existing = await reg.pushManager.getSubscription();
-      if (existing) {
-        // Ya suscrito, nada que hacer
-        return;
-      }
-      // NO hacer nada si no existe - esperamos que el usuario toque el botón manual
+      if (existing && Notification.permission === "granted") await guardarEnServidor(existing, token);
     }).catch(() => {});
   }, [token]);
 }
