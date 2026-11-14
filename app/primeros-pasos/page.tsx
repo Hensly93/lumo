@@ -168,7 +168,7 @@ export default function PrimerosPasos() {
           style={{ display: "flex", overflowX: "auto", scrollSnapType: "x mandatory", scrollbarWidth: "none", gap: 0 }}
         >
           <Tarjeta n={1} total={TOTAL} hecho={!!estado?.turno} titulo="Tu caja en 1 minuto"
-            texto="Poné quién atiende (puede ser tu nombre) y un PIN de 4 números, y abrí la caja. No hace falta cargar productos antes: cuando escaneás o escribís algo que no está, la caja te deja darlo de alta en el momento.">
+            texto="Escribí quién atiende la caja (puede ser tu nombre) y elegí un PIN de 4 números. Los productos los cargás mientras vendés.">
             <CajaRapida token={token} onListo={() => cargarEstado(token)} />
           </Tarjeta>
 

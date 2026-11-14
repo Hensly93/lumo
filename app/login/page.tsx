@@ -2,6 +2,7 @@
 // Login, registro y recupero de contraseña — diseño claro de LumoBi (login-claro).
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import RegistroSimple from "./RegistroSimple";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -124,7 +125,7 @@ export default function Login() {
     if (typeof window === "undefined") return;
     if (localStorage.getItem("lumo_token")) {
       const u = JSON.parse(localStorage.getItem("lumo_usuario") || "{}");
-      router.replace(u.onboarding_done ? "/" : "/onboarding");
+      router.replace(u.onboarding_done ? "/" : "/primeros-pasos?paso=caja");
     }
   }, []);
 
@@ -148,31 +149,7 @@ export default function Login() {
       if (!resp.ok) throw new Error(data.error || "Error al conectar");
       localStorage.setItem("lumo_token", data.token);
       localStorage.setItem("lumo_usuario", JSON.stringify(data.usuario));
-      router.replace(data.usuario.onboarding_done ? "/" : "/onboarding");
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error desconocido");
-    } finally { setLoading(false); }
-  }
-
-  async function submitRegistro(e: React.FormEvent) {
-    e.preventDefault();
-    if (form.password !== form.confirmPassword) { setError("Las contraseñas no coinciden"); return; }
-    if (form.password.length < 6) { setError("La contraseña debe tener al menos 6 caracteres"); return; }
-    if (form.celular.replace(/\D/g, "").length < 8) { setError("Ingresá tu celular con código de área"); return; }
-    if (form.cuit.trim() && form.cuit.replace(/\D/g, "").length !== 11) { setError("El CUIT tiene 11 números"); return; }
-    setLoading(true); setError("");
-    try {
-      const resp = await fetch(`${API}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, password: form.password, nombre: form.nombre, negocio: form.negocio, celular: form.celular, cuit: form.cuit }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || "Error al conectar");
-      localStorage.setItem("lumo_token", data.token);
-      localStorage.setItem("lumo_usuario", JSON.stringify(data.usuario));
-      try { sessionStorage.setItem("lumo_ya_uso_prueba", data.plan && data.plan.ya_uso_prueba ? "1" : "0"); } catch { /* sin acceso */ }
-      router.replace("/onboarding");
+      router.replace(data.usuario.onboarding_done ? "/" : "/primeros-pasos?paso=caja");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Error desconocido");
     } finally { setLoading(false); }
@@ -271,25 +248,7 @@ export default function Login() {
         </form>
       )}
 
-      {vista === "registro" && (
-        <form onSubmit={submitRegistro} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <input placeholder="Tu nombre" aria-label="Tu nombre" value={form.nombre} onChange={set("nombre")} autoComplete="name" style={inp()} />
-          <input placeholder="Nombre del negocio" aria-label="Nombre del negocio" value={form.negocio} onChange={set("negocio")} style={inp()} />
-          <input type="email" placeholder="Email" aria-label="Email" value={form.email} onChange={set("email")} autoComplete="email" style={inp()} />
-          <PasswordField placeholder="Contraseña" value={form.password} onChange={set("password")} autoComplete="new-password" />
-          <PasswordField placeholder="Confirmar contraseña" value={form.confirmPassword} onChange={set("confirmPassword")} autoComplete="new-password" />
-          <input type="tel" placeholder="Celular (con código de área)" aria-label="Celular" value={form.celular} onChange={set("celular")} autoComplete="tel" style={inp()} />
-          <input inputMode="numeric" placeholder="CUIT (opcional)" aria-label="CUIT (opcional)" value={form.cuit} onChange={set("cuit")} style={inp()} />
-          <p style={{ margin: "-2px 0 0", fontSize: 12, color: SUAVE, lineHeight: 1.5 }}>
-            Usamos tu celular y tu CUIT solo para que cada negocio use la prueba gratis una vez.
-          </p>
-          <ErrorBox />
-          <button type="submit" disabled={loading} style={btnStyle(loading)}>{loading ? "Creando cuenta..." : "Crear cuenta"}</button>
-          <p style={{ margin: "2px 0 0", fontSize: 12, color: SUAVE, textAlign: "center", lineHeight: 1.6 }}>
-            Al crear tu cuenta aceptás los <a href="/terminos" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>términos</a> y la <a href="/privacidad" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>política de privacidad</a>. LumoBi está en versión beta, sin compromiso.
-          </p>
-        </form>
-      )}
+      {vista === "registro" && <RegistroSimple />}
     </Pantalla>
   );
 }
