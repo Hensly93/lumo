@@ -55,45 +55,37 @@ export default function BannerPasos({ token, onVentas }: { token: string | null;
           if (Array.isArray(lista)) hayProductos = lista.length >= MIN_PRODUCTOS;
         }
 
-        const lista: Paso[] = [];
-        if (hayProductos !== null) {
-          lista.push({
-            id: "catalogo", hecho: hayProductos, titulo: "Cargá tus productos",
-            porque: "Con tus productos y sus costos, NICOLE calcula tu margen y te muestra dónde se te va la plata.",
-            boton: "Cargar productos", ir: "/catalogo",
-          });
-        }
-        lista.push(
+        // Primero lo único imprescindible: la caja (quién atiende + PIN + abrirla). El resto suma después.
+        const lista: Paso[] = [
           {
-            id: "equipo", hecho: !!e.equipo, titulo: "Sumá a tu equipo",
-            porque: "Cada persona vende con su PIN, y así sabés quién hizo cada venta y cada cambio de precio.",
-            boton: "Armar mi equipo", ir: "/mi-local",
-          },
-          {
-            id: "turno", hecho: !!e.turno, titulo: "Hacé tu primer turno de prueba",
-            porque: "Es la forma más rápida de ver a NICOLE funcionando con tus propios números: abrís, vendés algo y cerrás.",
-            boton: "Probar la caja", ir: "/empleado",
+            id: "turno", hecho: !!e.turno, titulo: "Abrí tu caja",
+            porque: "Poné quién atiende y un PIN, y abrí la caja: en un minuto estás cobrando. Al cerrar el turno te llega cuánto vendiste y qué hacer.",
+            boton: "Abrir mi caja", ir: "/primeros-pasos?paso=caja",
           },
           {
             id: "avisos", hecho: !!e.avisos, titulo: "Activá los avisos en tu celu",
             porque: "Así te enterás en el momento si algo se desvía, sin tener que entrar a mirar.",
             boton: "Activar avisos", ir: "/primeros-pasos?paso=avisos",
           },
+        ];
+        if (hayProductos !== null) {
+          lista.push({
+            id: "catalogo", hecho: hayProductos, titulo: "Cargá el costo de tus productos",
+            porque: "Con el costo, NICOLE te dice qué te deja plata y qué no.",
+            boton: "Cargar productos", ir: "/catalogo",
+          });
+        }
+        lista.push(
           {
-            id: "ventas", hecho: !!e.ventas, titulo: "Cargá tus ventas anteriores",
-            porque: "Si ya vendías antes, NICOLE arranca con historia y empieza a predecir y a avisarte desde el primer día.",
+            id: "ventas", hecho: !!e.ventas, titulo: "Cargá tus ventas anteriores (opcional)",
+            porque: "Si ya vendías antes, NICOLE arranca con historia.",
             boton: "Subir ventas", ir: "/primeros-pasos?paso=ventas",
           },
-          {
-            id: "negocio", hecho: !!e.negocio, titulo: "Completá los datos de tu negocio",
+          ...(!e.negocio ? [{
+            id: "negocio", hecho: false, titulo: "Completá los datos de tu negocio",
             porque: "Con el rubro y la zona, NICOLE te compara con negocios parecidos al tuyo.",
             boton: "Completar datos", ir: "/onboarding?desde=pasos",
-          },
-          {
-            id: "locales", hecho: !!e.locales, titulo: "Cargá tus locales",
-            porque: "Así NICOLE analiza cada local por separado.",
-            boton: "Cargar locales", ir: "/red",
-          },
+          }] : []),
         );
         if (vivo) setPasos(lista);
       } catch { /* sin conexion: no se muestra nada */ }
