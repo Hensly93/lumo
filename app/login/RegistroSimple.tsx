@@ -24,16 +24,95 @@ const RUBROS: { id: string; nombre: string; icono: string }[] = [
   { id: "retail_indumentaria", nombre: "Ropa u otro comercio", icono: "🛍️" },
 ];
 
-// El core de LumoBi, contado en simple. Se muestra de a poco mientras se registra.
-const FUNCIONES: Record<string, { icono: string; titulo: string; texto: string }> = {
-  caja: { icono: "🧾", titulo: "Tu caja, con pistola lectora", texto: "Cobrás escaneando con la pistola o buscando el producto: efectivo, QR, débito y crédito. Cada venta queda guardada con lo que se vendió. Si un producto no está, lo cargás en el momento." },
-  equipo: { icono: "👥", titulo: "Control de tu equipo", texto: "Cada empleado entra con su PIN. LumoBi mira cómo cierra cada caja, cuánto vende cada uno y los conteos sorpresa, y te avisa cuando algo no cuadra." },
-  fugas: { icono: "💸", titulo: "Dónde se te va la plata", texto: "Faltantes de caja, productos que se venden mucho pero te dejan poco, cosas que se dejaron de vender por falta de stock. Siempre con el monto en pesos y qué hacer." },
-  prediccion: { icono: "📈", titulo: "Cuánto vas a vender", texto: "Predice cada día de la semana con el clima, los feriados y el principio de mes, y te dice qué preparar." },
-  avisos: { icono: "🔔", titulo: "Avisos al celu, en el momento", texto: "El informe de cada turno, tu hora pico, el producto que hoy se vende de más y el combo para aprovecharlo. No tenés que entrar a mirar." },
-  nicole: { icono: "💬", titulo: "NICOLE, tu analista", texto: "Le preguntás lo que quieras de tu negocio y te contesta con tus propios números." },
-  locales: { icono: "🏪", titulo: "Uno o varios locales", texto: "Cada local por separado y todos juntos en una misma pantalla." },
-};
+// El core de LumoBi, contado en simple y agrupado por pilar. Solo lo que el producto ya hace.
+type Pilar = { id: string; icono: string; titulo: string; resumen: string; items: string[] };
+const PILARES: Pilar[] = [
+  {
+    id: "cobrar", icono: "🧾", titulo: "Cobrar",
+    resumen: "LumoBi es la caja de tu local.",
+    items: [
+      "Cobrás con pistola lectora o buscando el producto",
+      "Efectivo, QR, débito y crédito",
+      "Cada venta guarda qué se vendió y quién la cobró",
+      "Si un producto no está, se carga en el momento",
+      "Funciona aunque se corte internet",
+    ],
+  },
+  {
+    id: "controlar", icono: "👥", titulo: "Controlar tu equipo y tu caja",
+    resumen: "Sabés qué pasa en cada turno aunque no estés.",
+    items: [
+      "Cada empleado entra con su PIN",
+      "Diferencias de caja de cada turno, en pesos",
+      "Conteos sorpresa durante el turno",
+      "Cuánto vende y qué ticket hace cada empleado",
+      "Riesgo del equipo: detecta patrones que se repiten",
+      "Quién cambió cada precio y cuándo",
+    ],
+  },
+  {
+    id: "predecir", icono: "📈", titulo: "Predecir",
+    resumen: "Te dice qué va a pasar antes de que pase.",
+    items: [
+      "Cuánto vas a vender cada día de la semana",
+      "Tus horas pico y tus horas flojas",
+      "Tiene en cuenta clima, feriados y principio de mes",
+      "Proyección de hoy: a este ritmo, cuánto cerrás",
+    ],
+  },
+  {
+    id: "recomendar", icono: "💡", titulo: "Recomendar",
+    resumen: "No solo muestra números: te dice qué hacer.",
+    items: [
+      "Combos con lo que tus clientes ya compran juntos",
+      "Qué reponer y qué producto se dejó de vender",
+      "Qué productos te dejan más plata y cuáles menos",
+      "Aumentos de tus proveedores y a cuánto subir el precio",
+    ],
+  },
+  {
+    id: "datos", icono: "📊", titulo: "Tus datos, claros",
+    resumen: "Todo lo que pasa en tu negocio, en una pantalla.",
+    items: [
+      "Dónde se te va la plata, con el monto",
+      "Comparás días, semanas y meses",
+      "Productos más y menos vendidos",
+      "Ganancia real y margen de cada producto",
+      "Uno o varios locales, por separado y juntos",
+    ],
+  },
+  {
+    id: "avisos", icono: "🔔", titulo: "Avisos y NICOLE",
+    resumen: "LumoBi te busca a vos, no al revés.",
+    items: [
+      "Informe de cada turno al celu, apenas cierra la caja",
+      "Te avisa en el momento cuando algo se desvía",
+      "Qué esperar mañana, todas las noches",
+      "NICOLE: le preguntás lo que quieras de tu negocio",
+    ],
+  },
+];
+const PILAR = Object.fromEntries(PILARES.map((p) => [p.id, p]));
+
+function Tarjeta({ id }: { id: string }) {
+  const f = PILAR[id];
+  return (
+    <div style={{ padding: "12px 14px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12 }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
+        <span style={{ fontSize: 22, lineHeight: 1 }}>{f.icono}</span>
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: TINTA }}>{f.titulo}</div>
+          <div style={{ fontSize: 13, color: SUAVE }}>{f.resumen}</div>
+        </div>
+      </div>
+      {f.items.map((it) => (
+        <div key={it} style={{ display: "flex", gap: 8, fontSize: 14, color: "#334155", lineHeight: 1.45, marginTop: 4 }}>
+          <span style={{ color: "#16A34A", fontWeight: 800 }}>✓</span><span>{it}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // Un ejemplo concreto según el rubro elegido
 const EJEMPLO: Record<string, string> = {
@@ -46,19 +125,6 @@ const EJEMPLO: Record<string, string> = {
   farmacia: "Por ejemplo: LumoBi te muestra qué productos te dejan más margen y te avisa si una caja cierra con diferencia.",
   retail_indumentaria: "Por ejemplo: LumoBi te dice qué días y horarios rinden más, quién del equipo vende mejor y qué se dejó de vender.",
 };
-
-function Tarjeta({ id }: { id: string }) {
-  const f = FUNCIONES[id];
-  return (
-    <div style={{ display: "flex", gap: 12, padding: "12px 14px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12 }}>
-      <span style={{ fontSize: 22, lineHeight: 1.2 }}>{f.icono}</span>
-      <div>
-        <div style={{ fontSize: 15, fontWeight: 700, color: TINTA, marginBottom: 2 }}>{f.titulo}</div>
-        <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.5 }}>{f.texto}</div>
-      </div>
-    </div>
-  );
-}
 
 const input: React.CSSProperties = {
   width: "100%", padding: "16px", background: "#FFFFFF", border: `1.5px solid ${BORDE}`, borderRadius: 12,
@@ -136,7 +202,14 @@ export default function RegistroSimple() {
       {paso === 0 && (
         <>
           <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.55, padding: "12px 14px", background: "#EAF2FE", borderRadius: 12, marginBottom: 6 }}>
-            <strong style={{ color: TINTA }}>LumoBi es la caja de tu negocio y el encargado que lo controla todo:</strong> cobra con pistola lectora, controla a tu equipo, te avisa dónde perdés plata y te dice cuánto vas a vender.
+            <strong style={{ color: TINTA }}>LumoBi es la caja de tu negocio y el encargado que lo controla todo:</strong> cobra con pistola lectora, controla a tu equipo, te avisa dónde perdés plata, predice cuánto vas a vender y te dice qué hacer.
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+              {PILARES.map((p) => (
+                <span key={p.id} style={{ fontSize: 13, fontWeight: 700, color: TINTA, background: "#FFFFFF", border: "1px solid #D6E4FB", borderRadius: 999, padding: "5px 10px" }}>
+                  {p.icono} {p.titulo}
+                </span>
+              ))}
+            </div>
           </div>
           {titulo("¿Qué negocio tenés?", "Tocá el que más se parece.")}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -163,8 +236,8 @@ export default function RegistroSimple() {
           <input style={input} value={d.nombre} onChange={set("nombre")} placeholder="Tu nombre" aria-label="Tu nombre" autoComplete="given-name" />
           <button type="submit" style={btn(!!(d.negocio.trim() && d.nombre.trim()))}>Seguir</button>
           <div style={{ fontSize: 13, fontWeight: 700, color: SUAVE, letterSpacing: 1, textTransform: "uppercase", marginTop: 10 }}>Qué vas a tener</div>
-          <Tarjeta id="caja" />
-          <Tarjeta id="equipo" />
+          <Tarjeta id="cobrar" />
+          <Tarjeta id="controlar" />
         </form>
       )}
 
@@ -176,8 +249,8 @@ export default function RegistroSimple() {
           {error && <div role="alert" style={{ color: "#B91C1C", fontSize: 15, lineHeight: 1.5 }}>{error}</div>}
           <button type="submit" style={btn(d.celular.replace(/\D/g, "").length >= 8)}>Seguir</button>
           <div style={{ fontSize: 13, fontWeight: 700, color: SUAVE, letterSpacing: 1, textTransform: "uppercase", marginTop: 10 }}>Y además</div>
-          <Tarjeta id="fugas" />
-          <Tarjeta id="avisos" />
+          <Tarjeta id="predecir" />
+          <Tarjeta id="recomendar" />
           {EJEMPLO[d.rubro] && <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.55, fontStyle: "italic" }}>{EJEMPLO[d.rubro]}</div>}
         </form>
       )}
@@ -199,17 +272,11 @@ export default function RegistroSimple() {
           <button type="submit" disabled={cargando} style={btn(!cargando && !!d.email && d.password.length >= 6)}>
             {cargando ? "Creando tu cuenta…" : "Crear mi cuenta gratis"}
           </button>
-          <div style={{ padding: "14px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12, marginTop: 4 }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: TINTA, marginBottom: 8 }}>Tu cuenta incluye todo:</div>
-            {Object.values(FUNCIONES).map((f) => (
-              <div key={f.titulo} style={{ display: "flex", gap: 8, fontSize: 14, color: "#334155", lineHeight: 1.5, marginBottom: 4 }}>
-                <span style={{ color: "#16A34A", fontWeight: 800 }}>✓</span><span>{f.titulo}</span>
-              </div>
-            ))}
-            <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.5, marginTop: 8 }}>
-              <strong style={{ color: TINTA }}>5 días gratis, sin tarjeta.</strong> Después, desde $45.000 por mes + IVA. Si no te sirve, no pagás nada.
-            </div>
+          <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.5, padding: "12px 14px", background: "#EAF2FE", borderRadius: 12, marginTop: 4 }}>
+            <strong style={{ color: TINTA }}>5 días gratis, sin tarjeta, con todo incluido.</strong> Después, desde $45.000 por mes + IVA. Si no te sirve, no pagás nada.
           </div>
+          <Tarjeta id="datos" />
+          <Tarjeta id="avisos" />
           <p style={{ margin: "2px 0 0", fontSize: 12, color: SUAVE, textAlign: "center", lineHeight: 1.6 }}>
              Al crear tu cuenta aceptás los <a href="/terminos" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>términos</a> y la <a href="/privacidad" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>privacidad</a>.
           </p>
