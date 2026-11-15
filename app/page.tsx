@@ -1,5 +1,6 @@
 "use client";
 import { ActivacionCard } from "./components/Activacion";
+import { RecuperadoLinea } from "./components/RecuperadoCard";
 import { UltimoTurnoCard, ProyeccionCard, AprendizajeCard, type InformeTurno, type Proyeccion, type Aprendizaje } from "./components/PrimerosDias";
 import Nav from "./components/Nav";
 import BannerPasos from "./components/BannerPasos";
@@ -551,6 +552,9 @@ function HomeContent() {
                   )}
                 </div>
               )}
+
+              {/* Lo que ya funcionó: cerrar el círculo de los consejos */}
+              <RecuperadoLinea />
 
               {/* 3. ÚLTIMO TURNO (corto) */}
               {informe && <UltimoTurnoCard informe={informe} compacto />}

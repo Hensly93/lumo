@@ -58,3 +58,32 @@ export default function RecuperadoCard() {
     </div>
   );
 }
+
+// Versión de una línea para el Inicio: lo que LumoBi ya te ayudó a recuperar (o lo que está midiendo)
+export function RecuperadoLinea() {
+  const [d, setD] = useState<Resp | null>(null);
+  useEffect(() => {
+    const t = localStorage.getItem("lumo_token");
+    if (!t) return;
+    fetch(`${API}/api/hallazgos/recuperado`, { headers: { Authorization: `Bearer ${t}` } })
+      .then((r) => (r.ok ? r.json() : null)).then((x) => { if (x && Array.isArray(x.medidos)) setD(x); }).catch(() => {});
+  }, []);
+  if (!d || (d.total_mensual <= 0 && d.en_seguimiento.length === 0)) return null;
+  const dias = d.en_seguimiento.length ? Math.min(...d.en_seguimiento.map((s) => s.dias_faltan)) : 0;
+  return (
+    <a href="/oportunidades" style={{ display: "block", margin: "0 0 16px", padding: 14, borderRadius: 12, textDecoration: "none",
+      border: `1px solid ${d.total_mensual > 0 ? "rgba(22,163,74,0.35)" : "var(--linea)"}`, background: d.total_mensual > 0 ? "rgba(22,163,74,0.06)" : "var(--blanco)" }}>
+      {d.total_mensual > 0 ? (
+        <>
+          <div style={{ fontSize: 13, color: "var(--tinta-apagada)" }}>Con lo que resolviste, LumoBi te ayudó a recuperar</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "#16A34A" }}>{fmt(d.total_mensual)} <span style={{ fontSize: 14, fontWeight: 600 }}>por mes</span></div>
+          <div style={{ fontSize: 13, color: "#007AFF", fontWeight: 700, marginTop: 2 }}>Ver qué funcionó →</div>
+        </>
+      ) : (
+        <div style={{ fontSize: 14, color: "var(--tinta)", lineHeight: 1.5 }}>
+          LumoBi está midiendo {d.en_seguimiento.length === 1 ? "el cambio que hiciste" : `los ${d.en_seguimiento.length} cambios que hiciste`}: en {dias} {dias === 1 ? "día" : "días"} te cuenta si funcionó.
+        </div>
+      )}
+    </a>
+  );
+}
