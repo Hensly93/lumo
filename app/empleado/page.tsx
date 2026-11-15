@@ -533,6 +533,28 @@ export default function EmpleadoPage() {
   const [elegirTerm, setElegirTerm] = useState<{ lista: { id: string; nombre: string }[]; tipo: 'debito' | 'credito' } | null>(null);
   const [mostrarManual, setMostrarManual] = useState(false);
   const [panel, setPanel] = useState<null | "efectivo" | "mixto" | "varios" | "descuento">(null);
+  const [esperas, setEsperas] = useState<{ id: number; total: number; nota: string | null; hora: string }[]>([]);
+  async function cargarEsperas() {
+    try { const r = await fetchT(`${API}/api/scanner/espera`); const d = await r.json(); setEsperas(Array.isArray(d.ventas) ? d.ventas : []); } catch { /* sin conexión */ }
+  }
+  async function dejarEnEspera() {
+    const nota = window.prompt("¿De quién es? (opcional, por ejemplo: señora de rojo)") || "";
+    try {
+      const r = await fetchT(`${API}/api/scanner/espera`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nota }) });
+      const d = await r.json();
+      if (!r.ok || d.error) { setError(d.error || "No se pudo dejar en espera."); return; }
+      setCarrito({ items: [], total: 0 }); await cargarEsperas();
+      document.getElementById('scan-input')?.focus();
+    } catch { setError("No hay internet o se cortó. Probá de nuevo."); }
+  }
+  async function retomar(id: number) {
+    try {
+      const r = await fetchT(`${API}/api/scanner/espera/${id}/retomar`, { method: "POST" });
+      const d = await r.json();
+      if (!r.ok || d.error) { setError(d.error || "No se pudo retomar."); return; }
+      setError(""); await refrescarCarrito(); await cargarEsperas();
+    } catch { setError("No hay internet o se cortó. Probá de nuevo."); }
+  }
 
   useEffect(() => {
     if (!turno?.id) return;
@@ -699,13 +721,13 @@ export default function EmpleadoPage() {
     } catch { /* silencioso */ }
   }
 
-  async function agregarAlCarrito(productoId: number) {
+  async function agregarAlCarrito(productoId: number, cantidad: number = 1) {
     if (!turno?.id) return;
     try {
       const r = await fetchT(`${API}/api/scanner/carrito`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ turno_id: turno.id, producto_id: productoId, cantidad: 1, agregado_por: 'pistola_compu' }),
+        body: JSON.stringify({ turno_id: turno.id, producto_id: productoId, cantidad, agregado_por: 'pistola_compu' }),
       });
       const d = await r.json();
       if (d.error) setError(d.error); else setError('');
@@ -758,7 +780,9 @@ export default function EmpleadoPage() {
     try {
       const r = await fetchT(`${API}/api/scanner/producto?turno_id=${turno.id}&codigo=${encodeURIComponent(texto)}`);
       const d = await r.json();
-      if (d.existe) { await agregarAlCarrito(d.producto.id); return; }
+      if (d.existe) { await agregarAlCarrito(d.producto.id, Number(d.cantidad) > 0 ? Number(d.cantidad) : 1); return; }
+      // Etiqueta de balanza con un producto que no está cargado: se avisa qué cargar (no se ofrece dar de alta el código entero)
+      if (d.error) { setError(d.error); return; }
       if (/^\d+$/.test(texto)) { setError(`El código ${texto} no está cargado. Cargalo para venderlo.`); setAltaCodigo(texto); return; }
       const r2 = await fetchT(`${API}/api/scanner/buscar?turno_id=${turno.id}&q=${encodeURIComponent(texto)}`);
       const d2 = await r2.json();
@@ -827,6 +851,12 @@ export default function EmpleadoPage() {
     }, 2000);
     return () => clearInterval(id);
   }, [paso, turno?.id]);
+
+  // Ventas en espera del turno: se cargan al entrar a la caja
+  useEffect(() => {
+    if (paso !== "activo" || !turno?.id) return;
+    cargarEsperas();
+  }, [paso, turno?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "Que este celu o compu se acuerde del código": casilla de la pantalla del codigo (apagada por defecto)
   const [recordar, setRecordar] = useState(false);
@@ -1330,11 +1360,16 @@ export default function EmpleadoPage() {
               onKeyDown={(ev) => {
                 if (ev.key !== 'Enter') return;
                 ev.preventDefault();
+                // Lector vacío + carrito con productos: Enter abre el cobro en efectivo (y otro Enter cobra)
+                if (!ev.currentTarget.value.trim() && carrito && carrito.items.length > 0) { setPanel('efectivo'); return; }
                 enviarEntrada(ev.currentTarget.value);
               }}
               autoFocus
               style={{ width: '100%', boxSizing: 'border-box', padding: '16px 16px', fontSize: 16, borderRadius: 14, border: `2px solid ${enfocado ? C.primary : C.cardBorder}`, background: C.bg, color: C.text, outline: 'none', fontFamily: 'var(--font-instrument), sans-serif' }}
             />
+            {carrito && carrito.items.length > 0 && !scanBuffer && (
+              <div style={{ marginTop: 6, fontSize: 12, color: C.muted }}>Con el carrito listo, apretá <strong>Enter</strong> para cobrar en efectivo.</div>
+            )}
             {error && (
               <div style={{ marginTop: 8, fontSize: 13, color: '#D92D20', fontWeight: 600 }}>{error}</div>
             )}
@@ -1410,6 +1445,17 @@ export default function EmpleadoPage() {
             {(!carrito || carrito.items.length === 0) && (
               <div style={{ fontSize: 14, color: C.muted, padding: '8px 0 4px' }}>Todavía no hay productos. Pasá el primero por el lector o escribí su nombre.</div>
             )}
+            {esperas.length > 0 && (
+              <div style={{ margin: '4px 0 10px', padding: 10, borderRadius: 12, background: 'rgba(255,149,0,0.08)', border: '1px solid rgba(255,149,0,0.3)' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: C.amber, marginBottom: 6 }}>VENTAS EN ESPERA</div>
+                {esperas.map(v => (
+                  <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
+                    <span style={{ fontSize: 14, color: C.text }}><strong>{fmt(v.total)}</strong> · {v.hora}{v.nota ? ` · ${v.nota}` : ''}</span>
+                    <button onClick={() => retomar(v.id)} style={{ padding: '6px 10px', borderRadius: 8, border: `1px solid ${C.primary}`, background: '#fff', color: C.primary, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Retomar</button>
+                  </div>
+                ))}
+              </div>
+            )}
             <button onClick={() => setPanel('varios')} style={{ margin: '4px 0 6px', padding: 0, border: 'none', background: 'transparent', color: C.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>+ Algo sin código (precio a mano)</button>
             {carrito && carrito.items.map((item: any) => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '10px 0', borderBottom: `1px solid ${C.cardBorder}` }}>
@@ -1417,7 +1463,7 @@ export default function EmpleadoPage() {
                   <div style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>{item.producto_nombre}</div>
                   {item.tipo_linea !== 'descuento' && <div style={{ fontSize: 12, color: C.muted }}>{fmt(parseFloat(item.precio_unitario))} c/u</div>}
                 </div>
-                {item.tipo_linea === 'descuento' ? <div /> : <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {item.tipo_linea === 'descuento' ? <div /> : !Number.isInteger(Number(item.cantidad)) ? <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{Number(item.cantidad).toLocaleString('es-AR', { maximumFractionDigits: 3 })} kg</span> : <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <button onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) - 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>−</button>
                   <span style={{ minWidth: 26, textAlign: 'center', fontSize: 15, fontWeight: 800, color: C.text }}>{parseFloat(item.cantidad)}</span>
                   <button onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) + 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>+</button>
@@ -1439,6 +1485,7 @@ export default function EmpleadoPage() {
                 <div style={{ display: 'flex', gap: 14, marginBottom: 12 }}>
                   <button onClick={() => setPanel('descuento')} style={{ padding: 0, border: 'none', background: 'transparent', color: C.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Hacer un descuento</button>
                   <button onClick={() => setPanel('mixto')} style={{ padding: 0, border: 'none', background: 'transparent', color: C.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Pagar con dos medios</button>
+                  <button onClick={dejarEnEspera} style={{ padding: 0, border: 'none', background: 'transparent', color: C.amber, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Dejar en espera</button>
                 </div>
                 <button onClick={() => setPanel('efectivo')} style={estiloBtn(C.green, { width: '100%', fontSize: 16, padding: '16px 8px' })}>💵 Efectivo</button>
                 {mpDisponible ? (

@@ -33,6 +33,7 @@ function que(h: Hecho): string {
     case "egreso": return `Sacó ${pesos(h.valor)} de la caja${d.motivo ? `: ${String(d.motivo)}` : ""}`;
     case "venta_anulada": return `Anuló una venta de ${pesos(h.valor)}${d.motivo ? `: ${String(d.motivo)}` : ""}`;
     case "descuento": return `Hizo un descuento de ${pesos(h.valor)}${num(d.pct) ? ` (${Math.round(num(d.pct))}%)` : ""}${d.motivo ? `: ${String(d.motivo)}` : ""}`;
+    case "espera_descartada": return `Cerró el turno con una venta en espera de ${pesos(h.valor)} sin cobrar`;
     default: return h.tipo;
   }
 }

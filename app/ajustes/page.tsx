@@ -792,6 +792,46 @@ function SecSoporte() {
 }
 
 // ── Página ────────────────────────────────────────────────────────
+// Balanza: cómo imprime las etiquetas la balanza del local (fiambre, verdura, panadería)
+function SecBalanza({ token }: { token: string }) {
+  const [cfg, setCfg] = useState<{ modo: string; formato: string } | null>(null);
+  const [ok, setOk] = useState(false);
+  useEffect(() => {
+    fetch(`${API}/api/negocio/balanza`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).then(d => { if (d && d.modo) setCfg(d); }).catch(() => {});
+  }, [token]);
+  const guardar = async (c: { modo: string; formato: string }) => {
+    setCfg(c); setOk(false);
+    const r = await fetch(`${API}/api/negocio/balanza`, { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(c) }).catch(() => null);
+    if (r && r.ok) setOk(true);
+  };
+  if (!cfg) return <div style={{ fontSize: 13, color: "var(--muted)" }}>Cargando…</div>;
+  const opcion = (activo: boolean, texto: string, onClick: () => void) => (
+    <button onClick={onClick} style={{ flex: 1, padding: "10px 8px", borderRadius: 10, border: `2px solid ${activo ? "#007AFF" : "var(--border)"}`, background: activo ? "rgba(0,122,255,0.08)" : "transparent", color: "var(--text)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>{texto}</button>
+  );
+  return (
+    <div style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.55 }}>
+      <p style={{ margin: "0 0 10px" }}>
+        Si vendés cosas pesadas en balanza (fiambre, verdura, pan), la caja lee la etiqueta que imprime la balanza.
+        Cargá cada producto con su <strong>precio por kilo</strong> y, como código, el <strong>número que tiene en la balanza</strong> (por ejemplo 123).
+      </p>
+      <div style={{ fontWeight: 700, margin: "8px 0 6px" }}>La etiqueta de tu balanza trae…</div>
+      <div style={{ display: "flex", gap: 8 }}>
+        {opcion(cfg.modo === "precio", "El precio ($)", () => guardar({ ...cfg, modo: "precio" }))}
+        {opcion(cfg.modo === "peso", "El peso (gramos)", () => guardar({ ...cfg, modo: "peso" }))}
+      </div>
+      <div style={{ fontWeight: 700, margin: "12px 0 6px" }}>Número de producto en la balanza</div>
+      <div style={{ display: "flex", gap: 8 }}>
+        {opcion(cfg.formato === "5-5", "Hasta 5 cifras (lo más común)", () => guardar({ ...cfg, formato: "5-5" }))}
+        {opcion(cfg.formato === "4-6", "Hasta 4 cifras", () => guardar({ ...cfg, formato: "4-6" }))}
+      </div>
+      <p style={{ margin: "10px 0 0", color: "var(--muted)", fontSize: 12 }}>
+        Si no sabés, dejalo así y pasá una etiqueta por la caja: si el importe que muestra coincide con el de la etiqueta, está bien.
+      </p>
+      {ok && <div style={{ marginTop: 8, color: "#16A34A", fontWeight: 700 }}>Guardado</div>}
+    </div>
+  );
+}
+
 export default function AjustesPage() {
   const { token: authToken, ready } = useAuth();
   const router = useRouter();
@@ -847,8 +887,9 @@ export default function AjustesPage() {
     { id: "facturacion",    tag: "04", label: "Facturación",    content: <SecFacturacion token={token} perfil={perfil} onSave={p => setPerfil(p)} /> },
     { id: "suscripcion",    tag: "05", label: "Mi Suscripción", content: <SecSuscripcion perfil={perfil} token={token} recarga={planKey} onCancelSubscription={() => setShowCancelModal(true)} /> },
     { id: "notificaciones", tag: "06", label: "Notificaciones", content: <SecNotificaciones token={token} /> },
-    { id: "cuenta",         tag: "07", label: "Mi Cuenta",      content: <SecCuenta perfil={perfil} onDeleteAccount={() => setShowDeleteModal(true)} /> },
-    { id: "soporte",        tag: "08", label: "Soporte",        content: <SecSoporte /> },
+    { id: "balanza",        tag: "07", label: "Balanza",        content: <SecBalanza token={token} /> },
+    { id: "cuenta",         tag: "08", label: "Mi Cuenta",      content: <SecCuenta perfil={perfil} onDeleteAccount={() => setShowDeleteModal(true)} /> },
+    { id: "soporte",        tag: "09", label: "Soporte",        content: <SecSoporte /> },
   ];
 
   return (
