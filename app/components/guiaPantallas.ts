@@ -101,6 +101,12 @@ export const GUIAS: Record<string, Guia> = {
     vos: "Cargá la dirección de cada local. Con uno solo, alcanza con cargarlo una vez.",
     requisitos: ["locales"],
   },
+  "/en-vivo": {
+    titulo: "Tu negocio en vivo",
+    lumobi: "Junta en una pantalla lo que está pasando ahora (cuánto vendiste, quién tiene la caja abierta, hora por hora), lo que viene (cómo deberías cerrar hoy y mañana) y lo que pasó ayer.",
+    vos: "Mirala cuando quieras saber cómo viene el día. Si una hora queda muy abajo de la línea punteada, algo está pasando.",
+    requisitos: ["caja", "dias3"],
+  },
   "/mas": {
     titulo: "Tu cuenta",
     lumobi: "Acá están tus datos, tu plan, los ajustes de avisos y la opción de instalar LumoBi en el celu.",

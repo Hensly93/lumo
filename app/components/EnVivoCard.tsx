@@ -108,7 +108,7 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
     <div style={{ background: "var(--blanco)", border: "1px solid var(--linea)", borderRadius: 10, padding: 18, margin: "16px 0" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 8, height: 8, borderRadius: 4, background: "var(--cian)", display: "inline-block", boxShadow: "0 0 6px var(--cian)" }} />
+          <span style={{ width: 8, height: 8, borderRadius: 4, background: "var(--cian)", display: "inline-block" }} />
           <span style={{ fontSize: 18, fontWeight: 600, color: "var(--tinta)", fontFamily: "var(--font-instrument), sans-serif" }}>Tu negocio en vivo</span>
         </div>
         <span style={{ fontSize: 11, color: "var(--tinta-apagada)" }}>{hora} · se actualiza solo</span>
@@ -185,6 +185,9 @@ export default function EnVivoCard({ sucursalId }: { sucursalId?: number | strin
           </div>
         </div>
       )}
+      <a href="/en-vivo" style={{ display: "block", marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--linea)", fontSize: 14, fontWeight: 700, color: "var(--tinta)", textDecoration: "none" }}>
+        Ver todo: hora por hora, quién atiende y lo que viene →
+      </a>
     </div>
   );
 }
