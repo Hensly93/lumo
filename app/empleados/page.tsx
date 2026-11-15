@@ -190,6 +190,7 @@ function DetalleRiesgo({ e, turnos }: { e: EmpleadoERM; turnos: TurnoEvidencia[]
             </div>
             {dif !== null && dif > 500 && <MarcaGasto turnoId={t.id} inicial={!!t.gasto_inesperado} />}
             <CuentaTurno turnoId={t.id} />
+            <a href={`/ficha/turno/${t.id}`} style={{ display: "inline-block", marginTop: 2, fontSize: 10, fontWeight: 700, color: "var(--blue, #007AFF)", textDecoration: "none" }}>Ver cada venta del turno →</a>
           </div>
         );
       })}

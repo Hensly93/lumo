@@ -169,7 +169,7 @@ export default function ComprasPage() {
             <div style={tarjeta}>
               <div style={titulo}>Proveedores que te subieron precios</div>
               {aumentos.slice(0, 6).map((a, k) => (
-                <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "8px 0", borderTop: k ? "1px solid var(--border)" : "none" }}>
+                <div key={k} onClick={() => router.push(`/ficha/proveedor/${encodeURIComponent(a.proveedor)}`)} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "8px 0", borderTop: k ? "1px solid var(--border)" : "none", cursor: "pointer" }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{a.descripcion}</div>
                     <div style={{ fontSize: 11, color: "var(--muted)" }}>{a.proveedor} · de {fmt(a.anterior)} a {fmt(a.precio)}</div>
@@ -185,9 +185,9 @@ export default function ComprasPage() {
             {lista && lista.mes.n > 0 && <div style={{ fontSize: 13, color: "var(--text)", marginBottom: 6 }}>Este mes cargaste <strong>{fmt(lista.mes.total)}</strong> en {lista.mes.n} {lista.mes.n === 1 ? "factura" : "facturas"}.</div>}
             {lista && lista.compras.length === 0 && <div style={{ fontSize: 13, color: "var(--muted)" }}>Todavía no cargaste ninguna.</div>}
             {lista?.compras.slice(0, 15).map((c, k) => (
-              <div key={c.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "8px 0", borderTop: k ? "1px solid var(--border)" : "none" }}>
+              <div key={c.id} onClick={() => router.push(`/ficha/proveedor/${encodeURIComponent(c.proveedor)}`)} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "8px 0", borderTop: k ? "1px solid var(--border)" : "none", cursor: "pointer" }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{c.proveedor}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{c.proveedor} ›</div>
                   <div style={{ fontSize: 11, color: "var(--muted)" }}>{c.fecha.split("-").reverse().join("/")} · {c.items} {c.items === 1 ? "ítem" : "ítems"}</div>
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{fmt(c.total)}</div>

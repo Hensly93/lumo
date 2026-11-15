@@ -37,6 +37,14 @@ export default function FichaPersona() {
             ["Cierres con faltante", `${f.caja.con_faltante} de ${f.caja.cierres}`],
             ["Faltó en total", $(f.caja.faltante)],
           ]} />
+          {f.turnos_recientes?.length > 0 && (<>
+            <div style={titulo}>Sus últimos turnos</div>
+            <Lista vacio="" items={f.turnos_recientes.map((t: any) => ({
+              izq: `${t.abre} · ${t.tipo_turno || "turno"}`,
+              sub: t.estado !== "cerrado" ? "Abierto ahora" : t.faltante > 0 ? `Faltaron ${$(t.faltante)}` : "Caja bien",
+              rojo: t.faltante > 0, ir: `/ficha/turno/${t.id}`,
+            }))} />
+          </>)}
           <div style={titulo}>Lo que hizo en la caja</div>
           <Lista vacio="" items={[
             { izq: "Ventas anuladas", der: `${a.anulaciones.n} · ${$(a.anulaciones.plata)}` },
@@ -50,7 +58,7 @@ export default function FichaPersona() {
           <div style={{ fontSize: 12, color: "var(--tinta-apagada)", lineHeight: 1.5, margin: "4px 2px 12px" }}>
             Esto muestra hechos de la caja, no culpas: una anulación o un descuento pueden tener una buena razón. Usalo para preguntar, no para acusar.
           </div>
-          <button onClick={() => router.push("/empleados")} style={{ padding: 0, border: "none", background: "transparent", color: "#007AFF", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>Ver cada turno en Equipo →</button>
+          <button onClick={() => router.push("/empleados")} style={{ padding: 0, border: "none", background: "transparent", color: "#007AFF", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>Ver todo el equipo →</button>
         </>)}
       </div>
       <Nav />

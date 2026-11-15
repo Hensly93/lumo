@@ -36,7 +36,10 @@ export function UltimoTurnoCard({ informe, compacto }: { informe: InformeTurno; 
         <div style={etiqueta}>Tu último turno</div>
         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--tinta)", lineHeight: 1.35 }}>{informe.titulo}</div>
         {primero && <div style={{ fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.5, marginTop: 4 }}>{primero.texto}</div>}
-        <button onClick={() => setAbierto(true)} style={{ marginTop: 8, padding: 0, border: "none", background: "transparent", color: "#007AFF", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Ver el informe completo</button>
+        <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
+          <button onClick={() => setAbierto(true)} style={{ padding: 0, border: "none", background: "transparent", color: "#007AFF", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Ver el informe</button>
+          {informe.turno_id && <a href={`/ficha/turno/${informe.turno_id}`} style={{ color: "#007AFF", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>Ver cada venta →</a>}
+        </div>
       </div>
     );
   }
@@ -71,6 +74,7 @@ export function UltimoTurnoCard({ informe, compacto }: { informe: InformeTurno; 
           Más vendidos: {informe.productos.slice(0, 3).map((p) => `${p.nombre} (${p.unidades})`).join(" · ")}
         </div>
       )}
+      {informe.turno_id && <a href={`/ficha/turno/${informe.turno_id}`} style={{ display: "inline-block", marginTop: 10, color: "#007AFF", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>Ver la cuenta de la caja y cada venta →</a>}
     </div>
   );
 }

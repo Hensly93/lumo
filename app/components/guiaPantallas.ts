@@ -125,6 +125,18 @@ export const GUIAS: Record<string, Guia> = {
     vos: "Si algo aparece marcado, miralo con calma y preguntá: puede tener una buena razón.",
     requisitos: ["caja", "turnos_emp"],
   },
+  "/ficha/turno": {
+    titulo: "Ficha del turno",
+    lumobi: "Te muestra la cuenta de la caja paso a paso (con cuánto abrió, cuánto entró en efectivo, cuánto se sacó y cuánto contó) y cada venta del turno con sus productos.",
+    vos: "Si hay una diferencia, mirá las ventas y lo que pasó en la caja: casi siempre la explicación está ahí.",
+    requisitos: ["caja"],
+  },
+  "/ficha/proveedor": {
+    titulo: "Ficha del proveedor",
+    lumobi: "Junta todo lo que le compraste a este proveedor: cada cuánto, cuánto, y qué productos te subió y cuánta ganancia te saca la suba si no cambiás tus precios.",
+    vos: "Usala antes de hacerle el pedido o para negociar: tenés los números de cada compra.",
+    requisitos: ["facturas"],
+  },
   "/pedidos": {
     titulo: "Pedidos",
     lumobi: "Mira cuánto vendés de verdad de cada producto y te dice qué se va a terminar en los próximos 7 días y cuánto pedir para cubrir 2 semanas, agrupado por proveedor.",

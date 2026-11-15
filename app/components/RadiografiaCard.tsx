@@ -23,11 +23,44 @@ type Promo = {
   sin_promo: boolean; motivo?: string; nombre?: string; cuando?: string; precio_normal?: number; precio_promo?: number; ahorro?: number;
   descuento_pct?: number; resumen?: string; ganancia_por_combo?: number | null; meta_combos_por_dia?: number | null; por_que?: string[]; aviso?: string | null;
   textos?: Record<string, string>;
+  aplicar?: { tipo: "precios" | "combo"; boton: string; [k: string]: unknown };
 };
 
 function copiar(t: string) { try { navigator.clipboard.writeText(t); } catch { /* sin portapapeles */ } }
 
 // La promo que armó LumoBi: números, el porqué y los textos listos para copiar
+function BotonAplicar({ p }: { p: Promo }) {
+  const [estado, setEstado] = useState<"" | "haciendo" | "hecho" | "deshecho">("");
+  const [res, setRes] = useState<{ texto: string; tipo: string; hechos: unknown[] } | null>(null);
+  const [error, setError] = useState("");
+  const llamar = (ruta: string, body: unknown) => fetch(`${API}/api/hallazgos/${ruta}`, {
+    method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("lumo_token")}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async r => { const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || "No pude hacerlo."); return d; });
+  function aplicar() {
+    setEstado("haciendo"); setError("");
+    llamar("aplicar", { aplicar: p.aplicar }).then(d => { setRes(d); setEstado("hecho"); }).catch(e => { setError(e.message); setEstado(""); });
+  }
+  function deshacer() {
+    if (!res) return;
+    setEstado("haciendo");
+    llamar("deshacer", { tipo: res.tipo, hechos: res.hechos }).then(d => { setRes({ ...res, texto: d.texto }); setEstado("deshecho"); }).catch(e => { setError(e.message); setEstado("hecho"); });
+  }
+  const boton = { fontSize: 13, fontWeight: 700, padding: "9px 16px", borderRadius: 18, cursor: "pointer" } as const;
+  return (
+    <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--linea)" }}>
+      {estado === "" || (estado === "haciendo" && !res) ? (
+        <button disabled={estado === "haciendo"} onClick={aplicar} style={{ ...boton, border: "1px solid var(--azul)", background: "var(--azul)", color: "var(--blanco)" }}>{estado === "haciendo" ? "Haciéndolo…" : p.aplicar!.boton}</button>
+      ) : (
+        <div style={{ fontSize: 13, color: "var(--tinta)", lineHeight: 1.5 }}>
+          <strong>{res?.texto}</strong>
+          {estado === "hecho" && (res?.hechos.length ?? 0) > 0 && <button onClick={deshacer} style={{ ...boton, marginLeft: 10, padding: "4px 12px", border: "1px solid var(--linea)", background: "var(--blanco)", color: "var(--tinta)" }}>Deshacer</button>}
+        </div>
+      )}
+      {error && <div style={{ fontSize: 12, color: "var(--critico)", marginTop: 6 }}>{error}</div>}
+    </div>
+  );
+}
+
 function PromoDetalle({ p }: { p: Promo }) {
   if (p.sin_promo) return <div style={{ fontSize: 12, color: "var(--tinta)", marginTop: 6, lineHeight: 1.5 }}>{p.motivo}</div>;
   const f = (n?: number | null) => "$" + Math.round(n ?? 0).toLocaleString("es-AR");
@@ -43,6 +76,7 @@ function PromoDetalle({ p }: { p: Promo }) {
       </ul>
       {p.aviso && <div style={{ fontSize: 12, color: "var(--critico)", marginTop: 4, lineHeight: 1.5 }}>{p.aviso}</div>}
       {p.meta_combos_por_dia ? <div style={{ fontSize: 12, color: "var(--tinta-apagada)", marginTop: 4, lineHeight: 1.5 }}>Para cerrar la brecha que detectamos harían falta unos {p.meta_combos_por_dia} combos por día (cuenta orientativa, no una promesa).</div> : null}
+      {p.aplicar && <BotonAplicar p={p} />}
       {p.textos && Object.entries(p.textos).map(([k, x]) => [({ whatsapp: "WhatsApp", instagram: "Instagram", cartel: "Cartel del local", lista: "Precios nuevos" } as Record<string, string>)[k] ?? k, x] as const).map(([t, x]) => (
         <div key={t} style={{ marginTop: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

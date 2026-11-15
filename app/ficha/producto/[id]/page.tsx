@@ -38,9 +38,9 @@ export default function FichaProducto() {
             ["Hora en que más sale", f.cuando.hora_pico != null ? `${f.cuando.hora_pico} h` : "—"],
           ]} />
           <div style={titulo}>Quién lo vende</div>
-          <Lista vacio="Todavía no se vendió con la caja de LumoBi." items={f.quien_lo_vende.map((x: any) => ({ izq: x.empleado, der: $(x.plata), sub: `${x.unidades.toLocaleString("es-AR")} ${u}` }))} />
+          <Lista vacio="Todavía no se vendió con la caja de LumoBi." items={f.quien_lo_vende.map((x: any) => ({ izq: x.empleado, der: $(x.plata), sub: `${x.unidades.toLocaleString("es-AR")} ${u}`, ir: `/ficha/persona/${encodeURIComponent(x.empleado)}` }))} />
           <div style={titulo}>Compras al proveedor</div>
-          <Lista vacio="No hay facturas de proveedor con este producto. Sacale foto a la factura en Plata → Facturas." items={f.proveedor.ultimas.map((x: any) => ({ izq: x.proveedor || "Proveedor", sub: x.fecha, der: $(x.precio) }))} />
+          <Lista vacio="No hay facturas de proveedor con este producto. Sacale foto a la factura en Plata → Facturas." items={f.proveedor.ultimas.map((x: any) => ({ izq: x.proveedor || "Proveedor", sub: x.fecha.split("-").reverse().join("/"), der: $(x.precio), ir: x.proveedor ? `/ficha/proveedor/${encodeURIComponent(x.proveedor)}` : undefined }))} />
           <div style={titulo}>Cambios de precio</div>
           <Lista vacio="No se cambió el precio." items={f.cambios_precio.map((x: any) => ({ izq: `${x.campo === "precio_costo" ? "Costo" : "Precio"}: ${$(x.antes)} → ${$(x.despues)}`, sub: `${x.cuando}${x.empleado ? ` · ${x.empleado}` : ""}` }))} />
           <button onClick={() => router.push("/catalogo")} style={{ marginTop: 6, padding: 0, border: "none", background: "transparent", color: "#007AFF", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>Editar en Productos →</button>

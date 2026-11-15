@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 // Piezas comunes de las fichas (producto y persona)
 export const $ = (n: number | null | undefined) => (n == null ? "—" : "$" + Math.round(n).toLocaleString("es-AR"));
 export const caja = { padding: 16, borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)", marginBottom: 12 } as const;
@@ -28,14 +29,18 @@ export function Datos({ filas }: { filas: [string, string][] }) {
   );
 }
 
-export function Lista({ items, vacio }: { items: { izq: string; der?: string; sub?: string }[]; vacio: string }) {
+export function Lista({ items, vacio }: { items: { izq: string; der?: string; sub?: string; ir?: string; rojo?: boolean }[]; vacio: string }) {
+  const router = useRouter();
   return (
     <div style={caja}>
       {items.length === 0 ? <div style={{ fontSize: 14, color: "var(--tinta-apagada)" }}>{vacio}</div>
         : items.map((x, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px 0", borderTop: i ? "1px solid var(--linea)" : "none" }}>
-            <div><div style={{ fontSize: 14, fontWeight: 600, color: "var(--tinta)" }}>{x.izq}</div>{x.sub && <div style={{ fontSize: 12, color: "var(--tinta-apagada)" }}>{x.sub}</div>}</div>
-            {x.der && <div style={{ fontSize: 14, fontWeight: 700, color: "var(--tinta)", whiteSpace: "nowrap" }}>{x.der}</div>}
+          <div key={i} onClick={x.ir ? () => router.push(x.ir!) : undefined} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "8px 0", borderTop: i ? "1px solid var(--linea)" : "none", cursor: x.ir ? "pointer" : "default" }}>
+            <div><div style={{ fontSize: 14, fontWeight: 600, color: "var(--tinta)" }}>{x.izq}</div>{x.sub && <div style={{ fontSize: 12, color: x.rojo ? "#B45309" : "var(--tinta-apagada)" }}>{x.sub}</div>}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {x.der && <div style={{ fontSize: 14, fontWeight: 700, color: x.rojo ? "#B45309" : "var(--tinta)", whiteSpace: "nowrap" }}>{x.der}</div>}
+              {x.ir && <span style={{ color: "var(--tinta-apagada)", fontSize: 16 }}>›</span>}
+            </div>
           </div>
         ))}
     </div>
