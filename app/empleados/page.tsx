@@ -409,6 +409,7 @@ export default function Empleados() {
                   </div>
                   {abierto === e.empleado && (
                     <>
+                      <a href={`/ficha/persona/${encodeURIComponent(e.empleado)}`} style={{ display: "block", margin: "6px 0 10px", fontSize: 13, fontWeight: 700, color: "#007AFF", textDecoration: "none" }}>Ver la ficha completa de {e.empleado} →</a>
                       <DetalleRiesgo e={{ ...(info[e.empleado]?.erm ?? {}), ...e }} turnos={info[e.empleado]?.turnos} />
                       {e.score !== null && e.nivel !== "verde" && token && <FeedbackERM empleado={e.empleado} token={token} />}
                     </>

@@ -14,14 +14,16 @@ let cache: { at: number; data: Record<string, Req> } | null = null;
 export default function GuiaPantalla() {
   const path = usePathname();
   const router = useRouter();
-  const guia = GUIAS[path];
+  // Las fichas (/ficha/producto/12) usan la guía de su tipo
+  const clave = GUIAS[path] ? path : path.split('/').slice(0, 3).join('/');
+  const guia = GUIAS[clave];
   const [abierta, setAbierta] = useState(false);
   const [reqs, setReqs] = useState<Record<string, Req> | null>(null);
 
   useEffect(() => {
     if (!guia) return;
     let vista = false;
-    try { vista = localStorage.getItem("lumo_guia_vista:" + path) === "1"; } catch { /* sin almacenamiento */ }
+    try { vista = localStorage.getItem("lumo_guia_vista:" + clave) === "1"; } catch { /* sin almacenamiento */ }
     setAbierta(!vista);
     const token = localStorage.getItem("lumo_token");
     if (!token) return;
@@ -38,7 +40,7 @@ export default function GuiaPantalla() {
 
   function cerrar() {
     setAbierta(false);
-    try { localStorage.setItem("lumo_guia_vista:" + path, "1"); } catch { /* sin almacenamiento */ }
+    try { localStorage.setItem("lumo_guia_vista:" + clave, "1"); } catch { /* sin almacenamiento */ }
   }
 
   if (!abierta) {

@@ -222,6 +222,7 @@ function ProductCard({
             </button>
           )}
         </div>
+        <a href={`/ficha/producto/${p.id}`} style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 700, color: "#007AFF", textDecoration: "none" }}>Ver ficha →</a>
       </div>
       <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
         <button onClick={() => onEdit(p)} style={{ ...btnSecundario, padding: "6px 10px", fontSize: 11 }}>Editar</button>

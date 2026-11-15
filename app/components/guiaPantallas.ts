@@ -113,6 +113,18 @@ export const GUIAS: Record<string, Guia> = {
     vos: "Tocá \"Qué podés hacer\" en cada una y contale a LumoBi si te sirvió: así aprende qué te importa.",
     requisitos: ["dias3", "costos"],
   },
+  "/ficha/producto": {
+    titulo: "Ficha del producto",
+    lumobi: "Junta todo lo de este producto: cuánto se vende y cuándo, cuánto te deja, para cuántos días te alcanza el stock, cuánto lo subió el proveedor, quién cambió el precio y quién lo vende.",
+    vos: "Usala antes de pedir mercadería o de cambiar un precio.",
+    requisitos: ["caja", "costos"],
+  },
+  "/ficha/persona": {
+    titulo: "Ficha de la persona",
+    lumobi: "Junta cómo vende, cómo cierra la caja y lo que hace en la caja (anulaciones, descuentos, productos sacados), comparado con el resto del equipo.",
+    vos: "Si algo aparece marcado, miralo con calma y preguntá: puede tener una buena razón.",
+    requisitos: ["caja", "turnos_emp"],
+  },
   "/mas": {
     titulo: "Tu cuenta",
     lumobi: "Acá están tus datos, tu plan, los ajustes de avisos y la opción de instalar LumoBi en el celu.",
