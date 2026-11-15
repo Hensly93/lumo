@@ -1111,6 +1111,9 @@ export default function Catalogo() {
       )}
 
       <PageHeader title="Productos" sub={subTitulo} />
+      <a href="/pedidos" style={{ display: "block", margin: "0 16px 12px", padding: "12px 14px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontWeight: 700, textDecoration: "none" }}>
+        Pedidos: qué pedir, cuánto y a quién →
+      </a>
       <div style={{ padding: "0 16px 8px" }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button onClick={() => setVista("pistola")} style={btnPrimario}>Modo pistola</button>

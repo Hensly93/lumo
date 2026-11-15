@@ -125,6 +125,12 @@ export const GUIAS: Record<string, Guia> = {
     vos: "Si algo aparece marcado, miralo con calma y preguntá: puede tener una buena razón.",
     requisitos: ["caja", "turnos_emp"],
   },
+  "/pedidos": {
+    titulo: "Pedidos",
+    lumobi: "Mira cuánto vendés de verdad de cada producto y te dice qué se va a terminar en los próximos 7 días y cuánto pedir para cubrir 2 semanas, agrupado por proveedor.",
+    vos: "Revisalo antes de hacer el pedido y mandalo por WhatsApp desde acá. Para que funcione, cada producto tiene que tener su stock cargado una vez.",
+    requisitos: ["productos", "caja"],
+  },
   "/mas": {
     titulo: "Tu cuenta",
     lumobi: "Acá están tus datos, tu plan, los ajustes de avisos y la opción de instalar LumoBi en el celu.",
