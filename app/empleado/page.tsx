@@ -536,6 +536,7 @@ export default function EmpleadoPage() {
   const [panel, setPanel] = useState<null | "efectivo" | "mixto" | "varios" | "descuento">(null);
   const [ultimaVenta, setUltimaVenta] = useState<number | null>(null);
   const [confImpresora, setConfImpresora] = useState(false);
+  const [menuTurno, setMenuTurno] = useState(false);
   // Después de cada venta: si esta caja tiene "imprimir siempre", sale el ticket solo
   function ventaHecha(id: number | null) {
     setUltimaVenta(id);
@@ -781,6 +782,7 @@ export default function EmpleadoPage() {
   }
 
   async function enviarEntrada(valor: string) {
+    if (refBusq.current) clearTimeout(refBusq.current); // que no aparezca la sugerencia vieja después de agregar
     const texto = valor.trim();
     setScanBuffer('');
     setSugerencias([]);
@@ -1217,7 +1219,7 @@ export default function EmpleadoPage() {
   if (paso === "pin") return (
     <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
-        <Avatar name={empleadoSel} size={100} />
+        <div style={{ display: 'flex', justifyContent: 'center' }}><Avatar name={empleadoSel} size={100} /></div>
         <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 28, color: C.text, margin: '24px 0 8px 0' }}>{empleadoSel}</h1>
         <p style={{ fontSize: 16, color: C.muted, marginBottom: 40 }}>Escribí tu clave de 4 números</p>
         <ErrorBox error={error} />
@@ -1313,291 +1315,279 @@ export default function EmpleadoPage() {
   if (paso === "activo") {
     const durMin = turno ? (Math.floor((Date.now() - new Date(turno.hora_apertura).getTime()) / 60000)) : 0;
 
+    const hay = !!(carrito && carrito.items.length > 0);
+    const botonPago = (txt: string, onClick: () => void, extra: React.CSSProperties = {}, disabled = false) => (
+      <button disabled={disabled} onClick={onClick} style={{ flex: '1 1 0', minWidth: 0, padding: '14px 6px', borderRadius: 12, border: `2px solid ${C.cardBorder}`, background: '#FFFFFF', color: C.text, fontSize: 15, fontWeight: 800, cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.6 : 1, fontFamily: 'var(--font-instrument), sans-serif', ...extra }}>{txt}</button>
+    );
+    const linkChico = (txt: string, onClick: () => void, color: string = C.primary) => (
+      <button onClick={onClick} style={{ padding: '8px 0', border: 'none', background: 'transparent', color, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-instrument), sans-serif' }}>{txt}</button>
+    );
+    const opcionMenu = (titulo: string, sub: string, onClick: () => void, color: string = C.text) => (
+      <button onClick={() => { setMenuTurno(false); onClick(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '14px 4px', border: 'none', borderTop: `1px solid ${C.cardBorder}`, background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-instrument), sans-serif' }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color }}>{titulo}</div>
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{sub}</div>
+      </button>
+    );
+
     return (
-      <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', paddingBottom: 32 }}>
+      <main style={{ background: '#F5F7FA', minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', paddingBottom: 32 }}>
+        <style>{`
+          .solo-compu { display: none; }
+          @media (pointer: fine) { .solo-compu { display: inline; } }
+          .caja-grid { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px; max-width: 1280px; margin: 0 auto; }
+          @media (min-width: 900px) {
+            .caja-grid { grid-template-columns: minmax(0, 1.6fr) minmax(330px, 1fr); gap: 20px; padding: 20px 24px; }
+            .caja-cobro { position: sticky; top: 16px; align-self: start; }
+          }
+        `}</style>
         {aut.modal}
-        {/* Encabezado compacto */}
-        <div style={{ background: `linear-gradient(135deg, ${C.primary} 0%, #00C2FF 100%)`, padding: '20px 24px', color: '#FFFFFF' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Avatar name={turno?.nombre_empleado || empleadoSel} size={44} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, opacity: 0.85 }}>Turno en curso</div>
-              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 20 }}>{turno?.nombre_empleado}</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, opacity: 0.85 }}>Caja inicial</div>
-              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 18 }}>{fmt(turno?.caja_apertura || 0)}</div>
-            </div>
+
+        {/* Barra del turno: quién atiende y el menú con todo lo del turno */}
+        <div style={{ background: '#FFFFFF', borderBottom: `1px solid ${C.cardBorder}`, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Avatar name={turno?.nombre_empleado || empleadoSel} size={38} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: C.text }}>{turno?.nombre_empleado}</div>
+            <div style={{ fontSize: 12, color: C.muted }}>Turno abierto hace {haceLabel(durMin)} · empezó con {fmt(turno?.caja_apertura || 0)}</div>
           </div>
-          <div style={{ marginTop: 10, fontSize: 13, opacity: 0.9 }}>Abierto hace {haceLabel(durMin)}</div>
+          <button onClick={() => setMenuTurno(true)} style={{ padding: '10px 14px', borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: '#FFFFFF', color: C.text, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'var(--font-instrument), sans-serif', whiteSpace: 'nowrap' }}>☰ Menú del turno</button>
         </div>
+
         {durMin > 14 * 60 && (
-          <div style={{ margin: '16px 24px 0', padding: '14px 16px', borderRadius: 14, background: 'rgba(255,59,48,0.08)', border: `2px solid ${C.red}` }}>
+          <div style={{ margin: '16px 16px 0', padding: '14px 16px', borderRadius: 14, background: 'rgba(255,59,48,0.08)', border: `2px solid ${C.red}` }}>
             <div style={{ fontSize: 14, fontWeight: 800, color: C.red }}>Este turno lleva {haceLabel(durMin)} abierto</div>
             <div style={{ fontSize: 13, color: C.text, margin: '4px 0 10px' }}>Si ya terminó, cerralo y abrí uno nuevo. Si queda abierto, la caja y los controles del equipo se mezclan.</div>
             <button onClick={() => { setCierreMonto(""); setError(""); setPaso("cierre"); }} style={estiloBtn(C.red, { width: '100%' })}>Cerrar turno</button>
           </div>
         )}
 
-        <div style={{ padding: 24 }}>
-          {turno && <CajaSinInternet api={API} getToken={() => SESION_TOKEN} turnoId={turno.id} />}
-<div style={{ marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 5, background: enfocado ? C.green : C.amber, display: 'inline-block' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>
-                {enfocado ? 'Listo para escanear' : 'Tocá acá para escanear'}
-              </span>
+        <div className="caja-grid">
+          {/* ── IZQUIERDA: lector y carrito ── */}
+          <div style={{ minWidth: 0 }}>
+            {turno && <CajaSinInternet api={API} getToken={() => SESION_TOKEN} turnoId={turno.id} />}
+
+            {conteoPend && (
+              <div style={{ background: 'rgba(255,149,0,0.1)', border: `2px solid ${C.amber}`, borderRadius: 16, padding: 18, marginBottom: 16 }}>
+                <div style={{ fontWeight: 800, fontSize: 18, color: C.text, marginBottom: 4 }}>El dueño te pide que cuentes la caja</div>
+                <div style={{ fontSize: 14, color: C.muted, marginBottom: 12 }}>Tenés <span style={{ color: C.amber, fontWeight: 700 }}>{conteoPend.minutos_restantes} min</span> para responder.</div>
+                <button onClick={() => setPaso("conteo")} style={estiloBtn(C.amber, { width: '100%' })}>Contar la caja ahora</button>
+              </div>
+            )}
+
+            <div style={{ background: '#FFFFFF', border: `1px solid ${C.cardBorder}`, borderRadius: 16, padding: 16, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 5, background: enfocado ? C.green : C.amber, display: 'inline-block' }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{enfocado ? 'Listo para escanear' : 'Tocá acá para escanear'}</span>
+              </div>
+              <input
+                id="scan-input"
+                type="text"
+                autoComplete="off"
+                value={scanBuffer}
+                placeholder="Pasá el producto o escribí el nombre"
+                onChange={(ev) => { setScanBuffer(ev.target.value); buscarSugerencias(ev.target.value); }}
+                onFocus={() => setEnfocado(true)}
+                onBlur={() => {
+                  setEnfocado(false);
+                  // En compu se recupera el foco para la pistola, salvo que se esté escribiendo en otro campo. En celu no, para no abrir el teclado solo.
+                  setTimeout(() => {
+                    try { if (!window.matchMedia('(pointer: fine)').matches) return; } catch { return; }
+                    const a = document.activeElement as HTMLElement | null;
+                    if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return;
+                    document.getElementById('scan-input')?.focus();
+                  }, 150);
+                }}
+                onKeyDown={(ev) => {
+                  if (ev.key !== 'Enter') return;
+                  ev.preventDefault();
+                  // Lector vacío + carrito con productos: Enter abre el cobro en efectivo (y otro Enter cobra)
+                  if (!ev.currentTarget.value.trim() && hay) { setPanel('efectivo'); return; }
+                  enviarEntrada(ev.currentTarget.value);
+                }}
+                autoFocus
+                style={{ width: '100%', boxSizing: 'border-box', padding: '16px', fontSize: 17, borderRadius: 12, border: `2px solid ${enfocado ? C.primary : C.cardBorder}`, background: '#FFFFFF', color: C.text, outline: 'none', fontFamily: 'var(--font-instrument), sans-serif' }}
+              />
+              {error && <div style={{ marginTop: 8, fontSize: 14, color: '#D92D20', fontWeight: 600 }}>{error}</div>}
+              {sugerencias.length > 0 && scanBuffer.trim().length >= 2 && (
+                <div style={{ marginTop: 8, border: `1px solid ${C.cardBorder}`, borderRadius: 12, overflow: 'hidden' }}>
+                  {sugerencias.map((p: any) => (
+                    <div key={p.id}
+                      onClick={async () => { setSugerencias([]); setScanBuffer(''); await agregarAlCarrito(p.id); document.getElementById('scan-input')?.focus(); }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderBottom: `1px solid ${C.cardBorder}`, cursor: 'pointer' }}>
+                      <div>
+                        <div style={{ fontSize: 15, color: C.text, fontWeight: 600 }}>{p.nombre}</div>
+                        {p.codigo_barras && <div style={{ fontSize: 11, color: C.muted }}>{p.codigo_barras}</div>}
+                      </div>
+                      <span style={{ fontWeight: 800, fontSize: 15, color: C.text }}>{fmt(parseFloat(p.precio_venta))}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div style={{ marginTop: 8 }}>{linkChico('+ Algo sin código (precio a mano)', () => setPanel('varios'))}</div>
             </div>
-            <input
-              id="scan-input"
-              type="text"
-              autoComplete="off"
-              value={scanBuffer}
-              placeholder="Pasá el producto por el lector o escribí su nombre"
-              onChange={(ev) => { setScanBuffer(ev.target.value); buscarSugerencias(ev.target.value); }}
-              onFocus={() => setEnfocado(true)}
-              onBlur={() => {
-                setEnfocado(false);
-                // En compu se recupera el foco para la pistola, salvo que se esté escribiendo en otro campo. En celu no, para no abrir el teclado solo.
-                setTimeout(() => {
-                  try { if (!window.matchMedia('(pointer: fine)').matches) return; } catch { return; }
-                  const a = document.activeElement as HTMLElement | null;
-                  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return;
-                  document.getElementById('scan-input')?.focus();
-                }, 150);
-              }}
-              onKeyDown={(ev) => {
-                if (ev.key !== 'Enter') return;
-                ev.preventDefault();
-                // Lector vacío + carrito con productos: Enter abre el cobro en efectivo (y otro Enter cobra)
-                if (!ev.currentTarget.value.trim() && carrito && carrito.items.length > 0) { setPanel('efectivo'); return; }
-                enviarEntrada(ev.currentTarget.value);
-              }}
-              autoFocus
-              style={{ width: '100%', boxSizing: 'border-box', padding: '16px 16px', fontSize: 16, borderRadius: 14, border: `2px solid ${enfocado ? C.primary : C.cardBorder}`, background: C.bg, color: C.text, outline: 'none', fontFamily: 'var(--font-instrument), sans-serif' }}
-            />
-            {carrito && carrito.items.length > 0 && !scanBuffer && (
-              <div style={{ marginTop: 6, fontSize: 12, color: C.muted }}>Con el carrito listo, apretá <strong>Enter</strong> para cobrar en efectivo.</div>
+
+            {esperas.length > 0 && (
+              <div style={{ marginBottom: 16, padding: 14, borderRadius: 16, background: 'rgba(255,149,0,0.08)', border: '1px solid rgba(255,149,0,0.35)' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: C.amber, marginBottom: 6, letterSpacing: 0.5 }}>VENTAS EN ESPERA</div>
+                {esperas.map(v => (
+                  <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
+                    <span style={{ fontSize: 15, color: C.text }}><strong>{fmt(v.total)}</strong> · {v.hora}{v.nota ? ` · ${v.nota}` : ''}</span>
+                    <button onClick={() => retomar(v.id)} style={{ padding: '8px 12px', borderRadius: 10, border: `2px solid ${C.primary}`, background: '#FFFFFF', color: C.primary, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Retomar</button>
+                  </div>
+                ))}
+              </div>
             )}
-            {error && (
-              <div style={{ marginTop: 8, fontSize: 13, color: '#D92D20', fontWeight: 600 }}>{error}</div>
-            )}
+
+            <div style={{ background: '#FFFFFF', border: `1px solid ${C.cardBorder}`, borderRadius: 16, padding: '6px 16px' }}>
+              {!hay && <div style={{ fontSize: 15, color: C.muted, padding: '18px 0', textAlign: 'center' }}>El carrito está vacío. Pasá el primer producto por el lector.</div>}
+              {carrito && carrito.items.map((item: any) => (
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '12px 0', borderBottom: `1px solid ${C.cardBorder}` }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 15, color: item.tipo_linea === 'descuento' ? C.green : C.text, fontWeight: 700 }}>{item.producto_nombre}</div>
+                    {item.tipo_linea !== 'descuento' && <div style={{ fontSize: 12, color: C.muted }}>{fmt(parseFloat(item.precio_unitario))} {Number.isInteger(Number(item.cantidad)) ? 'c/u' : 'el kilo'}</div>}
+                  </div>
+                  {item.tipo_linea === 'descuento' ? null : !Number.isInteger(Number(item.cantidad)) ? <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{Number(item.cantidad).toLocaleString('es-AR', { maximumFractionDigits: 3 })} kg</span> : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button aria-label="Uno menos" onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) - 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>−</button>
+                      <span style={{ minWidth: 26, textAlign: 'center', fontSize: 16, fontWeight: 800, color: C.text }}>{parseFloat(item.cantidad)}</span>
+                      <button aria-label="Uno más" onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) + 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>+</button>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 100, justifyContent: 'flex-end' }}>
+                    <span style={{ fontWeight: 800, fontSize: 16, color: item.tipo_linea === 'descuento' ? C.green : C.text }}>
+                      {item.tipo_linea === 'descuento' ? '−' + fmt(Math.abs(item.cantidad * parseFloat(item.precio_unitario))) : fmt(item.cantidad * parseFloat(item.precio_unitario))}
+                    </span>
+                    <button aria-label="Sacar del carrito" onClick={() => cambiarCantidad(item, 0)} style={{ border: 'none', background: 'transparent', fontSize: 18, color: C.muted, cursor: 'pointer', padding: 4 }}>✕</button>
+                  </div>
+                </div>
+              ))}
+              {hay && <div style={{ fontSize: 13, color: C.muted, padding: '10px 0' }}>{carrito!.items.filter((i: any) => i.tipo_linea !== 'descuento').length} {carrito!.items.filter((i: any) => i.tipo_linea !== 'descuento').length === 1 ? 'producto' : 'productos'} en el carrito</div>}
+            </div>
+          </div>
+
+          {/* ── DERECHA: total y cobro (siempre a la vista en la compu) ── */}
+          <div className="caja-cobro" style={{ minWidth: 0 }}>
             {ventaOk && (
-              <div style={{ marginTop: 8, padding: '12px 14px', borderRadius: 12, background: 'rgba(52,199,89,0.12)', border: `2px solid ${C.green}`, fontSize: 15, color: C.text, fontWeight: 700 }}>✓ {ventaOk}
+              <div style={{ marginBottom: 12, padding: 14, borderRadius: 16, background: 'rgba(52,199,89,0.1)', border: `2px solid ${C.green}` }}>
+                <div style={{ fontSize: 15, color: C.text, fontWeight: 800 }}>✓ {ventaOk}</div>
                 {ultimaVenta && <BotonesTicket fetchT={fetchT} API={API} transaccionId={ultimaVenta} />}
               </div>
             )}
-            {sugerencias.length > 0 && (
-              <div style={{ marginTop: 8, border: `2px solid ${C.cardBorder}`, borderRadius: 14, overflow: 'hidden', background: C.bg }}>
-                {sugerencias.map((p: any) => (
-                  <div
-                    key={p.id}
-                    onClick={async () => { setSugerencias([]); setScanBuffer(''); await agregarAlCarrito(p.id); document.getElementById('scan-input')?.focus(); }}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderBottom: `1px solid ${C.cardBorder}`, cursor: 'pointer' }}
-                  >
-                    <div>
-                      <div style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>{p.nombre}</div>
-                      {p.codigo_barras && <div style={{ fontSize: 11, color: C.muted }}>{p.codigo_barras}</div>}
-                    </div>
-                    <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 14, color: C.text }}>{fmt(parseFloat(p.precio_venta))}</span>
+            <div style={{ background: '#FFFFFF', border: `1px solid ${C.cardBorder}`, borderRadius: 16, padding: 18 }}>
+              <div style={{ fontSize: 13, color: C.muted, fontWeight: 700, letterSpacing: 0.5 }}>TOTAL</div>
+              <div style={{ fontWeight: 800, fontSize: 44, color: C.text, lineHeight: 1.1, margin: '2px 0 14px' }}>{fmt(carrito ? carrito.total : 0)}</div>
+              {!hay ? (
+                <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.5 }}>Cuando haya productos en el carrito, acá cobrás.</div>
+              ) : (<>
+                <button onClick={() => setPanel('efectivo')} style={estiloBtn(C.green, { width: '100%', fontSize: 18, padding: '18px 8px' })}>💵 Cobrar en efectivo <span className="solo-compu" style={{ fontSize: 13, opacity: 0.85, fontWeight: 600 }}>(Enter)</span></button>
+                {mpDisponible ? (<>
+                  <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, margin: '14px 0 8px' }}>Con Mercado Pago (la venta se carga sola)</div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {botonPago(puntoCargando ? 'Enviando…' : '💳 Débito', () => cobrarConPoint('debito'), {}, puntoCargando)}
+                    {botonPago(puntoCargando ? 'Enviando…' : '💳 Crédito', () => cobrarConPoint('credito'), {}, puntoCargando)}
+                    {botonPago(qrMPCargando ? 'QR…' : '📲 QR', cobrarConQR, {}, qrMPCargando)}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Conteo pendiente alert */}
-          {conteoPend && (
-            <div style={{
-              background: 'rgba(255,149,0,0.1)',
-              border: `2px solid ${C.amber}`,
-              borderRadius: 20,
-              padding: '24px',
-              marginBottom: 24,
-            }}>
-              <div style={{ fontSize: 12, letterSpacing: 2, color: C.amber, fontWeight: 700, marginBottom: 8 }}>⚠️ CONTEO SOLICITADO</div>
-              <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 20, color: C.text, marginBottom: 8 }}>El dueño te pide que cuentes la caja</div>
-              <div style={{ fontSize: 14, color: C.muted, marginBottom: 16 }}>
-                Tenés <span style={{ color: C.amber, fontWeight: 700 }}>{conteoPend.minutos_restantes} min</span> para responder
-              </div>
-              <button
-                onClick={() => setPaso("conteo")}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  borderRadius: 14,
-                  border: `2px solid ${C.amber}`,
-                  background: C.amber,
-                  color: '#FFFFFF',
-                  fontSize: 16,
-                  fontWeight: 700,
-                  fontFamily: 'var(--font-instrument), sans-serif',
-                  cursor: 'pointer',
-                }}
-              >
-                Registrar conteo
-              </button>
-            </div>
-          )}
-
-
-{/* Carrito: siempre visible */}
-          <div style={{
-            background: C.bg,
-            border: `2px solid ${C.cardBorder}`,
-            borderRadius: 20,
-            padding: '20px',
-            marginBottom: 24,
-          }}>
-            <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 14, letterSpacing: 0.5 }}>
-              {carrito && carrito.items.length > 0
-                ? `CARRITO ACTUAL · ${carrito.items.length} ${carrito.items.length === 1 ? 'ITEM' : 'ITEMS'}`
-                : 'CARRITO ACTUAL'}
-            </div>
-            {(!carrito || carrito.items.length === 0) && (
-              <div style={{ fontSize: 14, color: C.muted, padding: '8px 0 4px' }}>Todavía no hay productos. Pasá el primero por el lector o escribí su nombre.</div>
-            )}
-            {esperas.length > 0 && (
-              <div style={{ margin: '4px 0 10px', padding: 10, borderRadius: 12, background: 'rgba(255,149,0,0.08)', border: '1px solid rgba(255,149,0,0.3)' }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: C.amber, marginBottom: 6 }}>VENTAS EN ESPERA</div>
-                {esperas.map(v => (
-                  <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
-                    <span style={{ fontSize: 14, color: C.text }}><strong>{fmt(v.total)}</strong> · {v.hora}{v.nota ? ` · ${v.nota}` : ''}</span>
-                    <button onClick={() => retomar(v.id)} style={{ padding: '6px 10px', borderRadius: 8, border: `1px solid ${C.primary}`, background: '#fff', color: C.primary, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Retomar</button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <button onClick={() => setPanel('varios')} style={{ margin: '4px 0 6px', padding: 0, border: 'none', background: 'transparent', color: C.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>+ Algo sin código (precio a mano)</button>
-            {carrito && carrito.items.map((item: any) => (
-              <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '10px 0', borderBottom: `1px solid ${C.cardBorder}` }}>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>{item.producto_nombre}</div>
-                  {item.tipo_linea !== 'descuento' && <div style={{ fontSize: 12, color: C.muted }}>{fmt(parseFloat(item.precio_unitario))} c/u</div>}
-                </div>
-                {item.tipo_linea === 'descuento' ? <div /> : !Number.isInteger(Number(item.cantidad)) ? <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{Number(item.cantidad).toLocaleString('es-AR', { maximumFractionDigits: 3 })} kg</span> : <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <button onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) - 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>−</button>
-                  <span style={{ minWidth: 26, textAlign: 'center', fontSize: 15, fontWeight: 800, color: C.text }}>{parseFloat(item.cantidad)}</span>
-                  <button onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) + 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>+</button>
-                </div>}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 96, justifyContent: 'flex-end' }}>
-                  <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 15, color: item.tipo_linea === 'descuento' ? C.green : C.text }}>
-                    {item.tipo_linea === 'descuento' ? '−' + fmt(Math.abs(item.cantidad * parseFloat(item.precio_unitario))) : fmt(item.cantidad * parseFloat(item.precio_unitario))}
-                  </span>
-                  <span onClick={() => cambiarCantidad(item, 0)} style={{ fontSize: 18, color: C.muted, cursor: 'pointer', padding: 4 }}>✕</span>
-                </div>
-              </div>
-            ))}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16 }}>
-              <span style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>Total</span>
-              <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 26, color: C.text }}>{fmt(carrito ? carrito.total : 0)}</span>
-            </div>
-            {carrito && carrito.items.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <div style={{ display: 'flex', gap: 14, marginBottom: 12 }}>
-                  <button onClick={() => setPanel('descuento')} style={{ padding: 0, border: 'none', background: 'transparent', color: C.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Hacer un descuento</button>
-                  <button onClick={() => setPanel('mixto')} style={{ padding: 0, border: 'none', background: 'transparent', color: C.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Pagar con dos medios</button>
-                  <button onClick={dejarEnEspera} style={{ padding: 0, border: 'none', background: 'transparent', color: C.amber, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Dejar en espera</button>
-                </div>
-                <button onClick={() => setPanel('efectivo')} style={estiloBtn(C.green, { width: '100%', fontSize: 16, padding: '16px 8px' })}>💵 Efectivo</button>
-                {mpDisponible ? (
-                  <>
-                    <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, margin: '16px 0 8px', letterSpacing: 0.5 }}>CON MERCADO PAGO · LA VENTA SE CARGA SOLA</div>
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <button disabled={puntoCargando} onClick={() => cobrarConPoint('debito')} style={estiloBtn(C.primary, { flex: 1, opacity: puntoCargando ? 0.6 : 1 })}>{puntoCargando ? 'Enviando…' : '💳 Débito'}</button>
-                      <button disabled={puntoCargando} onClick={() => cobrarConPoint('credito')} style={estiloBtn(C.primary, { flex: 1, opacity: puntoCargando ? 0.6 : 1 })}>{puntoCargando ? 'Enviando…' : '💳 Crédito'}</button>
-                    </div>
-                    <button onClick={cobrarConQR} disabled={qrMPCargando} style={estiloBtn(C.primary, { width: '100%', marginTop: 10, opacity: qrMPCargando ? 0.6 : 1 })}>{qrMPCargando ? 'Generando QR…' : '📲 QR de Mercado Pago'}</button>
-                    <div onClick={() => setMostrarManual(!mostrarManual)} style={{ marginTop: 14, textAlign: 'center', fontSize: 13, color: C.muted, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>{mostrarManual ? 'Ocultar' : 'Otro medio (transferencia, o si el posnet no anda)'}</div>
-                    {mostrarManual && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
-                    <button onClick={() => cobrarManual('transferencia', '🏦 Transferencia')} style={estiloBtn(C.primary, { flex: '1 1 30%' })}>🏦 Transferencia</button>
-                    <button onClick={() => cobrarManual('debito', '💳 Débito')} style={estiloBtn(C.muted, { flex: '1 1 30%' })}>💳 Débito (a mano)</button>
-                    <button onClick={() => cobrarManual('credito', '💳 Crédito')} style={estiloBtn(C.muted, { flex: '1 1 30%' })}>💳 Crédito (a mano)</button>
+                  {linkChico(mostrarManual ? 'Ocultar otros medios' : 'Transferencia o posnet sin Mercado Pago', () => setMostrarManual(!mostrarManual), C.muted)}
+                  {mostrarManual && <div style={{ display: 'flex', gap: 8 }}>
+                    {botonPago('🏦 Transferencia', () => cobrarManual('transferencia', '🏦 Transferencia'))}
+                    {botonPago('Débito a mano', () => cobrarManual('debito', '💳 Débito'))}
+                    {botonPago('Crédito a mano', () => cobrarManual('credito', '💳 Crédito'))}
                   </div>}
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontSize: 13, color: C.muted, margin: '14px 0 0' }}>Cuando el dueño conecte Mercado Pago, las ventas con tarjeta y QR se van a cargar solas.</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
-                    <button onClick={() => cobrarManual('transferencia', '🏦 Transferencia')} style={estiloBtn(C.primary, { flex: '1 1 30%' })}>🏦 Transferencia</button>
-                    <button onClick={() => cobrarManual('debito', '💳 Débito')} style={estiloBtn(C.muted, { flex: '1 1 30%' })}>💳 Débito</button>
-                    <button onClick={() => cobrarManual('credito', '💳 Crédito')} style={estiloBtn(C.muted, { flex: '1 1 30%' })}>💳 Crédito</button>
-                  </div>
-                  </>
-                )}
-                {qrMP && (
-                  <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-                    <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%', textAlign: 'center' }}>
-                      <div style={{ fontSize: 13, color: '#5B6472', fontWeight: 600 }}>Que el cliente escanee con Mercado Pago</div>
-                      <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 30, color: '#0A1628', margin: '6px 0 14px' }}>{fmt(qrMP.monto)}</div>
-                      <QRCodeSVG value={qrMP.qr} size={240} />
-                      <div style={{ fontSize: 13, color: '#5B6472', marginTop: 14 }}>Esperando el pago… la venta se cierra sola cuando Mercado Pago la confirma.</div>
-                      <button onClick={cancelarQR} style={{ marginTop: 16, width: '100%', padding: '12px 8px', borderRadius: 12, border: '2px solid #D5DAE1', background: 'transparent', color: '#0A1628', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Cancelar</button>
-                    </div>
+                </>) : (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                    {botonPago('💳 Débito', () => cobrarManual('debito', '💳 Débito'))}
+                    {botonPago('💳 Crédito', () => cobrarManual('credito', '💳 Crédito'))}
+                    {botonPago('🏦 Transf.', () => cobrarManual('transferencia', '🏦 Transferencia'))}
                   </div>
                 )}
-                {puntoMP && (
-                  <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-                    <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%', textAlign: 'center' }}>
-                      <div style={{ fontSize: 13, color: '#5B6472', fontWeight: 600 }}>Cobro enviado al posnet · {puntoMP.tipo === 'debito' ? 'Débito' : 'Crédito'}</div>
-                      <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 34, color: '#0A1628', margin: '8px 0 12px' }}>{fmt(puntoMP.monto)}</div>
-                      <div style={{ fontSize: 15, color: '#0A1628', fontWeight: 700 }}>{puntoMP.cancelando ? 'Cancelá también el cobro en el posnet (botón rojo).' : 'Pedile al cliente que pague en el posnet.'}</div>
-                      <div style={{ fontSize: 13, color: '#5B6472', marginTop: 10 }}>Si el posnet no muestra el monto, tocá Actualizar en el posnet. La venta se cierra sola cuando Mercado Pago confirma el pago.</div>
-                      <button onClick={cancelarPoint} style={{ marginTop: 16, width: '100%', padding: '12px 8px', borderRadius: 12, border: '2px solid #D5DAE1', background: 'transparent', color: '#0A1628', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>{puntoMP.cancelando ? 'Esperando que cancelen en el posnet…' : 'Cancelar cobro'}</button>
-                    </div>
-                  </div>
-                )}
-                {elegirTerm && (
-                  <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-                    <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%' }}>
-                      <div style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 18, color: '#0A1628', marginBottom: 6 }}>¿Qué posnet usa esta caja?</div>
-                      <div style={{ fontSize: 13, color: '#5B6472', marginBottom: 14 }}>Se elige una sola vez y queda guardado para este local.</div>
-                      {elegirTerm.lista.map((t) => (
-                        <button key={t.id} onClick={async () => { const ok = await elegirTerminal(t.id); if (ok) { const tp = elegirTerm.tipo; setElegirTerm(null); cobrarConPoint(tp, t.id); } }} style={estiloBtn(C.primary, { width: '100%', marginBottom: 8 })}>{t.nombre}</button>
-                      ))}
-                      <button onClick={() => setElegirTerm(null)} style={{ width: '100%', padding: '10px 8px', background: 'transparent', border: 'none', color: '#5B6472', fontWeight: 700, cursor: 'pointer' }}>Cancelar</button>
-                    </div>
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: 16, marginTop: 8, paddingTop: 6, borderTop: `1px solid ${C.cardBorder}` }}>
+                  {linkChico('Descuento', () => setPanel('descuento'))}
+                  {linkChico('Pagar con dos medios', () => setPanel('mixto'))}
+                  {linkChico('Dejar en espera', dejarEnEspera, C.amber)}
+                </div>
+              </>)}
+            </div>
+            {turno?.total_egresos > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 13, color: C.muted, padding: '0 4px' }}>
+                <span>Plata sacada de la caja en este turno</span>
+                <span style={{ fontWeight: 800, color: C.amber }}>{fmt(turno?.total_egresos || 0)}</span>
               </div>
             )}
           </div>
-          {turno?.total_egresos > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, fontSize: 14, color: C.text }}>
-              <span>Egresos registrados</span>
-              <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, color: C.amber }}>{fmt(turno?.total_egresos || 0)}</span>
-            </div>
-          )}
-
-          {precioModal && turno?.id && (
-            <PrecioModal turnoId={turno.id} onClose={() => { setPrecioModal(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />
-          )}
-          {altaCodigo && turno?.id && (
-            <AltaModal
-              codigo={altaCodigo}
-              turnoId={turno.id}
-              onClose={() => { setAltaCodigo(null); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }}
-              onAgregado={async () => {
-                const r2 = await fetchT(`${API}/api/scanner/carrito/${turno.id}`);
-                const d2 = await r2.json();
-                if (!d2.error) setCarrito(d2);
-              }}
-            />
-          )}
-          <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, letterSpacing: 0.5, margin: '8px 0 10px' }}>TURNO</div>
-          {panel === 'efectivo' && carrito && <PanelEfectivo total={carrito.total} onClose={() => setPanel(null)} onCobrar={() => { setPanel(null); cobrarManual('efectivo', '💵 Efectivo'); }} />}
-          {panel === 'mixto' && carrito && <PanelMixto total={carrito.total} fetchT={fetchT} API={API} onClose={() => setPanel(null)}
-            onListo={(msg, id) => { setPanel(null); ventaHecha(id || null); setVentaOk(msg); setTimeout(() => setVentaOk(''), 20000); setCarrito({ items: [], total: 0 }); document.getElementById('scan-input')?.focus(); }} />}
-          {panel === 'varios' && <PanelVarios fetchT={fetchT} API={API} onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); document.getElementById('scan-input')?.focus(); }} />}
-          {panel === 'descuento' && carrito && <PanelDescuento total={carrito.items.filter((i: any) => i.tipo_linea !== 'descuento').reduce((s: number, i: any) => s + Number(i.cantidad) * Number(i.precio_unitario), 0)} fetchT={fetchT} API={API} aut={aut}
-            onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); }} />}
-          {anularModal && <AnularVenta fetchT={fetchT} API={API} aut={aut} onClose={() => { setAnularModal(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />}
-          <SecondaryButton label="Anular o devolver una venta" onPress={() => setAnularModal(true)} color={C.red} />
-          {confImpresora && <ConfigImpresora onClose={() => { setConfImpresora(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />}
-          <SecondaryButton label="Cambiar precios" onPress={() => setPrecioModal(true)} color={C.primary} />
-          <SecondaryButton label="🧾 Impresora de tickets" onPress={() => setConfImpresora(true)} color={C.primary} />
-          <SecondaryButton label="💰 Declarar la caja (a mitad de turno)" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.amber} />
-          <SecondaryButton label="Cerrar turno" onPress={() => { setCierreMonto(""); setError(""); setPaso("cierre"); }} color={C.red} />
         </div>
+
+        {/* Menú del turno: todo lo que no es cobrar */}
+        {menuTurno && (
+          <div onClick={() => setMenuTurno(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.55)', zIndex: 900, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#FFFFFF', width: '100%', maxWidth: 520, borderRadius: '18px 18px 0 0', padding: '18px 20px 22px' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 6 }}>Menú del turno</div>
+              {opcionMenu('Anular o devolver una venta', 'Elegí la venta y devolvé la plata. Los productos vuelven al stock.', () => setAnularModal(true), C.red)}
+              {opcionMenu('Cambiar precios', 'Corregí el precio de un producto pasándolo por el lector.', () => setPrecioModal(true))}
+              {opcionMenu('Contar la caja ahora', 'Declará cuánta plata hay en la caja a mitad de turno.', () => { setConteoMonto(""); setError(""); setPaso("conteo"); })}
+              {opcionMenu('Impresora de tickets', 'Ancho del papel e imprimir solo después de cada venta.', () => setConfImpresora(true))}
+              {opcionMenu('Cerrar turno', 'Contás la plata y entregás la caja.', () => { setCierreMonto(""); setError(""); setPaso("cierre"); }, C.red)}
+              <button onClick={() => setMenuTurno(false)} style={{ width: '100%', marginTop: 10, padding: 14, borderRadius: 12, border: `1px solid ${C.cardBorder}`, background: '#FFFFFF', color: C.text, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>Volver a la caja</button>
+            </div>
+          </div>
+        )}
+
+        {/* Ventanas (cobro con Mercado Pago, paneles, modales) */}
+        {qrMP && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%', textAlign: 'center' }}>
+              <div style={{ fontSize: 13, color: '#5B6472', fontWeight: 600 }}>Que el cliente escanee con Mercado Pago</div>
+              <div style={{ fontWeight: 800, fontSize: 30, color: '#0A1628', margin: '6px 0 14px' }}>{fmt(qrMP.monto)}</div>
+              <QRCodeSVG value={qrMP.qr} size={240} />
+              <div style={{ fontSize: 13, color: '#5B6472', marginTop: 14 }}>Esperando el pago… la venta se cierra sola cuando Mercado Pago la confirma.</div>
+              <button onClick={cancelarQR} style={{ marginTop: 16, width: '100%', padding: '12px 8px', borderRadius: 12, border: '2px solid #D5DAE1', background: 'transparent', color: '#0A1628', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Cancelar</button>
+            </div>
+          </div>
+        )}
+        {puntoMP && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%', textAlign: 'center' }}>
+              <div style={{ fontSize: 13, color: '#5B6472', fontWeight: 600 }}>Cobro enviado al posnet · {puntoMP.tipo === 'debito' ? 'Débito' : 'Crédito'}</div>
+              <div style={{ fontWeight: 800, fontSize: 34, color: '#0A1628', margin: '8px 0 12px' }}>{fmt(puntoMP.monto)}</div>
+              <div style={{ fontSize: 15, color: '#0A1628', fontWeight: 700 }}>{puntoMP.cancelando ? 'Cancelá también el cobro en el posnet (botón rojo).' : 'Pedile al cliente que pague en el posnet.'}</div>
+              <div style={{ fontSize: 13, color: '#5B6472', marginTop: 10 }}>Si el posnet no muestra el monto, tocá Actualizar en el posnet. La venta se cierra sola cuando Mercado Pago confirma el pago.</div>
+              <button onClick={cancelarPoint} style={{ marginTop: 16, width: '100%', padding: '12px 8px', borderRadius: 12, border: '2px solid #D5DAE1', background: 'transparent', color: '#0A1628', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>{puntoMP.cancelando ? 'Esperando que cancelen en el posnet…' : 'Cancelar cobro'}</button>
+            </div>
+          </div>
+        )}
+        {elegirTerm && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.82)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, maxWidth: 340, width: '100%' }}>
+              <div style={{ fontWeight: 800, fontSize: 18, color: '#0A1628', marginBottom: 6 }}>¿Qué posnet usa esta caja?</div>
+              <div style={{ fontSize: 13, color: '#5B6472', marginBottom: 14 }}>Se elige una sola vez y queda guardado para este local.</div>
+              {elegirTerm.lista.map((t) => (
+                <button key={t.id} onClick={async () => { const ok = await elegirTerminal(t.id); if (ok) { const tp = elegirTerm.tipo; setElegirTerm(null); cobrarConPoint(tp, t.id); } }} style={estiloBtn(C.primary, { width: '100%', marginBottom: 8 })}>{t.nombre}</button>
+              ))}
+              <button onClick={() => setElegirTerm(null)} style={{ width: '100%', padding: '10px 8px', background: 'transparent', border: 'none', color: '#5B6472', fontWeight: 700, cursor: 'pointer' }}>Cancelar</button>
+            </div>
+          </div>
+        )}
+        {precioModal && turno?.id && (
+          <PrecioModal turnoId={turno.id} onClose={() => { setPrecioModal(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />
+        )}
+        {altaCodigo && turno?.id && (
+          <AltaModal
+            codigo={altaCodigo}
+            turnoId={turno.id}
+            onClose={() => { setAltaCodigo(null); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }}
+            onAgregado={async () => {
+              const r2 = await fetchT(`${API}/api/scanner/carrito/${turno.id}`);
+              const d2 = await r2.json();
+              if (!d2.error) setCarrito(d2);
+            }}
+          />
+        )}
+        {panel === 'efectivo' && carrito && <PanelEfectivo total={carrito.total} onClose={() => setPanel(null)} onCobrar={() => { setPanel(null); cobrarManual('efectivo', '💵 Efectivo'); }} />}
+        {panel === 'mixto' && carrito && <PanelMixto total={carrito.total} fetchT={fetchT} API={API} onClose={() => setPanel(null)}
+          onListo={(msg, id) => { setPanel(null); ventaHecha(id || null); setVentaOk(msg); setTimeout(() => setVentaOk(''), 20000); setCarrito({ items: [], total: 0 }); document.getElementById('scan-input')?.focus(); }} />}
+        {panel === 'varios' && <PanelVarios fetchT={fetchT} API={API} onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); document.getElementById('scan-input')?.focus(); }} />}
+        {panel === 'descuento' && carrito && <PanelDescuento total={carrito.items.filter((i: any) => i.tipo_linea !== 'descuento').reduce((s: number, i: any) => s + Number(i.cantidad) * Number(i.precio_unitario), 0)} fetchT={fetchT} API={API} aut={aut}
+          onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); }} />}
+        {anularModal && <AnularVenta fetchT={fetchT} API={API} aut={aut} onClose={() => { setAnularModal(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />}
+        {confImpresora && <ConfigImpresora onClose={() => { setConfImpresora(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />}
       </main>
     );
   }
