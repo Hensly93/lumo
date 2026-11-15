@@ -4,6 +4,7 @@ import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
 import RadiografiaCard from "../components/RadiografiaCard";
 import RecuperadoCard from "../components/RecuperadoCard";
+import PrecisionCard from "../components/PrecisionCard";
 
 export default function Oportunidades() {
   return (
@@ -12,6 +13,7 @@ export default function Oportunidades() {
       <div style={{ padding: "0 16px" }}>
         <RecuperadoCard />
         <RadiografiaCard />
+        <PrecisionCard />
       </div>
       <Nav />
     </main>

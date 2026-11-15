@@ -23,6 +23,10 @@ export default function FichaTurno() {
     fetch(`${API}/api/ficha/turno/${id}`, { headers: { Authorization: `Bearer ${t}` } })
       .then(r => r.json()).then(d => (d.error ? setError(d.error) : setF(d))).catch(() => setError("No se pudo cargar. Probá de nuevo."));
   }, [id, router]);
+  const responder = (id: number, respuesta: "util" | "no_era_nada") => {
+    setF((x: any) => ({ ...x, avisos: x.avisos.map((a: any) => (a.id === id ? { ...a, feedback: respuesta } : a)) }));
+    fetch(`${API}/api/alertas-instante/${id}/feedback`, { method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("lumo_token")}`, "Content-Type": "application/json" }, body: JSON.stringify({ respuesta }) }).catch(() => {});
+  };
   const ventas = f ? (todas ? f.ventas : f.ventas.slice(0, 15)) : [];
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
@@ -32,6 +36,25 @@ export default function FichaTurno() {
         {!f && !error && <div style={{ color: "var(--tinta-apagada)" }}>Cargando…</div>}
         {f && (<>
           <Frases frases={f.frases} senales={f.senales} />
+
+          {f.avisos?.length > 0 && (<>
+            <div style={titulo}>Avisos que te mandamos de este turno</div>
+            <div style={caja}>
+              {f.avisos.map((a: any, i: number) => (
+                <div key={a.id} style={{ padding: "8px 0", borderTop: i ? "1px solid var(--linea)" : "none" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--tinta)" }}>{a.hora} · {a.titulo}</div>
+                  <div style={{ fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.5, marginTop: 2 }}>{a.cuerpo}</div>
+                  {a.feedback ? <div style={{ fontSize: 12, color: "var(--tinta-apagada)", marginTop: 6 }}>{a.feedback === "util" ? "Dijiste que te sirvió." : "Dijiste que no era nada: la próxima vez te avisa menos de esto."}</div> : (
+                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                      {([["util", "Me sirvió"], ["no_era_nada", "No era nada"]] as const).map(([r, t]) => (
+                        <button key={r} onClick={() => responder(a.id, r)} style={{ fontSize: 13, fontWeight: 600, padding: "6px 14px", borderRadius: 16, border: "1px solid var(--linea)", background: "var(--blanco)", color: "var(--tinta)", cursor: "pointer" }}>{t}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>)}
 
           <div style={titulo}>La cuenta de la caja</div>
           <div style={caja}>
