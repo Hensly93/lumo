@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
 import InstalarApp from "./InstalarApp";
+import ValorCard from "../components/ValorCard";
 
 const iconColor = "var(--azul)";
 
@@ -42,6 +43,7 @@ export default function MasPage() {
       <PageHeader title="Cuenta" sub="Ajustes e instalación de la app" />
 
       <div style={{ padding: "0 12px" }}>
+        <ValorCard />
         <InstalarApp />
         {items.map((item, i) => (
           <div
