@@ -90,10 +90,10 @@ export const GUIAS: Record<string, Guia> = {
     requisitos: ["caja", "turnos5", "avisos"],
   },
   "/benchmark": {
-    titulo: "Comparación con tu rubro",
-    lumobi: "Compara tu negocio con negocios parecidos de tu rubro y tu zona. Nadie ve tus datos ni vos los de otros: solo promedios.",
-    vos: "Mirá en qué estás mejor y en qué peor que el resto.",
-    requisitos: ["ventas", "dias3"],
+    titulo: "Comparar con otros negocios",
+    lumobi: "Cuando haya suficientes negocios de tu rubro y tu zona, te compara con ellos usando solo promedios: nadie ve los datos de nadie.",
+    vos: "Por ahora nada: te avisamos cuando esté listo.",
+    requisitos: [],
   },
   "/red": {
     titulo: "Tus locales",

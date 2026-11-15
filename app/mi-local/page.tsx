@@ -200,7 +200,7 @@ export default function MiLocal() {
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
         <h1 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800, color: "var(--text, #0A1628)" }}>Caja del local</h1>
         <p style={{ margin: "0 0 20px", fontSize: 14, color: "var(--muted, #64748B)", lineHeight: 1.5 }}>
-          Sumá a tu equipo y conectá la compu o el celu del local. Son dos pasos.
+          Sumá a tu equipo, conectá la compu o el celu del local y elegí tu clave para autorizar. Son tres pasos.
         </p>
 
         {aviso && (

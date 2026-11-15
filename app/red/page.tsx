@@ -34,6 +34,7 @@ type Sucursal = {
 type Resumen = {
   total_sucursales: number;
   ventas_red_mes: number;
+  ventas_sin_local?: number;
   sucursales_en_rojo: number;
   local_mas_ventas: string | null;
 };
@@ -149,7 +150,7 @@ export default function Red() {
   return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       <PageHeader
-        title="Tu red"
+        title="Tus locales"
         sub={resumen && resumen.total_sucursales > 0 ? `${resumen.total_sucursales} local${resumen.total_sucursales !== 1 ? "es" : ""} activo${resumen.total_sucursales !== 1 ? "s" : ""}` : "Multi-local"}
       />
 
@@ -161,17 +162,16 @@ export default function Red() {
         <>
           {resumen && resumen.ventas_red_mes > 0 && (
             <HeroCard
-              label="Ventas de la red este mes"
+              label="Vendiste este mes, entre todos tus locales"
               value={fmt(resumen.ventas_red_mes)}
-              sub={resumen.local_mas_ventas ? `Mejor local: ${resumen.local_mas_ventas}` : undefined}
+              sub={[resumen.local_mas_ventas ? `El que más vende: ${resumen.local_mas_ventas}` : "", resumen.ventas_sin_local ? `Incluye ${fmt(resumen.ventas_sin_local)} de ventas sin local asignado` : ""].filter(Boolean).join(" · ") || undefined}
             />
           )}
 
           {resumen && sucursales.length > 1 && (
             <StatRow>
               <StatCard label="Locales" value={String(resumen.total_sucursales)} color="blue" />
-              <StatCard label="En rojo" value={String(resumen.sucursales_en_rojo)} color={resumen.sucursales_en_rojo > 0 ? "red" : "green"} />
-              <StatCard label="Ventas red" value={resumen.ventas_red_mes > 0 ? fmt(resumen.ventas_red_mes) : "—"} color="green" />
+              <StatCard label="Con problemas de caja" value={String(resumen.sucursales_en_rojo)} color={resumen.sucursales_en_rojo > 0 ? "red" : "green"} />
             </StatRow>
           )}
 
@@ -329,7 +329,7 @@ export default function Red() {
                         <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 12, fontWeight: 800, color: "var(--emerald)" }}>{fmt(s.ventas_mes)}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Brecha prom.</div>
+                        <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Falta por cierre</div>
                         <div style={{ fontFamily: "var(--font-instrument),sans-serif", fontSize: 12, fontWeight: 800, color: s.brecha_promedio > 1000 ? "var(--red)" : "var(--text)" }}>{fmt(s.brecha_promedio)}</div>
                       </div>
                       <div>

@@ -218,7 +218,7 @@ function Aprendido({ coef, errorTipico }: { coef: Coeficiente[]; errorTipico?: n
       )}
       {errorTipico != null && (
         <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>
-          Margen de error típico: ±{errorTipico.toLocaleString("es-AR")}%
+          Normalmente se equivoca por ±{Math.round(errorTipico)}%
         </div>
       )}
     </div>
@@ -490,7 +490,7 @@ export default function Predicciones() {
                 label="Los próximos 7 días"
                 value={fmt(totalSemana)}
                 sub={(data.modelo?.tipo === "condiciones" && data.modelo.error_tipico_pct != null
-                  ? `Error típico en tus datos: ±${Math.round(data.modelo.error_tipico_pct)}%`
+                  ? `Normalmente se equivoca por ±${Math.round(data.modelo.error_tipico_pct)}%`
                   : `Estimación preliminar con ${data.dias_datos ?? "pocos"} días de ventas`) + " · tocá para ver cómo se calcula"}
               />
             </div>

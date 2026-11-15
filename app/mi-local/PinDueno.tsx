@@ -41,7 +41,7 @@ export default function PinDueno({ token }: { token: string | null }) {
       <div style={{ fontSize: 12, letterSpacing: 2, color: "var(--muted, #64748B)", marginBottom: 6 }}>PASO 3</div>
       <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text, #0A1628)", marginBottom: 6 }}>Tu PIN de autorización</div>
       <p style={{ margin: "0 0 14px", fontSize: 14, color: "var(--muted, #64748B)", lineHeight: 1.5 }}>
-        La caja funciona normal. Solo si un turno hace algo fuera de lo habitual (sacar muchos productos, bajar un precio, sacar plata), esa acción te pide autorización: con este PIN en la caja, o desde tu celular en Rendimiento.
+        La caja funciona normal. Solo si un turno hace algo fuera de lo habitual (sacar muchos productos, bajar un precio, sacar plata), esa acción te pide autorización: con este PIN en la caja, o desde tu celular en Equipo → Control del equipo.
       </p>
       {configurado && !editando && (
         <div style={{ fontSize: 13, color: "var(--text, #0A1628)", marginBottom: 10 }}>Tu PIN está configurado.</div>

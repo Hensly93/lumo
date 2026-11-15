@@ -1,3 +1,25 @@
 "use client";
+// Comparar con otros negocios (efecto red). Antes era un cartel viejo que prometía "47 negocios similares"
+// y un "Plan Pro" que no existe: ahora dice la verdad.
+import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
-export default function Benchmark(){return(<main style={{background:"#070B12",minHeight:"100vh",paddingBottom:100}}><div style={{padding:"24px 20px",borderBottom:"1px solid #1C2E42"}}><div style={{fontSize:24,fontWeight:700,color:"#EDF2FF"}}>Benchmark</div></div><div style={{padding:"20px"}}><div style={{background:"rgba(0,212,255,0.05)",border:"1px solid rgba(0,212,255,0.2)",borderRadius:20,padding:"32px 24px",textAlign:"center"}}><div style={{fontSize:20,fontWeight:700,color:"#EDF2FF",marginBottom:8}}>Plan Pro</div><div style={{fontSize:14,color:"#7090AA",lineHeight:1.6,marginBottom:24}}>Compara tu negocio con 47 negocios similares en tu zona.</div><div style={{padding:"14px 28px",background:"rgba(0,212,255,0.15)",border:"1px solid #00D4FF",borderRadius:12,fontSize:14,fontWeight:700,color:"#00D4FF",display:"inline-block"}}>Activar Plan Pro</div></div></div><Nav/></main>);}
+
+export default function Benchmark() {
+  return (
+    <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
+      <PageHeader title="Comparar con otros negocios" sub="Próximamente" />
+      <div style={{ padding: "0 16px" }}>
+        <div style={{ padding: 18, borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)", fontSize: 15, color: "var(--tinta)", lineHeight: 1.6 }}>
+          <p style={{ margin: "0 0 10px" }}>
+            Cuando haya al menos <strong>5 negocios de tu mismo rubro y tu zona</strong> usando LumoBi, acá vas a ver cómo te va comparado con ellos:
+            si vendés más o menos, a qué hora se mueve la zona y qué productos salen más.
+          </p>
+          <p style={{ margin: 0, color: "var(--tinta-apagada)", fontSize: 14 }}>
+            Nadie ve tus datos ni vos ves los de nadie: solo se comparan promedios. Te avisamos cuando esté listo.
+          </p>
+        </div>
+      </div>
+      <Nav />
+    </main>
+  );
+}
