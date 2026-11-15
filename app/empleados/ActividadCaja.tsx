@@ -16,6 +16,7 @@ const FILTROS: { id: string; label: string; tipos: string[] | null }[] = [
   { id: "precios", label: "Precios", tipos: ["precio_cambiado"] },
   { id: "egresos", label: "Egresos", tipos: ["egreso"] },
   { id: "anuladas", label: "Ventas anuladas", tipos: ["venta_anulada"] },
+  { id: "descuentos", label: "Descuentos", tipos: ["descuento"] },
 ];
 const pesos = (n: number) => "$" + Math.round(Math.abs(n)).toLocaleString("es-AR");
 const fecha = (iso: string) => new Date(iso).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -31,6 +32,7 @@ function que(h: Hecho): string {
     case "producto_creado": return `Dio de alta ${prod}`;
     case "egreso": return `Sacó ${pesos(h.valor)} de la caja${d.motivo ? `: ${String(d.motivo)}` : ""}`;
     case "venta_anulada": return `Anuló una venta de ${pesos(h.valor)}${d.motivo ? `: ${String(d.motivo)}` : ""}`;
+    case "descuento": return `Hizo un descuento de ${pesos(h.valor)}${num(d.pct) ? ` (${Math.round(num(d.pct))}%)` : ""}${d.motivo ? `: ${String(d.motivo)}` : ""}`;
     default: return h.tipo;
   }
 }

@@ -7,7 +7,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.
 
 type Aut = { id: number; empleado: string | null; tipo: string; producto_nombre: string | null; valor: number; motivo: string | null; estado: string; metodo: string | null; creado: string };
 
-const QUE: Record<string, string> = { sacar_producto: "Sacar un producto del carrito", bajar_precio: "Bajar un precio", egreso: "Sacar plata de la caja", anular_venta: "Anular una venta" };
+const QUE: Record<string, string> = { sacar_producto: "Sacar un producto del carrito", bajar_precio: "Bajar un precio", egreso: "Sacar plata de la caja", anular_venta: "Anular una venta", descuento: "Hacer un descuento" };
 const ESTADO: Record<string, string> = { pendiente: "Esperando", aprobada: "Aprobada", rechazada: "Rechazada", vencida: "Venció", cancelada: "Cancelada" };
 const pesos = (n: number) => "$" + Math.round(n).toLocaleString("es-AR");
 const hora = (iso: string) => new Date(iso).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });

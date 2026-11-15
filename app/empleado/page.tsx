@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useAutorizacion } from "./Autorizacion";
 import AnularVenta from "./AnularVenta";
+import { PanelEfectivo, PanelMixto, PanelVarios, PanelDescuento } from "./Cobro";
 import CajaSinInternet from "./CajaSinInternet";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -531,6 +532,7 @@ export default function EmpleadoPage() {
   const [puntoCargando, setPuntoCargando] = useState(false);
   const [elegirTerm, setElegirTerm] = useState<{ lista: { id: string; nombre: string }[]; tipo: 'debito' | 'credito' } | null>(null);
   const [mostrarManual, setMostrarManual] = useState(false);
+  const [panel, setPanel] = useState<null | "efectivo" | "mixto" | "varios" | "descuento">(null);
 
   useEffect(() => {
     if (!turno?.id) return;
@@ -1408,20 +1410,21 @@ export default function EmpleadoPage() {
             {(!carrito || carrito.items.length === 0) && (
               <div style={{ fontSize: 14, color: C.muted, padding: '8px 0 4px' }}>Todavía no hay productos. Pasá el primero por el lector o escribí su nombre.</div>
             )}
+            <button onClick={() => setPanel('varios')} style={{ margin: '4px 0 6px', padding: 0, border: 'none', background: 'transparent', color: C.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>+ Algo sin código (precio a mano)</button>
             {carrito && carrito.items.map((item: any) => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '10px 0', borderBottom: `1px solid ${C.cardBorder}` }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>{item.producto_nombre}</div>
-                  <div style={{ fontSize: 12, color: C.muted }}>{fmt(parseFloat(item.precio_unitario))} c/u</div>
+                  {item.tipo_linea !== 'descuento' && <div style={{ fontSize: 12, color: C.muted }}>{fmt(parseFloat(item.precio_unitario))} c/u</div>}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {item.tipo_linea === 'descuento' ? <div /> : <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <button onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) - 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>−</button>
                   <span style={{ minWidth: 26, textAlign: 'center', fontSize: 15, fontWeight: 800, color: C.text }}>{parseFloat(item.cantidad)}</span>
                   <button onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) + 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>+</button>
-                </div>
+                </div>}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 96, justifyContent: 'flex-end' }}>
-                  <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 15, color: C.text }}>
-                    {fmt(item.cantidad * parseFloat(item.precio_unitario))}
+                  <span style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 15, color: item.tipo_linea === 'descuento' ? C.green : C.text }}>
+                    {item.tipo_linea === 'descuento' ? '−' + fmt(Math.abs(item.cantidad * parseFloat(item.precio_unitario))) : fmt(item.cantidad * parseFloat(item.precio_unitario))}
                   </span>
                   <span onClick={() => cambiarCantidad(item, 0)} style={{ fontSize: 18, color: C.muted, cursor: 'pointer', padding: 4 }}>✕</span>
                 </div>
@@ -1433,7 +1436,11 @@ export default function EmpleadoPage() {
             </div>
             {carrito && carrito.items.length > 0 && (
               <div style={{ marginTop: 16 }}>
-                <button onClick={() => cobrarManual('efectivo', '💵 Efectivo')} style={estiloBtn(C.green, { width: '100%', fontSize: 16, padding: '16px 8px' })}>💵 Efectivo</button>
+                <div style={{ display: 'flex', gap: 14, marginBottom: 12 }}>
+                  <button onClick={() => setPanel('descuento')} style={{ padding: 0, border: 'none', background: 'transparent', color: C.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Hacer un descuento</button>
+                  <button onClick={() => setPanel('mixto')} style={{ padding: 0, border: 'none', background: 'transparent', color: C.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Pagar con dos medios</button>
+                </div>
+                <button onClick={() => setPanel('efectivo')} style={estiloBtn(C.green, { width: '100%', fontSize: 16, padding: '16px 8px' })}>💵 Efectivo</button>
                 {mpDisponible ? (
                   <>
                     <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, margin: '16px 0 8px', letterSpacing: 0.5 }}>CON MERCADO PAGO · LA VENTA SE CARGA SOLA</div>
@@ -1519,6 +1526,12 @@ export default function EmpleadoPage() {
             />
           )}
           <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, letterSpacing: 0.5, margin: '8px 0 10px' }}>TURNO</div>
+          {panel === 'efectivo' && carrito && <PanelEfectivo total={carrito.total} onClose={() => setPanel(null)} onCobrar={() => { setPanel(null); cobrarManual('efectivo', '💵 Efectivo'); }} />}
+          {panel === 'mixto' && carrito && <PanelMixto total={carrito.total} fetchT={fetchT} API={API} onClose={() => setPanel(null)}
+            onListo={(msg) => { setPanel(null); setVentaOk(msg); setTimeout(() => setVentaOk(''), 8000); setCarrito({ items: [], total: 0 }); document.getElementById('scan-input')?.focus(); }} />}
+          {panel === 'varios' && <PanelVarios fetchT={fetchT} API={API} onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); document.getElementById('scan-input')?.focus(); }} />}
+          {panel === 'descuento' && carrito && <PanelDescuento total={carrito.items.filter((i: any) => i.tipo_linea !== 'descuento').reduce((s: number, i: any) => s + Number(i.cantidad) * Number(i.precio_unitario), 0)} fetchT={fetchT} API={API} aut={aut}
+            onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); }} />}
           {anularModal && <AnularVenta fetchT={fetchT} API={API} aut={aut} onClose={() => { setAnularModal(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />}
           <SecondaryButton label="Anular o devolver una venta" onPress={() => setAnularModal(true)} color={C.red} />
           <SecondaryButton label="Cambiar precios" onPress={() => setPrecioModal(true)} color={C.primary} />
