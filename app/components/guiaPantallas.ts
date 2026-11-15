@@ -13,9 +13,9 @@ export type Guia = {
 export const GUIAS: Record<string, Guia> = {
   "/": {
     titulo: "Tu inicio",
-    lumobi: "Junta todo lo importante de tu negocio en una pantalla: cuánto llevás hoy, cuánto esperás vender, el último turno, las alertas y lo que encontró NICOLE.",
-    vos: "Miralo una vez por día. Tocá cualquier tarjeta para ver de dónde sale el número y qué hacer.",
-    requisitos: ["empleados", "caja", "avisos", "dias3"],
+    lumobi: "Te muestra lo justo para hoy: cuánto llevás vendido, lo que tenés que mirar, tu último turno y lo más importante que encontró NICOLE.",
+    vos: "Miralo una vez por día. Si algo dice URGENTE, tocalo y te lleva a lo que tenés que hacer.",
+    requisitos: ["caja", "turnos5", "avisos", "dias3"],
   },
   "/negocio": {
     titulo: "Plata",
@@ -106,6 +106,12 @@ export const GUIAS: Record<string, Guia> = {
     lumobi: "Junta en una pantalla lo que está pasando ahora (cuánto vendiste, quién tiene la caja abierta, hora por hora), lo que viene (cómo deberías cerrar hoy y mañana) y lo que pasó ayer.",
     vos: "Mirala cuando quieras saber cómo viene el día. Si una hora queda muy abajo de la línea punteada, algo está pasando.",
     requisitos: ["caja", "dias3"],
+  },
+  "/oportunidades": {
+    titulo: "Oportunidades",
+    lumobi: "Junta lo más importante que encontró en tus últimas 8 semanas: dónde podés ganar más y dónde perdés plata, con cuánto hay en juego y cómo lo calculó.",
+    vos: "Tocá \"Qué podés hacer\" en cada una y contale a LumoBi si te sirvió: así aprende qué te importa.",
+    requisitos: ["dias3", "costos"],
   },
   "/mas": {
     titulo: "Tu cuenta",

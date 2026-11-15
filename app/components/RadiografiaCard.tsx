@@ -134,7 +134,7 @@ export default function RadiografiaCard() {
   return (
     <div style={{ background: "var(--blanco)", border: "1px solid var(--linea)", borderRadius: 10, padding: 18, margin: "16px 0" }}>
       <div style={{ fontSize: 18, fontWeight: 600, color: "var(--tinta)", fontFamily: "var(--font-instrument), sans-serif" }}>
-        Radiografía de tu negocio
+        Tus oportunidades
       </div>
       <div style={{ fontSize: 12, color: "var(--tinta-apagada)", marginTop: 2, marginBottom: 12 }}>
         Lo más importante que encontró LumoBi en tus últimas 8 semanas.
@@ -144,8 +144,8 @@ export default function RadiografiaCard() {
         <div style={{ background: "var(--papel)", borderRadius: 8, padding: "10px 12px", marginBottom: sinHallazgos ? 0 : 12 }}>
           <div style={{ fontSize: 13, color: "var(--tinta)", lineHeight: 1.5 }}>
             {sinHallazgos
-              ? <>Para armar tu radiografía necesito ver al menos {data.dias_necesarios} días de ventas. Llevás <strong>{data.dias_con_ventas}</strong>.</>
-              : <>Con {data.dias_necesarios} días de ventas la radiografía es completa. Llevás <strong>{data.dias_con_ventas}</strong>.</>}
+              ? <>Para armar tus oportunidades necesito ver al menos {data.dias_necesarios} días de ventas. Llevás <strong>{data.dias_con_ventas}</strong>.</>
+              : <>Con {data.dias_necesarios} días de ventas tus oportunidades están completas. Llevás <strong>{data.dias_con_ventas}</strong>.</>}
           </div>
           <div style={{ height: 6, background: "var(--linea)", borderRadius: 3, marginTop: 8 }}>
             <div style={{ width: `${avance}%`, height: 6, background: "var(--cian)", borderRadius: 3 }} />

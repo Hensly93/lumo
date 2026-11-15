@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 // PrimerosDias — lo que LumoBi ya puede decir mientras junta historia (14/11/2026)
 // · Tu último turno: informe del último cierre de caja (desde el primer turno)
 // · A este ritmo: proyección de hoy con la curva horaria propia (desde el 2do día)
@@ -25,7 +26,20 @@ const card = {
 } as const;
 const etiqueta = { fontSize: 12, fontWeight: 600, color: "var(--tinta-apagada)", marginBottom: 6 } as const;
 
-export function UltimoTurnoCard({ informe }: { informe: InformeTurno }) {
+// compacto: título + la primera cosa importante + "Ver más" (Inicio); completo: todo el informe
+export function UltimoTurnoCard({ informe, compacto }: { informe: InformeTurno; compacto?: boolean }) {
+  const [abierto, setAbierto] = useState(!compacto);
+  if (!abierto) {
+    const primero = informe.hechos.find((h) => h.id !== "caja_ok") || informe.hechos[0];
+    return (
+      <div style={card}>
+        <div style={etiqueta}>Tu último turno</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--tinta)", lineHeight: 1.35 }}>{informe.titulo}</div>
+        {primero && <div style={{ fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.5, marginTop: 4 }}>{primero.texto}</div>}
+        <button onClick={() => setAbierto(true)} style={{ marginTop: 8, padding: 0, border: "none", background: "transparent", color: "#007AFF", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Ver el informe completo</button>
+      </div>
+    );
+  }
   const datos: [string, string][] = [
     ["Ventas", String(informe.ventas)],
     ["Gasto promedio por cliente", fmt(informe.ticket_promedio)],

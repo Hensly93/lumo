@@ -57,6 +57,7 @@ export default function EnVivo() {
   const { sucursalId } = useSucursal();
   const [s, setS] = useState<Sala | null>(null);
   const [error, setError] = useState(false);
+  const [zonas, setZonas] = useState<{ id: string; nombre: string; estado: string; texto: string; url: string }[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("lumo_token");
@@ -66,6 +67,8 @@ export default function EnVivo() {
       .then(r => (r.ok ? r.json() : Promise.reject())).then(d => { if (vivo) { setS(d); setError(false); } })
       .catch(() => { if (vivo) setError(true); });
     cargar();
+    fetch(`${API}/api/zonas`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => (r.ok ? r.json() : null)).then(d => { if (vivo && d && Array.isArray(d.zonas)) setZonas(d.zonas); }).catch(() => {});
     const id = setInterval(cargar, 60000);
     return () => { vivo = false; clearInterval(id); };
   }, [sucursalId, router]);
@@ -160,6 +163,23 @@ export default function EnVivo() {
                 </div>
               ))}
           </div>
+          {zonas.length > 0 && (<>
+            <div style={titulo}>Cómo está cada parte</div>
+            <div style={caja}>
+              {zonas.map((z, i) => {
+                const color = z.estado === "alerta" ? "#DC2626" : z.estado === "atencion" ? "#D97706" : z.estado === "ok" ? "#16A34A" : "var(--tinta-apagada)";
+                return (
+                  <div key={z.id} onClick={() => router.push(z.url)} style={{ display: "flex", gap: 10, padding: "8px 0", borderTop: i ? "1px solid var(--linea)" : "none", cursor: "pointer" }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 4, background: color, marginTop: 6, flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--tinta)" }}>{z.nombre}</div>
+                      <div style={gris}>{z.texto}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>)}
         </>)}
       </div>
       <Nav />

@@ -2,11 +2,6 @@
 import { ActivacionCard } from "./components/Activacion";
 import { UltimoTurnoCard, ProyeccionCard, AprendizajeCard, type InformeTurno, type Proyeccion, type Aprendizaje } from "./components/PrimerosDias";
 import Nav from "./components/Nav";
-import EnVivoCard from "./components/EnVivoCard";
-import RadiografiaCard from "./components/RadiografiaCard";
-import RecuperadoCard from "./components/RecuperadoCard";
-import FugasCard from "./components/FugasCard";
-import PeriodoMesCard from "./components/PeriodoMesCard";
 import BannerPasos from "./components/BannerPasos";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -110,6 +105,7 @@ function HomeContent() {
   const [predPreliminar, setPredPreliminar] = useState(false);
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [pred, setPred] = useState<Prediccion | null>(null);
+  const [vivo, setVivo] = useState<{ ventas?: number; tickets?: number; esperado_hasta_ahora?: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalData, setModalData] = useState<ModalData | null>(null);
   const [wowPatterns, setWowPatterns] = useState<WowPattern[]>([]);
@@ -142,6 +138,7 @@ function HomeContent() {
       // Si el motor no pudo analizar, no mostrar "En orden": no sabemos si está en orden
       setMotorCaido(!ini || !!ini.error || ini.motor_ok === false);
       setInforme(ini?.informe_turno ?? null);
+      setVivo(ini?.en_vivo?.total ?? null);
       setProyeccion(ini?.proyeccion_hoy ?? null);
       setAprendizaje(ini?.aprendizaje ?? null);
       setPredPreliminar(!!ini?.hoy?.preliminar);
@@ -152,12 +149,7 @@ function HomeContent() {
   }, [ready, token, sucursalId]);
 
   const dq = dqScore(analisis?.data_quality_score);
-  const enOrden = motorCaido ? "Sin analizar" : "En orden";
-  const critCount = alertas.filter(a => ["critico", "inconsistencia"].includes(a.prioridad)).length;
-  const warnCount = alertas.filter(a => ["atencion", "ineficiencia"].includes(a.prioridad)).length;
   const facturacion = pred?.facturacion?.disponible ? pred.facturacion.venta_diaria_esperada : null;
-  const perdidaMes = pred?.resumen?.perdida_esperada_mes?.esperado ?? null;
-  const confianzaPct = pred?.facturacion?.confianza?.pct ?? null;
 
   const openModal = (data: ModalData) => setModalData(data);
   const closeModal = () => setModalData(null);
@@ -165,7 +157,6 @@ function HomeContent() {
   const openWowModal = (pattern: WowPattern) => setWowModalData({ pattern });
   const closeWowModal = () => setWowModalData(null);
 
-  const dqColor = dq == null ? "#94A3B8" : dq >= 70 ? "#00C48C" : dq >= 40 ? "#F59E0B" : "#EF4444";
 
   return (
     <>
@@ -493,13 +484,8 @@ function HomeContent() {
           <div style={{ padding: "0 16px" }}>
 
             <BannerPasos token={token} onVentas={setHayVentas} soloVentas />
-            <ActivacionCard />
+            <ActivacionCard compacta />
 
-            {proyeccion && <ProyeccionCard p={proyeccion} />}
-            {informe && <UltimoTurnoCard informe={informe} />}
-            {aprendizaje && !aprendizaje.completo && <AprendizajeCard a={aprendizaje} />}
-
-            {/* Tu Negocio en Vivo */}
             {hayVentas === false ? (
               <div style={{ margin: "0 0 16px", padding: "16px", borderRadius: 14, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "var(--tinta)", marginBottom: 4 }}>Todavía no hay ventas</div>
@@ -511,452 +497,88 @@ function HomeContent() {
                   Ir a la caja y cobrar
                 </button>
               </div>
-            ) : (
-              <>
-                <FugasCard />
-                <EnVivoCard sucursalId={sucursalId} />
-                <RadiografiaCard />
-                <RecuperadoCard />
-                <PeriodoMesCard sucursalId={sucursalId} />
-              </>
-            )}
-
-            {hayVentas !== false && (<>
-            {/* Hero Card */}
-            <div
-              onClick={() => openModal({
-                title: "Facturación estimada hoy",
-                text: "Es lo que LumoBi calcula que vas a vender hoy, mirando cómo vendiste los otros días. Cuantos más días de ventas tenga, más le pega. Cambia con cada venta que cobrás."
-              })}
-              style={{
-                background: "var(--blanco)",
-                border: "1px solid var(--linea)",
-                borderRadius: 10,
-                padding: 20,
-                margin: "16px 0 16px 0",
-                cursor: "pointer",
-              }}
-            >
-              <div style={{
-                fontSize: 13,
-                fontWeight: 500,
-                color: "var(--tinta-apagada)",
-                marginBottom: 6,
-              }}>
-                {predPreliminar ? "Un día normal tuyo (preliminar)" : "Lo que vas a vender hoy (calculado)"}
-              </div>
-
-              <div style={{
-                fontSize: facturacion != null ? 48 : 28,
-                fontWeight: 700,
-                color: "var(--tinta)",
-                fontFamily: "var(--font-instrument), sans-serif",
-                lineHeight: 1.1,
-                marginTop: 4,
-                marginBottom: 12,
-              }}>
-                {facturacion != null ? fmt(facturacion) : "Juntando datos…"}
-              </div>
-
-              <div style={{ display: "flex", gap: 8 }}>
-                {perdidaMes != null && (
-                  <div style={{
-                    background: "var(--papel)",
-                    borderRadius: 8,
-                    padding: "8px 12px",
-                  }}>
-                    <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginBottom: 3 }}>Plata que se te escapa este mes</div>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: "var(--tinta)" }}>{fmt(perdidaMes)}</div>
+            ) : (<>
+              {/* 1. HOY: una sola tarjeta (antes eran tres) */}
+              <div style={{ margin: "0 0 16px", padding: 18, borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, color: "var(--tinta-apagada)", textTransform: "uppercase", marginBottom: 6 }}>Hoy</div>
+                <div style={{ fontSize: 34, fontWeight: 800, color: "var(--tinta)", fontFamily: "var(--font-instrument), sans-serif", lineHeight: 1.1 }}>{fmt(vivo?.ventas ?? 0)}</div>
+                <div style={{ fontSize: 13, color: "var(--tinta-apagada)", marginTop: 4, lineHeight: 1.5 }}>
+                  vendido en {vivo?.tickets ?? 0} ventas
+                  {vivo?.esperado_hasta_ahora != null && vivo.esperado_hasta_ahora > 0 && (() => {
+                    const d = Math.round(((vivo.ventas ?? 0) / vivo.esperado_hasta_ahora - 1) * 100);
+                    return (vivo.ventas ?? 0) > 0
+                      ? <> · <strong style={{ color: d >= -10 ? "var(--ok, #16A34A)" : "var(--critico, #DC2626)" }}>{Math.abs(d)}% {d >= 0 ? "más" : "menos"}</strong> que lo normal a esta hora</>
+                      : <> · lo normal a esta hora: {fmt(vivo.esperado_hasta_ahora)}</>;
+                  })()}
+                </div>
+                {facturacion != null && (
+                  <div style={{ fontSize: 14, color: "var(--tinta)", marginTop: 10, lineHeight: 1.5 }}>
+                    {predPreliminar ? "Un día normal tuyo (preliminar): " : "Deberías cerrar cerca de "}<strong>{fmt(facturacion)}</strong>.
                   </div>
                 )}
-                {dq != null && <div style={{
-                  background: "var(--papel)",
-                  borderRadius: 8,
-                  padding: "8px 12px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}>
-                  <span style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: dqColor,
-                    display: "inline-block",
-                  }} />
-                  <div>
-                    <div style={{ fontSize: 11, color: "var(--tinta-apagada)", marginBottom: 3 }}>Qué tan seguro está</div>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: "var(--tinta)" }}>{`${Math.round(dq)}%`}</div>
-                  </div>
-                </div>}
-              </div>
-            </div>
-
-            {/* StatRow - 3 cards */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: 12,
-              marginBottom: 24,
-            }}>
-              {/* Críticas */}
-              <div
-                onClick={() => openModal({
-                  title: "Urgentes",
-                  text: "Cosas que LumoBi vio hoy y que te pueden estar haciendo perder plata ahora. Si hay alguna, miralas primero.",
-                  actionButton: { text: "Ver alertas →", href: "/alertas" }
-                })}
-                style={{
-                  background: "var(--blanco)",
-                  border: "1px solid var(--linea)",
-                  borderRadius: 10,
-                  padding: 14,
-                  cursor: "pointer",
-                }}
-              >
-                <div style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: "var(--tinta-apagada)",
-                  marginBottom: 6,
-                }}>
-                  Urgentes
-                </div>
-                <div style={{
-                  fontSize: 28,
-                  fontWeight: 700,
-                  color: "var(--tinta)",
-                  fontFamily: "var(--font-instrument), sans-serif",
-                  lineHeight: 1,
-                  marginBottom: 6,
-                }}>
-                  {critCount}
-                </div>
-                <div style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: critCount > 0 ? "var(--critico)" : "var(--ok)",
-                  background: critCount > 0 ? "var(--critico-fondo)" : "var(--ok-fondo)",
-                  padding: "3px 8px",
-                  borderRadius: 6,
-                  display: "inline-block",
-                }}>
-                  {critCount > 0 ? "Crítico" : enOrden}
-                </div>
+                {facturacion == null && proyeccion && <div style={{ marginTop: 10 }}><ProyeccionCard p={proyeccion} /></div>}
+                <button onClick={() => router.push("/en-vivo")}
+                  style={{ width: "100%", marginTop: 14, padding: "11px", borderRadius: 8, border: "1px solid var(--linea)", background: "var(--papel)", color: "var(--tinta)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                  Ver en vivo: hora por hora y quién atiende →
+                </button>
               </div>
 
-              {/* Atención */}
-              <div
-                onClick={() => openModal({
-                  title: "Para mirar",
-                  text: "Cosas raras que no son urgentes, pero conviene que les eches un ojo cuando puedas.",
-                  actionButton: { text: "Ver alertas →", href: "/alertas" }
-                })}
-                style={{
-                  background: "var(--blanco)",
-                  border: "1px solid var(--linea)",
-                  borderRadius: 10,
-                  padding: 14,
-                  cursor: "pointer",
-                }}
-              >
-                <div style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: "var(--tinta-apagada)",
-                  marginBottom: 6,
-                }}>
-                  Para mirar
+              {/* 2. LO QUE TENÉS QUE MIRAR HOY: cada cosa una sola vez */}
+              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--tinta)", margin: "8px 0 10px" }}>Lo que tenés que mirar hoy</div>
+              {alertas.length === 0 ? (
+                <div style={{ margin: "0 0 16px", padding: 16, borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ok, #16A34A)" }}>{motorCaido ? "No pudimos revisar tu negocio ahora" : "Hoy está todo normal"}</div>
+                  <div style={{ fontSize: 13, color: "var(--tinta-apagada)", marginTop: 2 }}>{motorCaido ? "Probá de nuevo en un rato." : "LumoBi no vio nada raro. Si aparece algo, te avisa al celu."}</div>
                 </div>
-                <div style={{
-                  fontSize: 28,
-                  fontWeight: 700,
-                  color: "var(--tinta)",
-                  fontFamily: "var(--font-instrument), sans-serif",
-                  lineHeight: 1,
-                  marginBottom: 6,
-                }}>
-                  {warnCount}
-                </div>
-                <div style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: warnCount > 0 ? "var(--atencion)" : "var(--ok)",
-                  background: warnCount > 0 ? "var(--atencion-fondo)" : "var(--ok-fondo)",
-                  padding: "3px 8px",
-                  borderRadius: 6,
-                  display: "inline-block",
-                }}>
-                  {warnCount > 0 ? "Para revisar" : enOrden}
-                </div>
-              </div>
-
-              {/* Score */}
-              <div
-                onClick={() => openModal({
-                  title: "Nota del negocio",
-                  text: "Es una nota de 0 a 100 de qué tan ordenado anda tu negocio: si la caja cierra bien, si las ventas son parejas y si no hay cosas raras. Más alto es mejor. Aparece cuando LumoBi tiene unos días de ventas."
-                })}
-                style={{
-                  background: "var(--blanco)",
-                  border: "1px solid var(--linea)",
-                  borderRadius: 10,
-                  padding: 14,
-                  cursor: "pointer",
-                }}
-              >
-                <div style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: "var(--tinta-apagada)",
-                  marginBottom: 6,
-                }}>
-                  Nota
-                </div>
-                <div style={{
-                  fontSize: 28,
-                  fontWeight: 700,
-                  color: "var(--tinta)",
-                  fontFamily: "var(--font-instrument), sans-serif",
-                  lineHeight: 1,
-                }}>
-                  {analisis?.score != null ? String(analisis.score) : <span style={{ fontSize: 14, fontWeight: 600, color: "var(--tinta-apagada)" }}>Pronto</span>}
-                </div>
-              </div>
-            </div>
-
-            </>)}
-
-            {/* Sección WOW */}
-            {wowPatterns.length > 0 && (
-              <>
-                <div style={{ marginBottom: 16, marginTop: 24 }}>
-                  <div style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    color: "var(--tinta)",
-                    fontFamily: "var(--font-instrument), sans-serif",
-                    marginBottom: 4,
-                  }}>
-                    Lo que encontró NICOLE
-                  </div>
-                  <div style={{
-                    fontSize: 12,
-                    color: "var(--tinta-apagada)",
-                    marginBottom: 8,
-                  }}>
-                    Mirando tus últimos 30 días · todavía aprendiendo
-                  </div>
-                </div>
-
-                {wowPatterns.slice(0, 3).map((pattern, i) => (
-                  <div
-                    key={i}
-                    onClick={() => openWowModal(pattern)}
-                    style={{
-                      marginBottom: 12,
-                      background: "var(--blanco)",
-                      border: "1px solid var(--linea)",
-                      borderRadius: 10,
-                      padding: 18,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 12 }}>
-                      <span style={{ fontSize: 36, lineHeight: 1 }}>{pattern.icono}</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{
-                          fontFamily: "var(--font-instrument), sans-serif",
-                          fontSize: 15,
-                          fontWeight: 700,
-                          color: "#0A1628",
-                          marginBottom: 6,
-                          lineHeight: 1.3,
-                        }}>
-                          {pattern.titulo}
-                        </div>
-                        <div style={{
-                          fontSize: 12,
-                          color: "#EF4444",
-                          fontWeight: 600,
-                          marginBottom: 8,
-                        }}>
-                          {pattern.duele}
-                        </div>
-                        <div style={{
-                          fontSize: 13,
-                          color: "#0A1628",
-                          lineHeight: 1.5,
-                          marginBottom: 12,
-                        }}>
-                          {pattern.descripcion}
-                        </div>
-                        <div style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          paddingTop: 12,
-                          borderTop: "1px solid #F1F5F9",
-                        }}>
-                          <div style={{
-                            fontSize: 11,
-                            color: "#64748B",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                          }}>
-                            💡 {textoRecomendacion(pattern.recomendacion)}
-                          </div>
-                          {pattern.impacto_pesos > 0 && (
-                            <div style={{
-                              fontFamily: "monospace",
-                              fontSize: 16,
-                              fontWeight: 700,
-                              color: "#EF4444",
-                            }}>
-                              {fmt(pattern.impacto_pesos)}
-                            </div>
-                          )}
-                        </div>
+              ) : (
+                <div style={{ marginBottom: 16 }}>
+                  {alertas.slice(0, 3).map((a, i) => {
+                    const crit = ["critico", "inconsistencia"].includes(a.prioridad);
+                    return (
+                      <div key={i} onClick={() => router.push(a.url || "/alertas")}
+                        style={{ padding: 14, marginBottom: 8, borderRadius: 12, border: "1px solid var(--linea)", borderLeft: `4px solid ${crit ? "#DC2626" : "#D97706"}`, background: "var(--blanco)", cursor: "pointer" }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: crit ? "#DC2626" : "#D97706", marginBottom: 2 }}>{crit ? "URGENTE" : "PARA MIRAR"}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--tinta)", lineHeight: 1.4 }}>{a.mensaje}</div>
+                        {a.accion && <div style={{ fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.45, marginTop: 4 }}>{a.accion}</div>}
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#007AFF", marginTop: 6 }}>Ver detalle →</div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-
-            {hayVentas !== false && (<>
-            {/* Sección Alertas activas */}
-            <div style={{
-              fontSize: 16,
-              fontWeight: 700,
-              color: "var(--tinta)",
-              marginBottom: 12,
-              marginTop: 24,
-            }}>
-              Lo que tenés que mirar hoy
-            </div>
-
-            {alertas.length === 0 ? (
-              <div
-                onClick={() => openModal({
-                  title: "Hoy está todo normal",
-                  text: "LumoBi revisó tus ventas, tu caja y tu equipo y no vio nada raro. Si aparece algo, te avisa al celu."
-                })}
-                style={{
-                  background: "white",
-                  borderRadius: 16,
-                  padding: 20,
-                  border: "1px solid #E0E7F1",
-                  cursor: "pointer",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                  marginBottom: 12,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div>
-                    <div style={{
-                      display: "inline-block",
-                      background: "#00C48C15",
-                      color: "#00C48C",
-                      fontSize: 10,
-                      fontWeight: 700,
-                      padding: "4px 8px",
-                      borderRadius: 6,
-                      marginBottom: 8,
-                      textTransform: "uppercase",
-                      letterSpacing: 0.5,
-                    }}>
-                      Todo ok
-                    </div>
-                    <div style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: "#0A1628",
-                      marginBottom: 4,
-                    }}>
-                      Hoy está todo normal
-                    </div>
-                    <div style={{
-                      fontSize: 12,
-                      color: "#64748B",
-                    }}>
-                      LumoBi no vio nada raro. Si aparece algo, te avisa.
-                    </div>
-                  </div>
-                  <div style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: "#00C48C",
-                  }}>
-                    En orden ✓
-                  </div>
+                    );
+                  })}
+                  {alertas.length > 3 && (
+                    <button onClick={() => router.push("/alertas")} style={{ padding: 0, border: "none", background: "transparent", color: "#007AFF", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                      Ver las {alertas.length} →
+                    </button>
+                  )}
                 </div>
-              </div>
-            ) : (
-              alertas.map((a, i) => {
-                const variant = alertVariant(a.prioridad);
-                const tag = alertTag(a.prioridad);
-                const bgColor = variant === "crit" ? "#EF444415" : variant === "warn" ? "#F59E0B15" : "#00C48C15";
-                const textColor = variant === "crit" ? "#EF4444" : variant === "warn" ? "#F59E0B" : "#00C48C";
+              )}
 
+              {/* 3. ÚLTIMO TURNO (corto) */}
+              {informe && <UltimoTurnoCard informe={informe} compacto />}
+
+              {/* 4. LO QUE ENCONTRÓ NICOLE: solo lo que no está arriba, máximo 2 */}
+              {(() => {
+                const yaArriba = alertas.some(a => /caja/i.test(a.mensaje));
+                const lista = wowPatterns.filter(w => !(yaArriba && w.id === "diferencias_caja")).slice(0, 2);
+                if (!lista.length) return null;
                 return (
-                  <div
-                    key={i}
-                    onClick={() => router.push(a.url || "/alertas")}
-                    style={{
-                      cursor: "pointer",
-                      background: "white",
-                      borderRadius: 16,
-                      padding: 20,
-                      border: "1px solid #E0E7F1",
-                      marginBottom: 12,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                    }}
-                  >
-                    <div style={{
-                      display: "inline-block",
-                      background: bgColor,
-                      color: textColor,
-                      fontSize: 10,
-                      fontWeight: 700,
-                      padding: "4px 8px",
-                      borderRadius: 6,
-                      marginBottom: 8,
-                      textTransform: "uppercase",
-                      letterSpacing: 0.5,
-                    }}>
-                      {tag}
-                    </div>
-                    <div style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: "#0A1628",
-                      marginBottom: 4,
-                    }}>
-                      {a.mensaje}
-                    </div>
-                    <div style={{
-                      fontSize: 12,
-                      color: "#64748B",
-                      marginBottom: 8,
-                    }}>
-                      {a.accion}
-                    </div>
-                    {a.timestamp && (
-                      <div style={{
-                        fontSize: 11,
-                        color: "#94A3B8",
-                        fontFamily: "monospace",
-                      }}>
-                        {new Date(a.timestamp).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
+                  <>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--tinta)", margin: "8px 0 10px" }}>Lo que encontró NICOLE</div>
+                    {lista.map((w, i) => (
+                      <div key={i} onClick={() => openWowModal(w)}
+                        style={{ padding: 14, marginBottom: 8, borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)", cursor: "pointer" }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--tinta)", lineHeight: 1.4 }}>{w.titulo}</div>
+                        <div style={{ fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.45, marginTop: 4 }}>{textoRecomendacion(w.recomendacion)}</div>
                       </div>
-                    )}
-                  </div>
+                    ))}
+                    <button onClick={() => router.push("/oportunidades")} style={{ padding: 0, margin: "2px 0 16px", border: "none", background: "transparent", color: "#007AFF", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                      Ver todas tus oportunidades →
+                    </button>
+                  </>
                 );
-              })
-            )}
+              })()}
             </>)}
+
+            {aprendizaje && !aprendizaje.completo && <AprendizajeCard a={aprendizaje} />}
           </div>
         )}
 

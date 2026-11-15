@@ -42,10 +42,23 @@ function Barra({ pct }: { pct: number }) {
 const botonOscuro = { padding: "8px 12px", borderRadius: 8, border: "none", background: "var(--tinta)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", flexShrink: 0 } as const;
 
 // Tarjeta del Inicio: el porcentaje y lo próximo para activar
-export function ActivacionCard() {
+export function ActivacionCard({ compacta }: { compacta?: boolean } = {}) {
   const a = useActivacion();
   const router = useRouter();
   if (!a) return null;
+  if (compacta) {
+    if (a.porcentaje >= 100) return null;
+    return (
+      <button onClick={() => router.push("/activar")}
+        style={{ width: "100%", textAlign: "left", margin: "0 0 14px", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--linea)", background: "var(--blanco)", cursor: "pointer" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--tinta)" }}>LumoBi funcionando al {a.porcentaje}%</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#007AFF", whiteSpace: "nowrap" }}>Activar lo que falta →</span>
+        </div>
+        <Barra pct={a.porcentaje} />
+      </button>
+    );
+  }
   if (a.porcentaje >= 100) {
     return (
       <div style={{ margin: "0 0 16px", padding: "12px 16px", borderRadius: 10, border: "1px solid var(--linea)", background: "var(--blanco)", fontSize: 14, color: "#16A34A", fontWeight: 700 }}>

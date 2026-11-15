@@ -2,6 +2,8 @@
 import { useRouter } from "next/navigation";
 import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
+import PeriodoMesCard from "../components/PeriodoMesCard";
+import { useSucursal } from "../hooks/useSucursal";
 
 const iconColor = "var(--azul)";
 
@@ -55,8 +57,10 @@ const iconoCompras = (
 
 export default function NegocioPage() {
   const router = useRouter();
+  const { sucursalId } = useSucursal();
 
   const items = [
+    { label: "Oportunidades", desc: "Dónde ganar más y perder menos, con la plata en juego", href: "/oportunidades", icon: icons.predicciones },
     { label: "Fugas", desc: "Dónde se va la plata y cómo cerrarla", href: "/fugas", icon: icons.fugas },
     { label: "Períodos", desc: "Este mes contra el anterior: ¿vendés más o menos?", href: "/periodos", icon: icons.periodos },
     { label: "Rentabilidad", desc: "Cuánto te queda de verdad después de pagar todo", href: "/rentabilidad", icon: icons.rentabilidad },
@@ -70,6 +74,7 @@ export default function NegocioPage() {
       <PageHeader title="Plata" sub="Dónde se va, cuánto deja y qué viene" />
 
       <div style={{ padding: "0 12px" }}>
+        <PeriodoMesCard sucursalId={sucursalId} />
         {items.map((item, i) => (
           <div
             key={i}
