@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import type { CSSProperties } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useAutorizacion } from "./Autorizacion";
+import AnularVenta from "./AnularVenta";
 import CajaSinInternet from "./CajaSinInternet";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -766,6 +767,7 @@ export default function EmpleadoPage() {
     } catch { setError('Sin conexión. Probá de nuevo.'); }
   }
   const [precioModal, setPrecioModal] = useState(false);
+  const [anularModal, setAnularModal] = useState(false);
   const [altaCodigo, setAltaCodigo] = useState<string | null>(null);
 
   // Tras cerrar el turno: volver al inicio a los 4 segundos
@@ -1517,6 +1519,8 @@ export default function EmpleadoPage() {
             />
           )}
           <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, letterSpacing: 0.5, margin: '8px 0 10px' }}>TURNO</div>
+          {anularModal && <AnularVenta fetchT={fetchT} API={API} aut={aut} onClose={() => { setAnularModal(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />}
+          <SecondaryButton label="Anular o devolver una venta" onPress={() => setAnularModal(true)} color={C.red} />
           <SecondaryButton label="Cambiar precios" onPress={() => setPrecioModal(true)} color={C.primary} />
           <SecondaryButton label="💰 Declarar la caja (a mitad de turno)" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.amber} />
           <SecondaryButton label="Cerrar turno" onPress={() => { setCierreMonto(""); setError(""); setPaso("cierre"); }} color={C.red} />
