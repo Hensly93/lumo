@@ -5,6 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useAutorizacion } from "./Autorizacion";
 import AnularVenta from "./AnularVenta";
 import { PanelEfectivo, PanelMixto, PanelVarios, PanelDescuento } from "./Cobro";
+import BotonesTicket from "./Ticket";
 import CajaSinInternet from "./CajaSinInternet";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -533,6 +534,7 @@ export default function EmpleadoPage() {
   const [elegirTerm, setElegirTerm] = useState<{ lista: { id: string; nombre: string }[]; tipo: 'debito' | 'credito' } | null>(null);
   const [mostrarManual, setMostrarManual] = useState(false);
   const [panel, setPanel] = useState<null | "efectivo" | "mixto" | "varios" | "descuento">(null);
+  const [ultimaVenta, setUltimaVenta] = useState<number | null>(null);
   const [esperas, setEsperas] = useState<{ id: number; total: number; nota: string | null; hora: string }[]>([]);
   async function cargarEsperas() {
     try { const r = await fetchT(`${API}/api/scanner/espera`); const d = await r.json(); setEsperas(Array.isArray(d.ventas) ? d.ventas : []); } catch { /* sin conexión */ }
@@ -703,8 +705,9 @@ export default function EmpleadoPage() {
       const d = await r.json();
       if (d.error) { setError(d.error); return; }
       setError('');
+      setUltimaVenta(d.transaccion_id || null);
       setVentaOk(`Venta registrada: ${fmt(totalVenta)} con ${etiqueta.replace(/^[^A-Za-zÁ-úñÑ]+/, '')}`);
-      setTimeout(() => setVentaOk(''), 8000);
+      setTimeout(() => setVentaOk(''), 20000);
       setCarrito({ items: [], total: 0 });
       document.getElementById('scan-input')?.focus();
     } catch { setError('No se pudo registrar la venta. Probá de nuevo.'); }
@@ -1374,7 +1377,9 @@ export default function EmpleadoPage() {
               <div style={{ marginTop: 8, fontSize: 13, color: '#D92D20', fontWeight: 600 }}>{error}</div>
             )}
             {ventaOk && (
-              <div style={{ marginTop: 8, padding: '12px 14px', borderRadius: 12, background: 'rgba(52,199,89,0.12)', border: `2px solid ${C.green}`, fontSize: 15, color: C.text, fontWeight: 700 }}>✓ {ventaOk}</div>
+              <div style={{ marginTop: 8, padding: '12px 14px', borderRadius: 12, background: 'rgba(52,199,89,0.12)', border: `2px solid ${C.green}`, fontSize: 15, color: C.text, fontWeight: 700 }}>✓ {ventaOk}
+                {ultimaVenta && <BotonesTicket fetchT={fetchT} API={API} transaccionId={ultimaVenta} />}
+              </div>
             )}
             {sugerencias.length > 0 && (
               <div style={{ marginTop: 8, border: `2px solid ${C.cardBorder}`, borderRadius: 14, overflow: 'hidden', background: C.bg }}>
@@ -1575,7 +1580,7 @@ export default function EmpleadoPage() {
           <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, letterSpacing: 0.5, margin: '8px 0 10px' }}>TURNO</div>
           {panel === 'efectivo' && carrito && <PanelEfectivo total={carrito.total} onClose={() => setPanel(null)} onCobrar={() => { setPanel(null); cobrarManual('efectivo', '💵 Efectivo'); }} />}
           {panel === 'mixto' && carrito && <PanelMixto total={carrito.total} fetchT={fetchT} API={API} onClose={() => setPanel(null)}
-            onListo={(msg) => { setPanel(null); setVentaOk(msg); setTimeout(() => setVentaOk(''), 8000); setCarrito({ items: [], total: 0 }); document.getElementById('scan-input')?.focus(); }} />}
+            onListo={(msg, id) => { setPanel(null); setUltimaVenta(id || null); setVentaOk(msg); setTimeout(() => setVentaOk(''), 20000); setCarrito({ items: [], total: 0 }); document.getElementById('scan-input')?.focus(); }} />}
           {panel === 'varios' && <PanelVarios fetchT={fetchT} API={API} onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); document.getElementById('scan-input')?.focus(); }} />}
           {panel === 'descuento' && carrito && <PanelDescuento total={carrito.items.filter((i: any) => i.tipo_linea !== 'descuento').reduce((s: number, i: any) => s + Number(i.cantidad) * Number(i.precio_unitario), 0)} fetchT={fetchT} API={API} aut={aut}
             onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); }} />}

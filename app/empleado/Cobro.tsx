@@ -60,7 +60,7 @@ export function PanelEfectivo({ total, onCobrar, onClose }: { total: number; onC
   );
 }
 
-export function PanelMixto({ total, fetchT, API, onListo, onClose }: { total: number; fetchT: FetchT; API: string; onListo: (msg: string) => void; onClose: () => void }) {
+export function PanelMixto({ total, fetchT, API, onListo, onClose }: { total: number; fetchT: FetchT; API: string; onListo: (msg: string, id?: number) => void; onClose: () => void }) {
   const [ef, setEf] = useState("");
   const [medio, setMedio] = useState("debito");
   const [error, setError] = useState("");
@@ -75,7 +75,7 @@ export function PanelMixto({ total, fetchT, API, onListo, onClose }: { total: nu
         body: JSON.stringify({ metodo_pago: "mixto", monto_efectivo: e, metodo_resto: medio }) });
       const d = await r.json();
       if (!r.ok || d.error) { setError(d.error || "No se pudo cobrar."); setEnviando(false); return; }
-      onListo(`Venta registrada: ${$(total)} (${$(e)} en efectivo + ${$(resto)} con ${NOMBRE[medio]})`);
+      onListo(`Venta registrada: ${$(total)} (${$(e)} en efectivo + ${$(resto)} con ${NOMBRE[medio]})`, d.transaccion_id);
     } catch { setError("No hay internet o se cortó. Probá de nuevo."); }
     setEnviando(false);
   }
