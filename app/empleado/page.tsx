@@ -5,7 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useAutorizacion } from "./Autorizacion";
 import AnularVenta from "./AnularVenta";
 import { PanelEfectivo, PanelMixto, PanelVarios, PanelDescuento } from "./Cobro";
-import BotonesTicket from "./Ticket";
+import BotonesTicket, { imprimirTicket, leerImpresora, ConfigImpresora } from "./Ticket";
 import CajaSinInternet from "./CajaSinInternet";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
@@ -535,6 +535,12 @@ export default function EmpleadoPage() {
   const [mostrarManual, setMostrarManual] = useState(false);
   const [panel, setPanel] = useState<null | "efectivo" | "mixto" | "varios" | "descuento">(null);
   const [ultimaVenta, setUltimaVenta] = useState<number | null>(null);
+  const [confImpresora, setConfImpresora] = useState(false);
+  // Después de cada venta: si esta caja tiene "imprimir siempre", sale el ticket solo
+  function ventaHecha(id: number | null) {
+    setUltimaVenta(id);
+    if (id && leerImpresora().auto) imprimirTicket(fetchT, API, id);
+  }
   const [esperas, setEsperas] = useState<{ id: number; total: number; nota: string | null; hora: string }[]>([]);
   async function cargarEsperas() {
     try { const r = await fetchT(`${API}/api/scanner/espera`); const d = await r.json(); setEsperas(Array.isArray(d.ventas) ? d.ventas : []); } catch { /* sin conexión */ }
@@ -705,7 +711,7 @@ export default function EmpleadoPage() {
       const d = await r.json();
       if (d.error) { setError(d.error); return; }
       setError('');
-      setUltimaVenta(d.transaccion_id || null);
+      ventaHecha(d.transaccion_id || null);
       setVentaOk(`Venta registrada: ${fmt(totalVenta)} con ${etiqueta.replace(/^[^A-Za-zÁ-úñÑ]+/, '')}`);
       setTimeout(() => setVentaOk(''), 20000);
       setCarrito({ items: [], total: 0 });
@@ -1580,13 +1586,15 @@ export default function EmpleadoPage() {
           <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, letterSpacing: 0.5, margin: '8px 0 10px' }}>TURNO</div>
           {panel === 'efectivo' && carrito && <PanelEfectivo total={carrito.total} onClose={() => setPanel(null)} onCobrar={() => { setPanel(null); cobrarManual('efectivo', '💵 Efectivo'); }} />}
           {panel === 'mixto' && carrito && <PanelMixto total={carrito.total} fetchT={fetchT} API={API} onClose={() => setPanel(null)}
-            onListo={(msg, id) => { setPanel(null); setUltimaVenta(id || null); setVentaOk(msg); setTimeout(() => setVentaOk(''), 20000); setCarrito({ items: [], total: 0 }); document.getElementById('scan-input')?.focus(); }} />}
+            onListo={(msg, id) => { setPanel(null); ventaHecha(id || null); setVentaOk(msg); setTimeout(() => setVentaOk(''), 20000); setCarrito({ items: [], total: 0 }); document.getElementById('scan-input')?.focus(); }} />}
           {panel === 'varios' && <PanelVarios fetchT={fetchT} API={API} onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); document.getElementById('scan-input')?.focus(); }} />}
           {panel === 'descuento' && carrito && <PanelDescuento total={carrito.items.filter((i: any) => i.tipo_linea !== 'descuento').reduce((s: number, i: any) => s + Number(i.cantidad) * Number(i.precio_unitario), 0)} fetchT={fetchT} API={API} aut={aut}
             onClose={() => setPanel(null)} onListo={() => { setPanel(null); refrescarCarrito(); }} />}
           {anularModal && <AnularVenta fetchT={fetchT} API={API} aut={aut} onClose={() => { setAnularModal(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />}
           <SecondaryButton label="Anular o devolver una venta" onPress={() => setAnularModal(true)} color={C.red} />
+          {confImpresora && <ConfigImpresora onClose={() => { setConfImpresora(false); setTimeout(() => document.getElementById('scan-input')?.focus(), 100); }} />}
           <SecondaryButton label="Cambiar precios" onPress={() => setPrecioModal(true)} color={C.primary} />
+          <SecondaryButton label="🧾 Impresora de tickets" onPress={() => setConfImpresora(true)} color={C.primary} />
           <SecondaryButton label="💰 Declarar la caja (a mitad de turno)" onPress={() => { setConteoMonto(""); setError(""); setPaso("conteo"); }} color={C.amber} />
           <SecondaryButton label="Cerrar turno" onPress={() => { setCierreMonto(""); setError(""); setPaso("cierre"); }} color={C.red} />
         </div>
