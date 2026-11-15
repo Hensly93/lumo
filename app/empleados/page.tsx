@@ -66,8 +66,8 @@ type ERMNegocio = {
   alerta_equipo: string | null;
 };
 
-const TIPOS_TURNO = ["MANANA", "TARDE", "NOCHE"] as const;
-const LABEL_TURNO: Record<string, string> = { MANANA: "Mañana", TARDE: "Tarde", NOCHE: "Noche" };
+const TIPOS_TURNO = ["manana", "tarde", "noche"] as const;
+const LABEL_TURNO: Record<string, string> = { manana: "Mañana", tarde: "Tarde", noche: "Noche", MANANA: "Mañana", TARDE: "Tarde", NOCHE: "Noche" };
 const EAV_VARIANT = ["a", "b", "c"] as const;
 
 function iniciales(nombre: string) {
@@ -295,7 +295,7 @@ export default function Empleados() {
   const [rankings, setRankings] = useState<Record<string, RankingItem[]>>({});
   const [patrones, setPatrones] = useState<Patron | null>(null);
   const [erm, setErm] = useState<ERMNegocio | null>(null);
-  const [turnoActivo, setTurnoActivo] = useState<string>("MANANA");
+  const [turnoActivo, setTurnoActivo] = useState<string>("manana");
   const [loading, setLoading] = useState(true);
   const [abierto, setAbierto] = useState<string | null>(null);
   const [info, setInfo] = useState<Record<string, { erm?: EmpleadoERM; turnos?: TurnoEvidencia[] | "cargando" | "error" }>>({});
@@ -303,9 +303,6 @@ export default function Empleados() {
   useEffect(() => {
     if (!ready) return;
     if (!token) { router.replace("/login"); return; }
-    const u = localStorage.getItem("lumo_usuario");
-    const uid = u ? JSON.parse(u).id : null;
-    if (!uid) { setLoading(false); return; }
     const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
       fetch(`${API}/api/caja/empleados`, { headers }).then(r => r.json()).catch(() => ({ empleados: [] })),
@@ -313,11 +310,14 @@ export default function Empleados() {
       fetch(`${API}/api/erm`, { headers }).then(r => r.json()).catch(() => null),
       ...TIPOS_TURNO.map(t =>
         fetch(`${API}/api/caja/ranking/${t}`, { headers })
-          .then(r => r.json()).then(d => ({ tipo: t, data: d.ranking || [] }))
+          // El servidor manda { empleados: [{ nombre, n_turnos, tasa_inconsistencia, score }] }
+          .then(r => r.json()).then(d => ({ tipo: t, data: (d.empleados || d.ranking || []).map((x: any) => ({ ...x, empleado: x.empleado || x.nombre, nivel: x.nivel || (x.score >= 70 ? 'verde' : x.score >= 40 ? 'amarillo' : 'rojo') })) }))
           .catch(() => ({ tipo: t, data: [] }))
       ),
     ]).then(([emps, pats, ermData, ...ranks]) => {
-      setEmpleados((emps as { empleados: Empleado[] }).empleados || []);
+      // /api/caja/empleados devuelve la lista directa (antes se buscaba .empleados y siempre daba 0)
+      const lista = Array.isArray(emps) ? emps : ((emps as { empleados?: Empleado[] }).empleados || []);
+      setEmpleados(lista.map((e: any) => ({ ...e, activo: e.activo !== false })));
       setPatrones(pats as Patron);
       setErm(ermData as ERMNegocio | null);
       const rankMap: Record<string, RankingItem[]> = {};
@@ -355,7 +355,7 @@ export default function Empleados() {
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       <PageHeader
         title="Tu equipo"
-        sub={loading ? "Cargando..." : `${today.charAt(0).toUpperCase() + today.slice(1)} · ${empleados.length} empleados`}
+        sub={loading ? "Cargando..." : `${today.charAt(0).toUpperCase() + today.slice(1)} · ${Math.max(empleados.length, erm?.empleados?.length || 0)} ${Math.max(empleados.length, erm?.empleados?.length || 0) === 1 ? "persona" : "personas"}`}
       />
 
       {loading ? (
@@ -364,73 +364,72 @@ export default function Empleados() {
         </div>
       ) : (
         <>
-          {patrones && patrones.turnos_analizados > 0 && (
-            <StatRow>
-              <StatCard
-                label="Turnos raros"
-                value={`${Math.round(patrones.tasa_inconsistencia_global)}%`}
-                color={patrones.tasa_inconsistencia_global > 30 ? "red" : patrones.tasa_inconsistencia_global > 15 ? "yellow" : "green"}
-              />
-              <StatCard label="Turnos" value={String(patrones.turnos_analizados)} color="blue" />
-              <StatCard
-                label="Racha limpia"
-                value={String(patrones.racha_limpia_actual)}
-                color={patrones.racha_limpia_actual >= 7 ? "green" : "yellow"}
-              />
-            </StatRow>
-          )}
+          {/* 1. TU GENTE: cada persona, cómo viene y su ficha */}
+          {(() => {
+            const conTurnos = new Set((erm?.empleados || []).map(e => e.empleado));
+            const sinTurnos = empleados.filter(e => !conTurnos.has(e.nombre));
+            if (!(erm?.empleados?.length) && !sinTurnos.length) return null;
+            return (
+              <>
+                <SectionTitle>Tu gente</SectionTitle>
+                {erm && erm.resumen && erm.empleados.length > 0 && (
+                  <div style={{ display: "flex", gap: 8, padding: "0 14px 10px", flexWrap: "wrap" }}>
+                    {erm.resumen.rojos > 0 && <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, background: "rgba(220,38,38,0.1)", color: "#DC2626" }}>{erm.resumen.rojos} para revisar</span>}
+                    {erm.resumen.amarillos > 0 && <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, background: "rgba(217,119,6,0.12)", color: "#B45309" }}>{erm.resumen.amarillos} para mirar</span>}
+                    {erm.resumen.verdes > 0 && <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, background: "rgba(22,163,74,0.1)", color: "#15803D" }}>{erm.resumen.verdes} bien</span>}
+                  </div>
+                )}
+                {erm?.alerta_equipo && <AlertCard variant="crit" tag="Todo el equipo" title={erm.alerta_equipo} desc="" />}
+                {(erm?.empleados || []).map((e, i) => (
+                  <div key={e.empleado}>
+                    <div onClick={() => abrirDetalle(e.empleado)} style={{ cursor: "pointer" }}>
+                      <EmployeeCard
+                        initials={iniciales(e.empleado)}
+                        colorVariant={EAV_VARIANT[i % 3]}
+                        name={e.empleado}
+                        sub={e.score === null ? "Todavía pocos turnos para saber cómo trabaja" : e.nivel === "verde" ? "Cierra la caja bien" : (e.señales[0]?.descripcion || "Hay algo para mirar")}
+                        amount={abierto === e.empleado ? "Cerrar ▲" : "Ver ▼"}
+                        badge={nivelBadgeERM(e.nivel)}
+                      />
+                    </div>
+                    {abierto === e.empleado && (
+                      <>
+                        <a href={`/ficha/persona/${encodeURIComponent(e.empleado)}`} style={{ display: "block", margin: "4px 20px 10px", fontSize: 14, fontWeight: 700, color: "#007AFF", textDecoration: "none" }}>Ver la ficha completa de {e.empleado} →</a>
+                        <DetalleRiesgo e={{ ...(info[e.empleado]?.erm ?? {}), ...e }} turnos={info[e.empleado]?.turnos} />
+                        {e.score !== null && e.nivel !== "verde" && token && <FeedbackERM empleado={e.empleado} token={token} />}
+                      </>
+                    )}
+                  </div>
+                ))}
+                {sinTurnos.map((e, i) => (
+                  <EmployeeCard key={e.id} initials={iniciales(e.nombre)} colorVariant={EAV_VARIANT[(i + 1) % 3]} name={e.nombre}
+                    sub="Todavía no cerró turnos" amount="" badge={{ text: "Nuevo", variant: "ok" }} />
+                ))}
+                <div style={{ fontSize: 11, color: "var(--muted)", padding: "2px 20px 6px", lineHeight: 1.5 }}>Son señales para revisar la operación, no una acusación. Tocá a una persona para ver en qué turnos se basan.</div>
+                {patrones?.goteo?.detectado && (
+                  <AlertCard variant="crit" tag={patrones.goteo.acelerando ? "Cada vez más" : "Para revisar"} title="Se está yendo plata de a poco"
+                    desc={`Unos $${Math.round(patrones.goteo.promedio_por_turno).toLocaleString("es-AR")} por turno, en ${patrones.goteo.total_brechas} cierres.`} />
+                )}
+                {patrones?.turno_mas_problematico && (
+                  <AlertCard variant="warn" tag="Turno para mirar" title={`El turno ${(LABEL_TURNO[patrones.turno_mas_problematico] || patrones.turno_mas_problematico).toLowerCase()} es el que más diferencias tiene`}
+                    desc="Mirá quiénes atendieron en ese turno y cómo cerraron la caja." />
+                )}
+                <Divider />
+              </>
+            );
+          })()}
 
+          {/* 2. Lo que necesita tu OK y lo que pasó en la caja */}
           <Autorizaciones token={token} />
           <ActividadCaja token={token} />
 
-          {erm && Array.isArray(erm.empleados) && erm.empleados.length > 0 && (
-            <>
-              <SectionTitle>Riesgo del equipo</SectionTitle>
-              <StatRow>
-                <StatCard label="Para revisar" value={String(erm.resumen.rojos)} color="red" />
-                <StatCard label="Para mirar" value={String(erm.resumen.amarillos)} color="yellow" />
-                <StatCard label="Normal" value={String(erm.resumen.verdes)} color="green" />
-              </StatRow>
-              {erm.alerta_equipo && (
-                <AlertCard variant="crit" tag="Alerta de equipo" title={erm.alerta_equipo} desc="" />
-              )}
-              <div style={{ fontSize: 10, color: "var(--muted)", padding: "0 14px 8px" }}>Son señales para revisar la operación, no una acusación. Tocá a una persona para ver en qué turnos se basan.</div>
-              {erm.empleados.map((e, i) => (
-                <div key={e.empleado}>
-                  <div onClick={() => abrirDetalle(e.empleado)} style={{ cursor: "pointer" }}>
-                    <EmployeeCard
-                      initials={iniciales(e.empleado)}
-                      colorVariant={EAV_VARIANT[i % 3]}
-                      name={e.empleado}
-                      sub={e.score !== null && e.señales.length > 0 ? e.señales[0].descripcion : e.score === null ? "Datos insuficientes" : "Sin señales activas"}
-                      amount={e.score !== null ? (e.señales.some(s => s.peso > 0) ? "Hay señales" : "Sin señales") : "—"}
-                      badge={nivelBadgeERM(e.nivel)}
-                    />
-                  </div>
-                  {abierto === e.empleado && (
-                    <>
-                      <a href={`/ficha/persona/${encodeURIComponent(e.empleado)}`} style={{ display: "block", margin: "6px 0 10px", fontSize: 13, fontWeight: 700, color: "#007AFF", textDecoration: "none" }}>Ver la ficha completa de {e.empleado} →</a>
-                      <DetalleRiesgo e={{ ...(info[e.empleado]?.erm ?? {}), ...e }} turnos={info[e.empleado]?.turnos} />
-                      {e.score !== null && e.nivel !== "verde" && token && <FeedbackERM empleado={e.empleado} token={token} />}
-                    </>
-                  )}
-                </div>
-              ))}
-              <Divider />
-            </>
-          )}
-
+          {/* 3. Cómo cierra cada turno */}
+          <Divider />
+          <SectionTitle>Cómo cierra la caja cada turno</SectionTitle>
           <FilterChips chips={chips} />
-
-          <SectionTitle>Por turno · {LABEL_TURNO[turnoActivo]}</SectionTitle>
-
           {ranking.length === 0 ? (
-            <AlertCard
-              variant="ok"
-              tag="Sin datos"
-              title={`Sin turnos cerrados en ${LABEL_TURNO[turnoActivo]}`}
-              desc="Cuando cada uno cierre 3 turnos, acá vas a ver cómo trabaja."
-            />
+            <AlertCard variant="ok" tag="Todavía no" title={`Pocos cierres en el turno ${LABEL_TURNO[turnoActivo].toLowerCase()}`}
+              desc="Cuando al menos 2 personas cierren 3 turnos acá, vas a ver quién cierra mejor." />
           ) : (
             ranking.map((r, i) => (
               <EmployeeCard
@@ -438,53 +437,14 @@ export default function Empleados() {
                 initials={iniciales(r.empleado)}
                 colorVariant={EAV_VARIANT[i % 3]}
                 name={r.empleado}
-                sub={`${LABEL_TURNO[turnoActivo]} · ${Math.round(r.tasa_inconsistencia * 100)}% de turnos con diferencia`}
+                sub={`${Math.round(r.tasa_inconsistencia > 1 ? r.tasa_inconsistencia : r.tasa_inconsistencia * 100)}% de sus cierres con diferencia`}
                 amount={`${r.n_turnos} turnos`}
-                badge={nivelBadge(r.nivel)}
+                badge={nivelBadgeERM(r.nivel)}
               />
             ))
           )}
 
-          {patrones?.goteo?.detectado && (
-            <>
-              <Divider />
-              <AlertCard
-                variant="crit"
-                tag={`Goteo${patrones.goteo.acelerando ? " · acelerando" : ""}`}
-                title="Se está yendo plata de a poco"
-                desc={`Promedio $${Math.round(patrones.goteo.promedio_por_turno).toLocaleString("es-AR")} por turno · ${patrones.goteo.total_brechas} brechas acumuladas`}
-              />
-            </>
-          )}
-
-          {patrones?.turno_mas_problematico && (
-            <AlertCard
-              variant="warn"
-              tag="Patrón detectado"
-              title={`Turno con más inconsistencias: ${LABEL_TURNO[patrones.turno_mas_problematico] || patrones.turno_mas_problematico}`}
-              desc="Mirá quiénes atendieron en ese turno y cómo cerraron la caja."
-            />
-          )}
-
-          {empleados.length > 0 && (
-            <>
-              <Divider />
-              <SectionTitle>Empleados registrados</SectionTitle>
-              {empleados.map((e, i) => (
-                <EmployeeCard
-                  key={e.id}
-                  initials={iniciales(e.nombre)}
-                  colorVariant={EAV_VARIANT[i % 3]}
-                  name={e.nombre}
-                  sub={e.activo ? "Activo" : "Inactivo"}
-                  amount=""
-                  badge={e.activo ? { text: "Activo", variant: "ok" } : { text: "Inactivo", variant: "warn" }}
-                />
-              ))}
-            </>
-          )}
-
-          {empleados.length === 0 && ranking.length === 0 && (
+          {empleados.length === 0 && !(erm?.empleados?.length) && (
             <AlertCard
               variant="ok"
               tag="Sin datos"

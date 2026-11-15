@@ -73,7 +73,7 @@ export default function ActividadCaja({ token }: { token: string | null }) {
   }, [hechos]);
 
   if (hechos === null) return null;
-  const lista = todos ? visibles : visibles.slice(0, 15);
+  const lista = todos ? visibles : visibles.slice(0, 5);
   const card: React.CSSProperties = { margin: "0 12px 10px", background: "var(--card2)", borderRadius: 14, padding: 14, border: "1px solid var(--border)", boxShadow: "var(--sh)" };
 
   return (
@@ -116,7 +116,7 @@ export default function ActividadCaja({ token }: { token: string | null }) {
                 </div>
               </div>
             ))}
-            {visibles.length > 15 && (
+            {visibles.length > 5 && (
               <button onClick={() => setTodos(!todos)} style={{ marginTop: 10, background: "none", border: "none", color: "#007AFF", fontSize: 12, fontWeight: 600, cursor: "pointer", padding: 0 }}>
                 {todos ? "Ver menos" : `Ver los ${visibles.length} movimientos`}
               </button>
