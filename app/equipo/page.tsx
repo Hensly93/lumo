@@ -1,6 +1,6 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { PageHeader } from "../components/ui";
+import MenuGuiado, { type GrupoMenu } from "../components/MenuGuiado";
 import Nav from "../components/Nav";
 import LinkCaja from "../components/LinkCaja";
 
@@ -22,11 +22,14 @@ const icons = {
 };
 
 export default function EquipoPage() {
-  const router = useRouter();
 
-  const items = [
-    { label: "Control del equipo", desc: "Cómo trabaja cada uno y si la caja cierra bien", href: "/empleados", icon: icons.control },
-    { label: "Caja del local", desc: "Quién atiende, su clave y el link para cobrar", href: "/mi-local", icon: icons.caja },
+  const grupos: GrupoMenu[] = [
+    { pregunta: "¿Cómo trabaja mi gente?", items: [
+      { label: "Control del equipo", desc: "¿Cuánto vende cada uno y cierra bien la caja? Lo ves por persona, turno por turno.", href: "/empleados", icon: icons.control },
+    ] },
+    { pregunta: "¿Cómo se cobra en mi local?", items: [
+      { label: "Caja del local", desc: "Quién atiende, su clave y el link para cobrar desde el celu.", href: "/mi-local", icon: icons.caja },
+    ] },
   ];
 
   return (
@@ -39,36 +42,7 @@ export default function EquipoPage() {
           <div style={{ fontSize: 12, color: "var(--tinta-apagada)", marginBottom: 12, lineHeight: 1.5 }}>Mandales este link: cada uno elige su nombre y pone su PIN. No hay que escribir ningún código.</div>
           <LinkCaja />
         </div>
-        {items.map((item, i) => (
-          <div
-            key={i}
-            onClick={() => router.push(item.href)}
-            style={{
-              background: "var(--blanco)",
-              border: "1px solid var(--linea)",
-              borderRadius: 14,
-              padding: "16px 18px",
-              marginBottom: 10,
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              cursor: "pointer",
-            }}
-          >
-            <div style={{ flexShrink: 0 }}>{item.icon}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "var(--font-instrument), sans-serif", fontSize: 15, fontWeight: 600, color: "var(--tinta)", marginBottom: 2 }}>
-                {item.label}
-              </div>
-              <div style={{ fontSize: 12, color: "var(--tinta-apagada)" }}>
-                {item.desc}
-              </div>
-            </div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="var(--tinta-apagada)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        ))}
+        <MenuGuiado grupos={grupos} />
       </div>
       <Nav />
     </main>

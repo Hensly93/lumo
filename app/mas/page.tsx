@@ -1,10 +1,12 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
 import InstalarLumo from "../components/InstalarLumo";
+import MenuGuiado, { type GrupoMenu } from "../components/MenuGuiado";
 import ValorCard from "../components/ValorCard";
 
+const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const iconColor = "var(--azul)";
 
 const icons = {
@@ -32,50 +34,35 @@ const icons = {
 };
 
 export default function MasPage() {
-  const router = useRouter();
+  const [mp, setMp] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    const t = localStorage.getItem("lumo_token");
+    if (!t) return;
+    fetch(`${API}/api/mp/estado`, { headers: { Authorization: `Bearer ${t}` } })
+      .then(r => r.json()).then(d => setMp(d && d.conectado ? "Conectado" : "Sin conectar")).catch(() => {});
+  }, []);
 
-  const items = [
-    { label: "Guía", desc: "Cómo hacer cada cosa en LumoBi, paso a paso", href: "/guia", icon: icons.catalogo },
-    { label: "Ajustes", desc: "Tu negocio, tu plan, avisos y cuenta", href: "/ajustes", icon: icons.ajustes },
+  const grupos: GrupoMenu[] = [
+    { pregunta: "Conectá y cargá tus datos", ayuda: "Cuantos más datos tiene LumoBi, más preciso es.", items: [
+      { label: "Mercado Pago", desc: "Traé tus cobros para encontrar plata que nadie anotó. Es opcional y lo cortás cuando quieras.", href: "/mercado-pago", icon: icons.catalogo, estado: mp },
+      { label: "Facturas de proveedores", desc: "Sacale una foto a la factura y LumoBi la lee.", href: "/compras", icon: icons.catalogo },
+    ] },
+    { pregunta: "¿Necesitás ayuda?", items: [
+      { label: "Guía", desc: "¿Cómo hago tal cosa? Paso a paso, con ejemplos.", href: "/guia", icon: icons.catalogo },
+    ] },
+    { pregunta: "Tu cuenta", items: [
+      { label: "Ajustes", desc: "Tu negocio, tu plan, los avisos y tu cuenta.", href: "/ajustes", icon: icons.ajustes },
+    ] },
   ];
+
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Cuenta" sub="Ajustes e instalación de la app" />
+      <PageHeader title="Más" sub="Lo que LumoBi sabe de tu negocio, tus conexiones y tu cuenta" />
 
       <div style={{ padding: "0 12px" }}>
         <ValorCard />
         <InstalarLumo enlace="/login" />
-        {items.map((item, i) => (
-          <div
-            key={i}
-            onClick={() => router.push(item.href)}
-            style={{
-              background: "var(--blanco)",
-              border: "1px solid var(--linea)",
-              borderRadius: 14,
-              padding: "16px 18px",
-              marginBottom: 10,
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-          >
-            <div style={{ flexShrink: 0 }}>{item.icon}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "var(--font-instrument), sans-serif", fontSize: 15, fontWeight: 600, color: "var(--tinta)", marginBottom: 2 }}>
-                {item.label}
-              </div>
-              <div style={{ fontSize: 12, color: "var(--tinta-apagada)" }}>
-                {item.desc}
-              </div>
-            </div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="var(--tinta-apagada)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        ))}
+        <MenuGuiado grupos={grupos} />
       </div>
       <Nav />
     </main>
