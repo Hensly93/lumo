@@ -2,6 +2,7 @@
 
 import InstalarLumo from "../components/InstalarLumo";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { subscribePush, getMotivoPush } from "../hooks/usePush";
 import SubirVentas from "../components/SubirVentas";
@@ -22,7 +23,7 @@ type Estado = {
 
 const btnPrimario: React.CSSProperties = {
   width: "100%", padding: "14px", border: "none", borderRadius: 12,
-  background: "linear-gradient(135deg, #007AFF, #00C2FF)", color: "#fff",
+  background: "#0A5BD3", color: "#fff",
   fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FUENTE,
 };
 
@@ -32,30 +33,9 @@ const btnSecundario: React.CSSProperties = {
   color: "var(--text, #0A1628)", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: FUENTE,
 };
 
-function Tarjeta({ n, total, titulo, texto, hecho, children }: {
-  n: number; total: number; titulo: string; texto: string; hecho: boolean; children?: React.ReactNode;
-}) {
-  return (
-    <div style={{ flex: "0 0 100%", scrollSnapAlign: "center", boxSizing: "border-box", padding: "0 4px" }}>
-      <div style={{
-        background: "var(--card, #fff)", border: "1px solid var(--border, #E0E7F1)", borderRadius: 18,
-        padding: "22px 20px", minHeight: 320, display: "flex", flexDirection: "column", gap: 12, boxSizing: "border-box",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: "var(--muted, #64748B)" }}>
-            Paso {n} de {total}
-          </span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: hecho ? "#16A34A" : "var(--muted, #64748B)" }}>
-            {hecho ? "Listo" : "Pendiente"}
-          </span>
-        </div>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "var(--text, #0A1628)", lineHeight: 1.25 }}>{titulo}</h2>
-        <p style={{ margin: 0, fontSize: 14, color: "var(--muted, #64748B)", lineHeight: 1.6 }}>{texto}</p>
-        <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 8 }}>{children}</div>
-      </div>
-    </div>
-  );
-}
+type PasoDef = {
+  id: string; titulo: string; porque: string; etiqueta: "Necesario" | "Recomendado" | "Opcional"; hecho: boolean; contenido: ReactNode;
+};
 
 export default function PrimerosPasos() {
   const router = useRouter();
@@ -63,8 +43,9 @@ export default function PrimerosPasos() {
   const [estado, setEstado] = useState<Estado | null>(null);
   const [hayProductos, setHayProductos] = useState(false);
   const [mensaje, setMensaje] = useState("");
-  const [indice, setIndice] = useState(0);
-  const pista = useRef<HTMLDivElement | null>(null);
+  const [abierto, setAbierto] = useState<string | null>(null);
+  const [cargado, setCargado] = useState(false);
+  const decidido = useRef(false);
 
   useEffect(() => {
     const t = localStorage.getItem("lumo_token");
@@ -81,6 +62,7 @@ export default function PrimerosPasos() {
       const rp = await fetch(API + "/api/productos", { headers: { Authorization: "Bearer " + t } });
       if (rp.ok) { const d: unknown = await rp.json(); setHayProductos(Array.isArray(d) && d.length >= 3); }
     } catch { /* sin conexion */ }
+    setCargado(true);
   }, []);
 
   useEffect(() => {
@@ -94,13 +76,6 @@ export default function PrimerosPasos() {
       window.removeEventListener("focus", refrescar);
     };
   }, [token, cargarEstado]);
-
-  function irA(i: number) {
-    const el = pista.current;
-    if (!el) return;
-    const destino = Math.max(0, Math.min(TOTAL - 1, i));
-    el.scrollTo({ left: destino * el.clientWidth, behavior: "smooth" });
-  }
 
   async function activarAvisos() {
     if (!token) return;
@@ -128,98 +103,121 @@ export default function PrimerosPasos() {
     router.replace("/");
   }
 
-  // Lo único imprescindible es la caja (paso 1). El resto suma, pero no frena la primera venta.
-  const hechos = [
-    !!estado?.turno, !!estado?.avisos, hayProductos, !!estado?.ventas, !!estado?.locales,
-    ...(estado && !estado.negocio ? [false] : []),
-  ];
-  const TOTAL = hechos.length;
+  // Lo único imprescindible es la caja. El resto suma, pero no frena la primera venta.
+  const pasos: PasoDef[] = token ? [
+    {
+      id: "caja", titulo: "Abrí tu caja", etiqueta: "Necesario", hecho: !!estado?.turno,
+      porque: "Escribí quién atiende la caja (puede ser tu nombre) y elegí un PIN de 4 números. Los productos los cargás mientras vendés.",
+      contenido: <CajaRapida token={token} onListo={() => cargarEstado(token)} />,
+    },
+    {
+      id: "avisos", titulo: "Activá los avisos en tu celu", etiqueta: "Recomendado", hecho: !!estado?.avisos,
+      porque: "Al cerrar cada turno te llega cuánto vendiste, si la caja cerró bien y qué hacer. Usá Chrome; y si podés, bajá LumoBi con el botón de arriba.",
+      contenido: estado?.avisos
+        ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Los avisos están activados.</div>
+        : <button style={btnPrimario} onClick={activarAvisos}>Activar avisos</button>,
+    },
+    {
+      id: "catalogo", titulo: "Cargá tus productos con su costo", etiqueta: "Recomendado", hecho: hayProductos,
+      porque: "Con el costo de lo que vendés, LumoBi te dice qué te deja plata y qué no. Podés hacerlo de a poco: con la pistola lectora, a mano o con la foto de la factura del proveedor.",
+      contenido: <button style={hayProductos ? btnSecundario : btnPrimario} onClick={() => router.push("/catalogo")}>{hayProductos ? "Ver mis productos" : "Cargar mis productos"}</button>,
+    },
+    ...(estado && !estado.negocio ? [{
+      id: "negocio", titulo: "Contanos de tu negocio", etiqueta: "Recomendado" as const, hecho: false,
+      porque: "Rubro y zona. Así LumoBi compara tu negocio con el patrón correcto.",
+      contenido: <button style={btnPrimario} onClick={() => router.push("/onboarding?desde=pasos")}>Completar los datos</button>,
+    }] : []),
+    {
+      id: "ventas", titulo: "Traé tus ventas anteriores", etiqueta: "Opcional", hecho: !!estado?.ventas,
+      porque: "Si ya vendías antes, subí tus ventas (Excel, PDF o una foto del cuaderno) y LumoBi arranca con historia. Si empezás de cero, saltealo: se llena solo con la caja.",
+      contenido: (<>
+        {estado?.ventas && <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Ya hay ventas cargadas.</div>}
+        <SubirVentas token={token} onListo={() => cargarEstado(token)} />
+        <button style={btnSecundario} onClick={() => router.push("/mercado-pago")}>Traer mis cobros de Mercado Pago</button>
+      </>),
+    },
+    {
+      id: "locales", titulo: "Cargá tus locales", etiqueta: "Opcional", hecho: !!estado?.locales,
+      porque: "Si tenés más de un local, cargalos para ver cada uno por separado. Con uno solo, dejalo para después.",
+      contenido: <button style={estado?.locales ? btnSecundario : btnPrimario} onClick={() => router.push("/red")}>{estado?.locales ? "Ver mis locales" : "Cargar mis locales"}</button>,
+    },
+  ] : [];
 
-  // Si llega desde el banner del inicio con ?paso=..., abre directo en esa tarjeta.
-  const saltado = useRef(false);
+  const total = pasos.length;
+  const hechos = pasos.filter(p => p.hecho).length;
+  // El que sigue: el primer paso necesario o recomendado que todavía falta
+  const siguiente = pasos.find(p => !p.hecho && p.etiqueta !== "Opcional")?.id ?? null;
+
+  // Abre el paso que corresponde: el que pide el link (?paso=) o, si no, el que sigue
   useEffect(() => {
-    if (saltado.current || !estado) return;
-    saltado.current = true;
-    const ids: Record<string, number> = { equipo: 0, codigo: 0, turno: 0, caja: 0, avisos: 1, catalogo: 2, ventas: 3, locales: 4, negocio: 5 };
-    const i = ids[new URLSearchParams(window.location.search).get("paso") || ""] ?? -1;
-    if (i > 0) setTimeout(() => irA(i), 150);
-  }, [estado]);
-  const cantidadHechos = hechos.filter(Boolean).length;
+    if (decidido.current || !estado || !cargado) return;
+    decidido.current = true;
+    const ids: Record<string, string> = { equipo: "caja", codigo: "caja", turno: "caja", caja: "caja", avisos: "avisos", catalogo: "catalogo", ventas: "ventas", locales: "locales", negocio: "negocio" };
+    const pedido = ids[new URLSearchParams(window.location.search).get("paso") || ""];
+    setAbierto(pedido ?? siguiente);
+  }, [estado, cargado, siguiente]);
 
   if (!token) {
     return <main style={{ background: "var(--bg)", minHeight: "100vh" }} />;
   }
 
+  const etiquetaColor = (e: PasoDef["etiqueta"]) => e === "Necesario" ? "#B45309" : e === "Recomendado" ? "#0A5BD3" : "var(--muted, #64748B)";
+
   return (
     <main style={{ background: "var(--bg)", minHeight: "100vh", padding: "28px 16px 40px", fontFamily: FUENTE, boxSizing: "border-box" }}>
       <div style={{ maxWidth: 440, margin: "0 auto" }}>
         <h1 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "var(--text, #0A1628)" }}>Dejá tu cuenta lista</h1>
-        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--muted, #64748B)" }}>
-          {cantidadHechos} de {TOTAL} pasos hechos. Deslizá para ver cada uno.
+        <p style={{ margin: "0 0 10px", fontSize: 14, color: "var(--muted, #64748B)", lineHeight: 1.5 }}>
+          {siguiente
+            ? <>Son pocos pasos. Hacé primero el que dice <strong>Seguí por acá</strong>; el resto lo podés hacer cuando quieras.</>
+            : <>Ya hiciste lo importante. Lo que queda es opcional y lo podés hacer cuando quieras.</>}
         </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <div style={{ flex: 1, height: 8, borderRadius: 4, background: "var(--border, #E0E7F1)", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${total ? Math.round((hechos / total) * 100) : 0}%`, background: "#16A34A", transition: "width 0.3s" }} />
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text, #0A1628)" }}>{hechos} de {total}</span>
+        </div>
 
         <div style={{ marginBottom: 14 }}><InstalarLumo enlace="/login" /></div>
 
-        <div
-          ref={pista}
-          onScroll={e => setIndice(Math.round(e.currentTarget.scrollLeft / Math.max(1, e.currentTarget.clientWidth)))}
-          style={{ display: "flex", overflowX: "auto", scrollSnapType: "x mandatory", scrollbarWidth: "none", gap: 0 }}
-        >
-          <Tarjeta n={1} total={TOTAL} hecho={!!estado?.turno} titulo="Tu caja en 1 minuto"
-            texto="Escribí quién atiende la caja (puede ser tu nombre) y elegí un PIN de 4 números. Los productos los cargás mientras vendés.">
-            <CajaRapida token={token} onListo={() => cargarEstado(token)} />
-          </Tarjeta>
+        {pasos.map((p, i) => {
+          const abiertoAhora = abierto === p.id;
+          const esSiguiente = siguiente === p.id;
+          return (
+            <div key={p.id} style={{
+              background: "var(--card, #fff)", border: `${esSiguiente ? 2 : 1}px solid ${esSiguiente ? "#0A5BD3" : "var(--border, #E0E7F1)"}`,
+              borderRadius: 14, marginBottom: 10, overflow: "hidden",
+            }}>
+              <button type="button" onClick={() => setAbierto(abiertoAhora ? null : p.id)} aria-expanded={abiertoAhora}
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left", fontFamily: FUENTE }}>
+                <span aria-hidden style={{
+                  flexShrink: 0, width: 28, height: 28, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800,
+                  background: p.hecho ? "#16A34A" : "transparent", color: p.hecho ? "#fff" : "var(--text, #0A1628)", border: p.hecho ? "none" : "2px solid var(--border, #CBD5E1)",
+                }}>{p.hecho ? "✓" : i + 1}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: "block", fontSize: 16, fontWeight: 700, color: "var(--text, #0A1628)", lineHeight: 1.3 }}>{p.titulo}</span>
+                  <span style={{ display: "block", fontSize: 12, fontWeight: 700, marginTop: 2, color: p.hecho ? "#16A34A" : etiquetaColor(p.etiqueta) }}>
+                    {p.hecho ? "Listo" : esSiguiente ? "Seguí por acá" : p.etiqueta}
+                  </span>
+                </span>
+                <span aria-hidden style={{ color: "var(--muted, #64748B)", fontSize: 18, transform: abiertoAhora ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>›</span>
+              </button>
+              {abiertoAhora && (
+                <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                  <p style={{ margin: 0, fontSize: 14, color: "var(--muted, #475569)", lineHeight: 1.6 }}>{p.porque}</p>
+                  {p.contenido}
+                </div>
+              )}
+            </div>
+          );
+        })}
 
-          <Tarjeta n={2} total={TOTAL} hecho={!!estado?.avisos} titulo="Avisos en tu celu"
-            texto="Activá las notificaciones: al cerrar cada turno te llega cuánto vendiste, la diferencia de caja y qué hacer. Usá Chrome y, si podés, instalá LumoBi en la pantalla de inicio.">
-            {estado?.avisos
-              ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Los avisos están activados.</div>
-              : <button style={btnPrimario} onClick={activarAvisos}>Activar avisos</button>}
-            <button style={btnSecundario} onClick={() => router.push("/mas")}>Instalar la app en mi celu</button>
-          </Tarjeta>
+        {mensaje && <div style={{ fontSize: 12, color: "var(--muted, #64748B)", margin: "4px 0 10px", textAlign: "center" }}>{mensaje}</div>}
 
-          <Tarjeta n={3} total={TOTAL} hecho={hayProductos} titulo="Tus productos con su costo (recomendado)"
-            texto="Si cargás el costo de lo que vendés, NICOLE te dice qué te deja plata y qué no. Podés hacerlo de a poco, con la pistola lectora o la foto de la factura del proveedor.">
-            <button style={hayProductos ? btnSecundario : btnPrimario} onClick={() => router.push("/catalogo")}>{hayProductos ? "Ver mi catálogo" : "Cargar mis productos"}</button>
-          </Tarjeta>
-
-          <Tarjeta n={4} total={TOTAL} hecho={!!estado?.ventas} titulo="Tus ventas anteriores (opcional)"
-            texto="Si ya vendías antes, subí tus ventas (Excel, PDF o una foto del cuaderno) y NICOLE arranca con historia. Si empezás de cero, saltealo: se llena solo con la caja.">
-            {estado?.ventas && <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Ya hay ventas cargadas.</div>}
-            <SubirVentas token={token} onListo={() => cargarEstado(token)} />
-            <button style={btnSecundario} onClick={() => router.push("/mercado-pago")}>Traer mis cobros de Mercado Pago</button>
-          </Tarjeta>
-
-          <Tarjeta n={5} total={TOTAL} hecho={!!estado?.locales} titulo="Tus locales (opcional)"
-            texto="Si tenés más de un local, cargalos para ver cada uno por separado. Con uno solo, podés dejarlo para después.">
-            <button style={estado?.locales ? btnSecundario : btnPrimario} onClick={() => router.push("/red")}>{estado?.locales ? "Ver mis locales" : "Cargar mis locales"}</button>
-          </Tarjeta>
-
-          {!estado?.negocio && (
-            <Tarjeta n={6} total={TOTAL} hecho={false} titulo="Tu negocio"
-              texto="Rubro y zona de tu negocio. Con eso NICOLE lo compara con el patrón correcto.">
-              <button style={btnPrimario} onClick={() => router.push("/onboarding?desde=pasos")}>Completar los datos</button>
-            </Tarjeta>
-          )}
-        </div>
-
-        {mensaje && <div style={{ fontSize: 12, color: "var(--muted, #64748B)", marginTop: 10, textAlign: "center" }}>{mensaje}</div>}
-
-        <div style={{ display: "flex", justifyContent: "center", gap: 6, margin: "18px 0" }}>
-          {hechos.map((h, i) => (
-            <div key={i} style={{
-              width: i === indice ? 22 : 8, height: 8, borderRadius: 4, transition: "width 0.2s",
-              background: i === indice ? "#007AFF" : h ? "#16A34A" : "var(--border, #E0E7F1)",
-            }} />
-          ))}
-        </div>
-
-        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-          <button style={btnSecundario} onClick={() => irA(indice - 1)} disabled={indice === 0}>Atrás</button>
-          <button style={btnSecundario} onClick={() => irA(indice + 1)} disabled={indice === TOTAL - 1}>Siguiente</button>
-        </div>
-
-        <button style={btnPrimario} onClick={irAlInicio}>Ir a mi inicio</button>
+        <button style={{ ...btnPrimario, marginTop: 6 }} onClick={irAlInicio}>
+          {estado?.turno ? "Listo, ir a mi inicio" : "Lo termino después, ir a mi inicio"}
+        </button>
       </div>
     </main>
   );
