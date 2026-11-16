@@ -85,6 +85,14 @@ export default function MercadoPagoPage() {
         )}
 
         {e && !e.conectado && (<>
+          <div style={caja}>
+            <div style={titulo}>PARA QUÉ LO CONECTÁS</div>
+            <div style={{ ...texto, fontWeight: 700 }}>Para que LumoBi analice todas tus ventas y sea más preciso y más efectivo con tu negocio.</div>
+            <Fila ok>Cruza lo que entró a tu Mercado Pago con lo que anotó tu caja. Si entró plata que nadie anotó, te avisa. Ejemplo: la caja anotó $80.000 y entraron $95.000: hay $15.000 sin anotar.</Fila>
+            <Fila ok>Puede traer hasta 18 meses de tus cobros, así arranca con historia. Con más historia, los avisos y las predicciones se ajustan mejor a tu negocio.</Fila>
+            <Fila ok>Ve la comisión real que te sacó Mercado Pago en cada cobro.</Fila>
+          </div>
+
           <div style={{ ...caja, border: "2px solid var(--tinta)" }}>
             <div style={titulo}>LO PRIMERO: TU PLATA</div>
             <Fila ok={false}>LumoBi no te saca plata. No tiene ninguna función para retirar, transferir ni devolver dinero de tu cuenta.</Fila>
@@ -92,12 +100,6 @@ export default function MercadoPagoPage() {
             <Fila ok>Lo que cobrás sigue cayendo directo en tu cuenta de Mercado Pago, como hasta ahora.</Fila>
             <Fila ok>Antes de aceptar, Mercado Pago te muestra qué permisos pedimos. Aceptás o no ahí mismo.</Fila>
             <Fila ok>Lo cortás cuando quieras con “Desconectar”.</Fila>
-          </div>
-
-          <div style={caja}>
-            <div style={titulo}>PARA QUÉ SIRVE</div>
-            <div style={texto}>LumoBi compara lo que entró a tu Mercado Pago con lo que anotó tu caja. Si entró plata que nadie anotó, te avisa.</div>
-            <div style={{ ...texto, color: "var(--tinta-apagada)", fontSize: 13, marginTop: 8 }}>Ejemplo: tu caja anotó $80.000 en cobros con tarjeta y QR, pero a tu Mercado Pago entraron $95.000. LumoBi te avisa que hay $15.000 sin anotar.</div>
           </div>
 
           <div style={caja}>

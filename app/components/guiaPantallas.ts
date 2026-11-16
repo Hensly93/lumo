@@ -139,7 +139,7 @@ export const GUIAS: Record<string, Guia> = {
   },
   "/mercado-pago": {
     titulo: "Conectar Mercado Pago",
-    lumobi: "Lee los cobros que entran a tu cuenta de Mercado Pago (cuánto fue, la comisión, cómo pagaron y cuándo) y los compara con lo que anotó tu caja. Si entró plata que nadie anotó, te avisa. Sirve para encontrar plata que se pierde. LumoBi no tiene ninguna función para sacar plata de tu cuenta.",
+    lumobi: "Lo conectás para que LumoBi analice todas tus ventas y sea más preciso y más efectivo con tu negocio. Lee los cobros que entran a tu cuenta de Mercado Pago (cuánto fue, la comisión, cómo pagaron y cuándo) y los compara con lo que anotó tu caja. Si entró plata que nadie anotó, te avisa. Sirve para encontrar plata que se pierde. LumoBi no tiene ninguna función para sacar plata de tu cuenta.",
     vos: "Leé qué ve y qué no ve LumoBi. Si te cierra, tocá Conectar: autorizás en la página de Mercado Pago y volvés. Si no querés, seguí sin conectar: LumoBi funciona igual. Y si ya conectaste, desde acá lo desconectás cuando quieras.",
     requisitos: [],
   },
