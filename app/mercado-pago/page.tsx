@@ -85,17 +85,19 @@ export default function MercadoPagoPage() {
         )}
 
         {e && !e.conectado && (<>
+          <div style={{ ...caja, border: "2px solid var(--tinta)" }}>
+            <div style={titulo}>LO PRIMERO: TU PLATA</div>
+            <Fila ok={false}>LumoBi no te saca plata. No tiene ninguna función para retirar, transferir ni devolver dinero de tu cuenta.</Fila>
+            <Fila ok={false}>No te cobra nada por conectar.</Fila>
+            <Fila ok>Lo que cobrás sigue cayendo directo en tu cuenta de Mercado Pago, como hasta ahora.</Fila>
+            <Fila ok>Antes de aceptar, Mercado Pago te muestra qué permisos pedimos. Aceptás o no ahí mismo.</Fila>
+            <Fila ok>Lo cortás cuando quieras con “Desconectar”.</Fila>
+          </div>
+
           <div style={caja}>
             <div style={titulo}>PARA QUÉ SIRVE</div>
             <div style={texto}>LumoBi compara lo que entró a tu Mercado Pago con lo que anotó tu caja. Si entró plata que nadie anotó, te avisa.</div>
             <div style={{ ...texto, color: "var(--tinta-apagada)", fontSize: 13, marginTop: 8 }}>Ejemplo: tu caja anotó $80.000 en cobros con tarjeta y QR, pero a tu Mercado Pago entraron $95.000. LumoBi te avisa que hay $15.000 sin anotar.</div>
-          </div>
-
-          <div style={caja}>
-            <div style={titulo}>NO ES PARA COBRAR</div>
-            <Fila ok={false}>LumoBi no te cobra nada ni se queda con plata. Conectar no tiene costo.</Fila>
-            <Fila ok={false}>No tiene ninguna función para transferir, retirar ni devolver plata de tu cuenta.</Fila>
-            <Fila ok>Todo lo que cobres sigue cayendo directo en tu cuenta de Mercado Pago, como hasta ahora.</Fila>
           </div>
 
           <div style={caja}>
