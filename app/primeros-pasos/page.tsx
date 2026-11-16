@@ -1,5 +1,6 @@
 "use client";
 
+import InstalarLumo from "../components/InstalarLumo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { subscribePush, getMotivoPush } from "../hooks/usePush";
@@ -156,6 +157,8 @@ export default function PrimerosPasos() {
         <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--muted, #64748B)" }}>
           {cantidadHechos} de {TOTAL} pasos hechos. Deslizá para ver cada uno.
         </p>
+
+        <div style={{ marginBottom: 14 }}><InstalarLumo enlace="/login" /></div>
 
         <div
           ref={pista}

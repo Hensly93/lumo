@@ -3,6 +3,7 @@
 // Regla: que lo pueda hacer cualquiera, sin dudar. Un dato por pantalla, botones grandes, nada opcional
 // que distraiga. CUIT, zona y tamaño del negocio se piden después, cuando hacen falta.
 // Al terminar entra directo a "Abrí tu caja".
+import InstalarLumo from "../components/InstalarLumo";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -184,6 +185,7 @@ export default function RegistroSimple() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <InstalarLumo compacta />
       {/* Avance */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
         {paso > 0 && (

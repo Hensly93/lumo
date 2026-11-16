@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
-import InstalarApp from "./InstalarApp";
+import InstalarLumo from "../components/InstalarLumo";
 import ValorCard from "../components/ValorCard";
 
 const iconColor = "var(--azul)";
@@ -44,7 +44,7 @@ export default function MasPage() {
 
       <div style={{ padding: "0 12px" }}>
         <ValorCard />
-        <InstalarApp />
+        <InstalarLumo enlace="/login" />
         {items.map((item, i) => (
           <div
             key={i}
