@@ -135,11 +135,11 @@ function CardDia({ p }: { p: Prediccion }) {
           {/* Números del día */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
             <div>
-              <div style={etiqueta}>Tickets</div>
+              <div style={etiqueta}>Ventas</div>
               <div style={valorChico}>{p.tickets_esperados ?? "—"}</div>
             </div>
             <div>
-              <div style={etiqueta}>Ticket prom.</div>
+              <div style={etiqueta}>Gasto por cliente</div>
               <div style={valorChico}>{p.ticket_promedio ? fmt(p.ticket_promedio) : "—"}</div>
             </div>
             <div>

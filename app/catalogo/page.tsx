@@ -1,5 +1,6 @@
 "use client";
 // CATALOGO_LUMOBI_V2
+import MenuGuiado from "../components/MenuGuiado";
 import { useState, useEffect, useRef, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import Nav from "../components/Nav";
@@ -1111,14 +1112,19 @@ export default function Catalogo() {
       )}
 
       <PageHeader title="Productos" sub={subTitulo} />
-      <a href="/pedidos" style={{ display: "block", margin: "0 16px 12px", padding: "12px 14px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)", color: "var(--text)", fontSize: 14, fontWeight: 700, textDecoration: "none" }}>
-        Pedidos: qué pedir, cuánto y a quién →
-      </a>
       <div style={{ padding: "0 16px 8px" }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button onClick={() => setVista("pistola")} style={btnPrimario}>Modo pistola</button>
           <button onClick={() => setVista("metodos")} style={btnSecundario}>Otras formas de cargar</button>
         </div>
+      </div>
+
+      <div style={{ padding: "8px 12px 0" }}>
+        <MenuGuiado grupos={[{ pregunta: "¿Qué tengo que hacer con mis productos?", items: [
+          { label: "Pedidos", desc: "¿Qué tengo que pedir? Qué se termina esta semana y cuánto pedir, por proveedor.", href: "/pedidos" },
+          { label: "Facturas de proveedores", desc: "Sacale una foto a la factura: LumoBi carga solo lo que te cuesta cada cosa.", href: "/compras" },
+          { label: "Precios que se te comieron", desc: "Tu proveedor subió y vos no: a cuánto poner cada producto para no perder.", href: "/costos" },
+        ] }]} />
       </div>
 
       {loadingLista ? (

@@ -46,7 +46,7 @@ const PILARES: Pilar[] = [
       "Cada empleado entra con su PIN",
       "Diferencias de caja de cada turno, en pesos",
       "Conteos sorpresa durante el turno",
-      "Cuánto vende y qué ticket hace cada empleado",
+      "Cuánto vende cada empleado y cuánto gasta cada cliente con él",
       "Riesgo del equipo: detecta patrones que se repiten",
       "Quién cambió cada precio y cuándo",
     ],
@@ -78,7 +78,7 @@ const PILARES: Pilar[] = [
       "Dónde se te va la plata, con el monto",
       "Comparás días, semanas y meses",
       "Productos más y menos vendidos",
-      "Ganancia real y margen de cada producto",
+      "Cuánto ganás de verdad con cada producto",
       "Uno o varios locales, por separado y juntos",
     ],
   },
@@ -119,11 +119,11 @@ function Tarjeta({ id }: { id: string }) {
 const EJEMPLO: Record<string, string> = {
   kiosko: "Por ejemplo: si hoy los alfajores se venden el doble que siempre, LumoBi te avisa y te sugiere un combo con lo que tus clientes ya compran juntos.",
   almacen: "Por ejemplo: si un producto que se vendía todos los días dejó de venderse, LumoBi te avisa que probablemente te falta stock y cuánta plata perdés por día.",
-  supermercado: "Por ejemplo: LumoBi te muestra qué cajera cierra con diferencias, qué productos te dejan poco margen y qué reponer antes del fin de semana.",
+  supermercado: "Por ejemplo: LumoBi te muestra qué cajera cierra con diferencias, qué productos te dejan poca ganancia y qué reponer antes del fin de semana.",
   cafeteria_bar: "Por ejemplo: si 6 de cada 10 que piden café se llevan una medialuna, LumoBi te arma el combo y te dice cuánto ganarías por mes.",
   restaurante: "Por ejemplo: LumoBi te avisa una hora antes de tu franja fuerte cuánto vas a vender y qué platos no pueden faltar.",
   panaderia: "Por ejemplo: LumoBi te dice cuánto vas a vender mañana para que no sobre ni falte, y en qué horario se te va la plata.",
-  farmacia: "Por ejemplo: LumoBi te muestra qué productos te dejan más margen y te avisa si una caja cierra con diferencia.",
+  farmacia: "Por ejemplo: LumoBi te muestra qué productos te dejan más ganancia y te avisa si una caja cierra con diferencia.",
   retail_indumentaria: "Por ejemplo: LumoBi te dice qué días y horarios rinden más, quién del equipo vende mejor y qué se dejó de vender.",
 };
 

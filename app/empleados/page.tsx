@@ -89,7 +89,7 @@ function nivelBadgeERM(nivel: string): { text: string; variant: "ok" | "warn" } 
 const pesos = (n: number) => "$" + Math.round(Math.abs(n)).toLocaleString("es-AR");
 const NOMBRE_TURNO: Record<string, string> = { manana: "Mañana", tarde: "Tarde", noche: "Noche" };
 const NOMBRE_SENAL: Record<string, { titulo: string; explica: string }> = {
-  CUSUM: { titulo: "Desvío sostenido en el turno", explica: "Mide si las diferencias de caja del turno vienen creciendo de forma sostenida. Se calcula sobre todo el turno del negocio, no solo sobre esta persona." },
+  CUSUM: { titulo: "Las diferencias de caja vienen creciendo", explica: "En este turno, las diferencias de caja suben de a poco, día tras día. Se mira el turno completo del negocio, no solo a esta persona." },
   ZSCORE_PROPIO: { titulo: "Se aparta de su propio patrón", explica: "Compara su diferencia promedio con lo que le pasa habitualmente a esta misma persona." },
   BRECHA_PROMEDIO: { titulo: "Diferencia promedio de caja", explica: "Promedio de las diferencias entre lo esperado y lo declarado al cerrar, y porcentaje de turnos con diferencia." },
   COMPORTAMIENTO_PEERS: { titulo: "Distinto del resto del equipo", explica: "Compara con otras personas que trabajaron el mismo turno." },

@@ -98,7 +98,7 @@ export default function PreciosMasivo({ token, avisar, onListo }: { token: strin
           <div><div style={rotulo}>Marca</div>{select(marca, setMarca, op.marcas, "Todas")}</div>
           {op.proveedores.length > 0 && <div><div style={rotulo}>Proveedor (por tus facturas)</div>{select(proveedor, setProveedor, op.proveedores, "Todos")}</div>}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 2 }}>
-            {chip(margenBajo, "Solo margen bajo (menos de 25%)", () => setMargenBajo(v => !v))}
+            {chip(margenBajo, "Solo los que te dejan poco (menos de 25%)", () => setMargenBajo(v => !v))}
             {chip(sinTocar, "Sin cambios hace 60 días o más", () => setSinTocar(v => !v))}
           </div>
         </div>
@@ -108,12 +108,12 @@ export default function PreciosMasivo({ token, avisar, onListo }: { token: strin
         <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 10 }}>2. ¿Cómo los cambiamos?</div>
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           {chip(modo === "porcentaje", "Subir un porcentaje", () => setModo("porcentaje"))}
-          {chip(modo === "margen", "Llevar a un margen", () => setModo("margen"))}
+          {chip(modo === "margen", "Ganar un % fijo", () => setModo("margen"))}
         </div>
-        <div style={rotulo}>{modo === "porcentaje" ? "Porcentaje (ej: 10 sube 10%)" : "Margen que querés ganar (ej: 30 = 30% del precio)"}</div>
+        <div style={rotulo}>{modo === "porcentaje" ? "Porcentaje (ej: 10 sube 10%)" : "Cuánto querés que te quede de cada precio (ej: 30 = te queda el 30%)"}</div>
         <input style={campo} inputMode="decimal" placeholder={modo === "porcentaje" ? "10" : "30"} value={valor} onChange={e => { setValor(e.target.value); setItems(null); }} />
         <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 8, lineHeight: 1.6 }}>
-          {modo === "margen" ? "Solo sube los que hoy están por debajo de ese margen y tienen el costo cargado. Nunca baja un precio." : "Los precios se redondean para cobrar fácil ($10, $50 o $100 según el valor)."}
+          {modo === "margen" ? "Solo sube los que hoy te dejan menos que eso y tienen el costo cargado. Nunca baja un precio." : "Los precios se redondean para cobrar fácil ($10, $50 o $100 según el valor)."}
         </div>
         <button onClick={ver} disabled={cargando || !valor.trim()} style={{ ...btn(true, cargando || !valor.trim()), width: "100%", marginTop: 12 }}>{cargando ? "Calculando..." : "Ver cómo quedaría"}</button>
       </div>
@@ -142,7 +142,7 @@ export default function PreciosMasivo({ token, avisar, onListo }: { token: strin
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{x.nombre}{x.marca ? ` · ${x.marca}` : ""}</div>
                         <div style={{ fontSize: 11, color: "var(--muted)" }}>
-                          {x.margen_actual != null && x.margen_nuevo != null ? `Margen ${x.margen_actual}% → ${x.margen_nuevo}%` : "Sin costo cargado"}
+                          {x.margen_actual != null && x.margen_nuevo != null ? `Te deja ${x.margen_actual}% → ${x.margen_nuevo}%` : "Sin costo cargado"}
                           {x.alto ? " · suba grande, mirá si el cliente la aguanta" : ""}
                         </div>
                       </div>

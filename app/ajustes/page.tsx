@@ -646,7 +646,7 @@ function SecNotificaciones({ token }: { token: string }) {
         </div>
       )}
 
-      <ToggleRow on={toggles.alertas_criticas} onChange={set("alertas_criticas")} label="Alertas críticas" sub="Inconsistencias con z-score > 3.0" />
+      <ToggleRow on={toggles.alertas_criticas} onChange={set("alertas_criticas")} label="Alertas críticas" sub="Cuando algo se sale mucho de lo normal en tu caja" />
       <ToggleRow on={toggles.alertas_medias} onChange={set("alertas_medias")} label="Alertas de atención" sub="Patrones repetidos y brechas moderadas" />
       <ToggleRow on={toggles.conteos_perdidos} onChange={set("conteos_perdidos")} label="Conteos no respondidos" sub="Cuando un empleado no responde en 15 min" />
       <ToggleRow on={toggles.resumen_diario} onChange={set("resumen_diario")} label="Resumen y predicciones del día" sub="Informe de cada turno, tu franja fuerte, cómo viene el día y qué esperar mañana" />

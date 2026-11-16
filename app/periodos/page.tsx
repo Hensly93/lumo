@@ -107,7 +107,7 @@ function Barras({ items }: { items: Item[] }) {
         <div key={i.clave} style={{ marginBottom: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text)", marginBottom: 4 }}>
             <span style={{ fontWeight: 600 }}>{i.clave}</span>
-            <span>{fmt(i.total)} <span style={{ color: "var(--muted)" }}>· {total ? Math.round((i.total / total) * 100) : 0}% · {fmtN(i.tickets)} tickets</span></span>
+            <span>{fmt(i.total)} <span style={{ color: "var(--muted)" }}>· {total ? Math.round((i.total / total) * 100) : 0}% · {fmtN(i.tickets)} ventas</span></span>
           </div>
           <div style={{ height: 6, borderRadius: 3, background: "var(--border)" }}>
             <div style={{ width: `${(i.total / max) * 100}%`, height: "100%", borderRadius: 3, background: "var(--cyan, #007AFF)" }} />
@@ -181,7 +181,7 @@ export default function PeriodosPage() {
           {/* Tickets y ticket promedio */}
           <div style={{ display: "flex", gap: 0 }}>
             <div style={{ ...tarjeta, flex: 1, marginRight: 4 }}>
-              <div style={titulo}>Tickets</div>
+              <div style={titulo}>Cantidad de ventas</div>
               <div style={medio}>{fmtN(a.tickets)}</div>
               <LineaComparacion pocas={pocas} c={data.vs_anterior} campo="tickets" />
               <LineaComparacion pocas={pocas} c={data.vs_anio_anterior} campo="tickets" />
