@@ -86,21 +86,28 @@ export default function MercadoPagoPage() {
 
         {e && !e.conectado && (<>
           <div style={caja}>
-            <div style={titulo}>PARA QUÉ</div>
-            <div style={texto}>LumoBi compara lo que cobraste en Mercado Pago con lo que anotó tu caja. Si entró plata que nadie anotó, te avisa.</div>
+            <div style={titulo}>PARA QUÉ SIRVE</div>
+            <div style={texto}>LumoBi compara lo que entró a tu Mercado Pago con lo que anotó tu caja. Si entró plata que nadie anotó, te avisa.</div>
+            <div style={{ ...texto, color: "var(--tinta-apagada)", fontSize: 13, marginTop: 8 }}>Ejemplo: tu caja anotó $80.000 en cobros con tarjeta y QR, pero a tu Mercado Pago entraron $95.000. LumoBi te avisa que hay $15.000 sin anotar.</div>
           </div>
 
           <div style={caja}>
-            <div style={titulo}>QUÉ VE LUMOBI</div>
+            <div style={titulo}>NO ES PARA COBRAR</div>
+            <Fila ok={false}>LumoBi no te cobra nada ni se queda con plata. Conectar no tiene costo.</Fila>
+            <Fila ok={false}>No tiene ninguna función para transferir, retirar ni devolver plata de tu cuenta.</Fila>
+            <Fila ok>Todo lo que cobres sigue cayendo directo en tu cuenta de Mercado Pago, como hasta ahora.</Fila>
+          </div>
+
+          <div style={caja}>
+            <div style={titulo}>QUÉ MIRA LUMOBI</div>
             <Fila ok>De cada cobro: cuánto fue, cuánta comisión te sacaron, cuánto te quedó, cómo pagaron (tarjeta, QR, etc.), cuándo y si se aprobó.</Fila>
+            <Fila ok={false}>No ve tu clave de Mercado Pago: la escribís en la página de Mercado Pago, no en LumoBi.</Fila>
+            <Fila ok={false}>No guarda datos de tus clientes: ni nombres, ni DNI, ni tarjetas.</Fila>
           </div>
 
           <div style={caja}>
-            <div style={titulo}>QUÉ NO VE Y NO HACE</div>
-            <Fila ok={false}>No ve tu clave de Mercado Pago. La escribís en la página de Mercado Pago, no en LumoBi.</Fila>
-            <Fila ok={false}>No guarda datos de tus clientes: ni nombres, ni DNI, ni tarjetas.</Fila>
-            <Fila ok={false}>No tiene ninguna función para mandar plata, transferir ni devolver pagos.</Fila>
-            <div style={{ ...texto, color: "var(--tinta-apagada)", marginTop: 8, fontSize: 13 }}>Lo único que hace además de mirar: si cobrás una venta con QR desde la caja de LumoBi, genera ese QR.</div>
+            <div style={titulo}>LO ÚNICO MÁS QUE HABILITA (OPCIONAL)</div>
+            <div style={texto}>Al conectar, la caja de LumoBi puede ofrecerte cobrar una venta con un QR de Mercado Pago o con tu posnet Point, por el monto exacto del carrito. Lo usa quien atiende la caja cuando quiere, y la plata cae en tu cuenta. Si no lo usás, no pasa nada.</div>
           </div>
 
           <div style={caja}>
@@ -110,7 +117,7 @@ export default function MercadoPagoPage() {
 
           <div style={caja}>
             <div style={titulo}>SI TE ARREPENTÍS</div>
-            <div style={texto}>Volvés a esta pantalla y tocás “Desconectar”. LumoBi borra la autorización y deja de mirar tu cuenta cuando quieras.</div>
+            <div style={texto}>Volvés a esta pantalla y tocás “Desconectar”. LumoBi borra la autorización que guardó y deja de mirar tu cuenta. Los cobros que ya trajo quedan en tu historial.</div>
           </div>
 
           <button onClick={conectar} style={{ ...boton, border: "1px solid var(--azul)", background: "var(--azul)", color: "var(--blanco)" }}>Conectar con Mercado Pago</button>
