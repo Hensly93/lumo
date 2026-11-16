@@ -137,6 +137,12 @@ export const GUIAS: Record<string, Guia> = {
     vos: "Usala antes de hacerle el pedido o para negociar: tenés los números de cada compra.",
     requisitos: ["facturas"],
   },
+  "/costos": {
+    titulo: "Precios que se te comieron",
+    lumobi: "Compara lo que pagaste antes y lo que pagás ahora por cada producto de tus facturas. Si el costo subió y tu precio quedó igual, te dice cuánto te queda de cada $100, a qué precio volver a ganar lo de antes y cuánta plata más por mes serían.",
+    vos: "Tocá el botón de cada producto para poner el precio nuevo en tu catálogo. Si te arrepentís, Deshacer lo deja como estaba. La cuenta supone que vendés lo mismo que el último mes.",
+    requisitos: ["facturas"],
+  },
   "/resumen-mensual": {
     titulo: "Resumen del mes",
     lumobi: "Te cuenta qué hizo LumoBi por tu negocio este mes. Separa lo que recuperaste (plata que se midió: el problema bajó después de que lo resolviste) de lo que detectó (plata en juego que vio, como faltantes de caja o subas de proveedores).",

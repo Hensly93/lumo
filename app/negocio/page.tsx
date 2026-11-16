@@ -61,6 +61,7 @@ export default function NegocioPage() {
 
   const items = [
     { label: "Resumen del mes", desc: "Lo que LumoBi hizo por tu negocio: lo recuperado y lo que detectó", href: "/resumen-mensual", icon: icons.periodos },
+    { label: "Precios que se te comieron", desc: "Tu proveedor subió y vos no: a cuánto poner cada producto", href: "/costos", icon: icons.rentabilidad },
     { label: "Oportunidades", desc: "Dónde ganar más y perder menos, con la plata en juego", href: "/oportunidades", icon: icons.predicciones },
     { label: "Fugas", desc: "Dónde se va la plata y cómo cerrarla", href: "/fugas", icon: icons.fugas },
     { label: "Períodos", desc: "Este mes contra el anterior: ¿vendés más o menos?", href: "/periodos", icon: icons.periodos },
