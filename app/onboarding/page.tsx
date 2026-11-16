@@ -74,7 +74,7 @@ function OnboardingInner() {
     }
 
     if (typeof window !== "undefined" && window.location.search.includes("mp_conectado=true")) {
-      router.replace("/primeros-pasos");
+      router.replace("/lo-que-vimos");
       return;
     }
   }, [router, searchParams]);

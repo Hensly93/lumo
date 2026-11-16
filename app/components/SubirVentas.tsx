@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Revelacion from "./Revelacion";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const FUENTE = "var(--font-instrument), sans-serif";
@@ -11,15 +12,6 @@ type Resultado = {
   dias_datos?: number;
   advertencias?: string | null;
 };
-
-type Patron = {
-  id: string;
-  titulo: string;
-  descripcion: string;
-  recomendacion: string;
-};
-
-type Wow = { patrones?: Patron[]; mensaje?: string };
 
 type Fase = "reposo" | "leyendo" | "listo" | "error";
 
@@ -50,7 +42,6 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [nombre, setNombre] = useState("");
-  const [wow, setWow] = useState<Wow | null>(null);
   const entrada = useRef<HTMLInputElement | null>(null);
   const entradaFoto = useRef<HTMLInputElement | null>(null);
 
@@ -69,7 +60,6 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
     setNombre(archivo.name);
     setError("");
     setResultado(null);
-    setWow(null);
     const control = new AbortController();
     const reloj = setTimeout(() => control.abort(), 150000);
     try {
@@ -84,10 +74,6 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
       const cuerpo = (await r.json().catch(() => ({}))) as Resultado & { error?: string };
       if (!r.ok) throw new Error(cuerpo.error || "No pudimos leer el archivo (error " + r.status + ")");
       setResultado(cuerpo);
-      try {
-        const w = await fetch(API + "/api/negocio/wow-moment", { headers: { Authorization: "Bearer " + token } });
-        if (w.ok) setWow((await w.json()) as Wow);
-      } catch { /* si falla el análisis, igual quedó cargado */ }
       setFase("listo");
       if (onListo) onListo();
     } catch (e) {
@@ -135,7 +121,6 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
   }
 
   if (fase === "listo" && resultado) {
-    const patrones = wow?.patrones ?? [];
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#16A34A", fontFamily: FUENTE }}>
@@ -146,22 +131,7 @@ export default function SubirVentas({ token, onListo }: { token: string; onListo
           <p style={nota}>{resultado.duplicadas_omitidas} ya estaban cargadas y no se repitieron.</p>
         )}
         {resultado.advertencias && <p style={nota}>{resultado.advertencias}</p>}
-        {patrones.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: "var(--muted, #64748B)", fontFamily: FUENTE }}>
-              Lo primero que vemos en tu negocio
-            </div>
-            {patrones.map(p => (
-              <div key={p.id} style={{ border: "1px solid var(--border, #E0E7F1)", borderRadius: 12, padding: "12px 14px", background: "var(--card, #fff)" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text, #0A1628)", lineHeight: 1.35, fontFamily: FUENTE }}>{p.titulo}</div>
-                <p style={{ ...nota, marginTop: 4 }}>{p.descripcion}</p>
-                <p style={{ ...nota, marginTop: 4, color: "var(--text, #0A1628)" }}>{p.recomendacion}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p style={nota}>{wow?.mensaje || "Cargamos tus ventas. Con unos días más de datos aparecen los primeros patrones."}</p>
-        )}
+        <Revelacion token={token} />
         <button style={btnSecundario} onClick={() => entrada.current?.click()}>Cargar otro archivo</button>
         {selector}
       </div>
