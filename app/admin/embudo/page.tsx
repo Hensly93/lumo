@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { Hoy, Clientes, Crecimiento } from "./Centro";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const RUTAS_APP = ["/dashboard", "/fugas", "/nicole", "/predicciones", "/rentabilidad", "/catalogo", "/alertas", "/empleados", "/benchmark", "/red", "/periodos", "/ajustes", "/negocio", "/mas", "/primeros-pasos", "/onboarding"];
@@ -57,6 +58,8 @@ export default function AdminEmbudo() {
   const [data, setData] = useState<Resumen | null>(null);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [tab, setTab] = useState<"hoy" | "clientes" | "crecimiento" | "app">("hoy");
+  const [ficha, setFicha] = useState<number | null>(null);
 
   const cargar = useCallback(async (k: string, d: number) => {
     setCargando(true); setError("");
@@ -112,7 +115,7 @@ export default function AdminEmbudo() {
 
   return (
     <main style={{ maxWidth: 980, margin: "0 auto", padding: "20px 14px 60px", background: "#EEF1F5", minHeight: "100vh", fontFamily: "var(--font-instrument),sans-serif" }}>
-      <h1 style={{ fontSize: 22, margin: "0 0 4px", color: "#0A1628" }}>Embudo y uso de LumoBi</h1>
+      <h1 style={{ fontSize: 22, margin: "0 0 4px", color: "#0A1628" }}>LumoBi por dentro</h1>
       <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5B6B80" }}>Panel privado. Los datos empiezan a juntarse desde que se publicó este panel. El embudo no cuenta a los navegadores que entraron con cuentas de prueba o internas.</p>
 
       <div style={{ ...card, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -151,6 +154,18 @@ export default function AdminEmbudo() {
       {error && <div style={{ ...card, color: "#B42318", borderColor: "#F3C4BF" }}>{error}</div>}
 
       {data && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+          {([["hoy", "Hoy"], ["clientes", "Clientes"], ["crecimiento", "Crecimiento"], ["app", "Uso de la app"]] as const).map(([k, t]) => (
+            <button key={k} onClick={() => { setTab(k); if (k !== "clientes") setFicha(null); }}
+              style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid #D8DEE8", fontSize: 14, fontWeight: 700, cursor: "pointer", background: tab === k ? "#0A1628" : "#fff", color: tab === k ? "#fff" : "#0A1628" }}>{t}</button>
+          ))}
+        </div>
+      )}
+      {data && tab === "hoy" && <Hoy onFicha={(id) => { setFicha(id); setTab("clientes"); }} />}
+      {data && tab === "clientes" && <Clientes abrir={ficha} onFicha={setFicha} />}
+      {data && tab === "crecimiento" && <Crecimiento />}
+
+      {data && tab === "app" && (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10, marginBottom: 14 }}>
             {[["Visitantes", data.totales.visitantes], ["Sesiones", data.totales.sesiones], ["Usuarios con cuenta", data.totales.usuarios], ["Negocios activos", data.totales.negocios]].map(([t, v]) => (
