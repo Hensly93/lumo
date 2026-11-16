@@ -11,16 +11,28 @@ type Cliente = {
   app: { instalada: boolean; la_abrio_hace_dias: number | null; vio_la_oferta: boolean; avisos_activados: boolean };
   mp: boolean; dias_con_ventas: number; ultima_venta_dias: number | null; ventas_7: number; ventas_prev7: number;
   precio_potencial: number | null; prueba_vence: string | null; contactado_hace_dias: number | null; notas: number;
-  accion: string; mensaje: string; whatsapp: string | null; mailto: string | null;
+  accion: string; mensaje: string; whatsapp: string | null; mailto: string | null; prueba?: boolean; prueba_auto?: boolean;
 };
+type Radio = {
+  ventas: { n: number; total: number; dias: number; ticket: number; desde: string | null; ultima: string | null; pct_efectivo: number | null; importadas: number; de_caja: number; por_dia: { dia: string; n: number; total: number }[] };
+  catalogo: { productos: number; con_costo: number };
+  equipo: { empleados: number; cierres: number; con_faltante: number; faltante: number; ultimo_cierre: string | null };
+  compras: { n: number; total: number; ultima: string | null };
+  precios_cambiados: number; mercado_pago: { cobros: number; monto: number };
+  lo_que_encontramos: { plata_en_juego: number; hallazgos: { titulo: string; impacto: number }[] };
+  checklist: { que: string; ok: boolean; detalle: string }[]; faltan: string[];
+};
+type RadioCliente = Radio & { usuario_id: number; negocio: string | null; persona: string | null; etapa: string; nivel: "alto" | "medio" | "bajo"; riesgo: number; ultimo_dias: number | null; registro: string };
+type Evento = { cuando: string; negocio: string | null; persona: string | null; usuario_id: number; texto: string; grave: boolean; app: boolean };
 type Panorama = {
+  radiografias: RadioCliente[]; actividad: Evento[];
   cuentas: number;
   kpis: { nuevas_7: number; nuevas_prev7: number; activas_semana: number; activadas: number; pagando: number; en_riesgo: number; dormidas: number; pruebas_por_vencer: number; con_app: number; con_avisos: number; con_mp: number };
   por_etapa: { etapa: string; n: number }[]; hoy: Cliente[];
   proyeccion: { semanas: { semana: string; registros: number }[]; registros_30d: number | null; tasa_activacion: number | null; activadas_30d: number | null; plata_potencial_activos: number; plata_en_riesgo: number; confianza: string; nota_plata: string };
 };
 type Ficha = {
-  cliente: Cliente; actividad_30d: { dia: string; eventos: number }[]; pantallas: { ruta: string; vistas: number }[];
+  cliente: Cliente; radiografia: Radio; actividad_30d: { dia: string; eventos: number }[]; pantallas: { ruta: string; vistas: number }[];
   acciones: { que: string; veces: number }[]; hitos: { que: string; cuando: string }[];
   errores: { tipo: string; ruta: string; detalle: string | null; creado: string }[];
   notas: { id: number; tipo: string; texto: string; creado: string }[]; aclaracion_app: string;
@@ -75,6 +87,86 @@ function Numero({ t, v, sub, color }: { t: string; v: number | string; sub?: str
   );
 }
 
+
+function Barras({ d }: { d: { dia: string; n: number; total: number }[] }) {
+  if (!d.length) return <div style={chico}>Sin ventas en los últimos 14 días.</div>;
+  const m = Math.max(1, ...d.map((x) => x.total));
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 54 }}>
+      {d.map((x) => <div key={x.dia} title={`${x.dia}: ${pesos(x.total)} (${x.n} ventas)`} style={{ flex: 1, minWidth: 5, height: `${Math.max(8, (x.total / m) * 100)}%`, background: "#0A5BD3", borderRadius: 2 }} />)}
+    </div>
+  );
+}
+
+function Radiografia({ r }: { r: Radio }) {
+  const v = r.ventas;
+  return (
+    <>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10, marginBottom: 12 }}>
+        <Numero t="Ventas cargadas" v={v.n.toLocaleString("es-AR")} sub={v.n ? `${v.de_caja} de la caja · ${v.importadas} importadas` : undefined} />
+        <Numero t="Total vendido" v={pesos(v.total)} sub={v.desde ? `desde el ${v.desde.slice(8, 10)}/${v.desde.slice(5, 7)}` : undefined} />
+        <Numero t="Días con ventas" v={v.dias} />
+        <Numero t="Gasto por cliente" v={v.n ? pesos(v.ticket) : "-"} sub={v.pct_efectivo != null ? `${v.pct_efectivo}% efectivo` : undefined} />
+        <Numero t="Productos" v={r.catalogo.productos} sub={`${r.catalogo.con_costo} con costo`} />
+        <Numero t="Cierres de caja" v={r.equipo.cierres} sub={r.equipo.faltante ? `faltaron ${pesos(r.equipo.faltante)}` : undefined} />
+      </div>
+      <div style={{ ...chico, marginBottom: 4 }}>Ventas por día (últimos 14 días)</div>
+      <Barras d={v.por_dia} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: "4px 16px", marginTop: 14 }}>
+        {r.checklist.map((c) => (
+          <div key={c.que} style={{ fontSize: 13, color: "#0A1628", display: "flex", gap: 8 }}>
+            <b style={{ color: c.ok ? "#067647" : "#B42318", width: 14 }}>{c.ok ? "✓" : "✕"}</b>
+            <span>{c.que} <span style={chico}>· {c.detalle}</span></span>
+          </div>
+        ))}
+      </div>
+      {r.lo_que_encontramos.hallazgos.length > 0 && (
+        <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "#F4F6FA" }}>
+          <div style={{ fontSize: 13, color: "#0A1628" }}><b>Lo que LumoBi le encontró: {pesos(r.lo_que_encontramos.plata_en_juego)} por mes en juego</b> <span style={chico}>(estimado)</span></div>
+          <ul style={{ margin: "4px 0 0", paddingLeft: 18, fontSize: 13, color: "#0A1628", lineHeight: 1.5 }}>
+            {r.lo_que_encontramos.hallazgos.map((h) => <li key={h.titulo}>{h.titulo}{h.impacto > 0 && <span style={chico}> · {pesos(h.impacto)}/mes</span>}</li>)}
+          </ul>
+        </div>
+      )}
+    </>
+  );
+}
+
+function TarjetaCliente({ r, onFicha }: { r: RadioCliente; onFicha: (id: number) => void }) {
+  return (
+    <section style={card}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <h2 style={{ margin: 0, fontSize: 18, color: "#0A1628" }}>{r.negocio || "Sin nombre"}</h2>
+          <span style={chico}>{r.persona}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "#EEF1F5", color: "#0A1628" }}>{r.etapa}</span>
+          <span style={chico}>entró {hace(r.ultimo_dias)}</span>
+        </div>
+        <button style={btn} onClick={() => onFicha(r.usuario_id)}>Ver ficha completa</button>
+      </div>
+      {r.faltan.length > 0 && <div style={{ fontSize: 13, color: "#B45309", margin: "8px 0 12px" }}>Le falta: {r.faltan.slice(0, 3).join(" · ")}</div>}
+      {r.faltan.length === 0 && <div style={{ fontSize: 13, color: "#067647", margin: "8px 0 12px" }}>Tiene todo cargado.</div>}
+      <Radiografia r={r} />
+    </section>
+  );
+}
+
+function Feed({ e, onFicha }: { e: Evento[]; onFicha: (id: number) => void }) {
+  return (
+    <section style={card}>
+      <h2 style={{ margin: "0 0 2px", fontSize: 17, color: "#0A1628" }}>Qué pasó (últimos 14 días)</h2>
+      <p style={{ ...chico, margin: "0 0 8px" }}>Todo lo que hicieron tus clientes reales, lo último primero. Las cuentas de prueba no aparecen.</p>
+      {e.length === 0 && <div style={chico}>Todavía no hay actividad de clientes reales.</div>}
+      {e.map((x, i) => (
+        <div key={i} onClick={() => onFicha(x.usuario_id)} style={{ display: "flex", gap: 10, padding: "6px 0", borderTop: i ? "1px solid #EEF1F5" : "none", fontSize: 13, color: x.grave ? "#B42318" : "#0A1628", cursor: "pointer" }}>
+          <span style={{ ...chico, width: 92, flexShrink: 0 }}>{new Date(x.cuando).toLocaleString("es-AR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+          <span><b>{x.negocio || x.persona}</b> · {x.texto}{x.app ? " (desde la app)" : ""}</span>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 // ─── Hoy ────────────────────────────────────────────────────────────────────
 export function Hoy({ onFicha }: { onFicha: (id: number) => void }) {
   const [p, setP] = useState<Panorama | null>(null);
@@ -95,6 +187,10 @@ export function Hoy({ onFicha }: { onFicha: (id: number) => void }) {
         <Numero t="En riesgo de irse" v={k.en_riesgo} color={k.en_riesgo ? COLOR.alto : undefined} />
         <Numero t="Pruebas por vencer (3 días)" v={k.pruebas_por_vencer} color={k.pruebas_por_vencer ? COLOR.medio : undefined} />
       </div>
+
+      {p.radiografias.length === 0 && <div style={card}>Todavía no hay clientes reales. Las cuentas de prueba están aisladas y no se cuentan.</div>}
+      {p.radiografias.map((r) => <TarjetaCliente key={r.usuario_id} r={r} onFicha={onFicha} />)}
+      <Feed e={p.actividad} onFicha={onFicha} />
 
       <section style={card}>
         <h2 style={{ margin: "0 0 2px", fontSize: 17, color: "#0A1628" }}>A quién escribirle hoy</h2>
@@ -126,13 +222,21 @@ export function Clientes({ abrir, onFicha }: { abrir: number | null; onFicha: (i
   const [err, setErr] = useState("");
   const [filtro, setFiltro] = useState("Todos");
   const [q, setQ] = useState("");
-  useEffect(() => { pedir<{ clientes: Cliente[] }>("/clientes").then((j) => setLista(j.clientes)).catch((e) => setErr(e.message)); }, []);
+  useEffect(() => { pedir<{ clientes: Cliente[] }>("/clientes?pruebas=1").then((j) => setLista(j.clientes)).catch((e) => setErr(e.message)); }, []);
   const etapas = ["Todos", "Nuevo", "Sin activar", "Activo", "Pagando", "Dormido", "En riesgo"];
-  const vista = useMemo(() => (lista || []).filter((c) => {
+  const reales = useMemo(() => (lista || []).filter((c) => !c.prueba), [lista]);
+  const pruebas = useMemo(() => (lista || []).filter((c) => c.prueba), [lista]);
+  const marcar = async (id: number, esPrueba: boolean) => {
+    try {
+      await pedir("/marcar-prueba", { method: "POST", body: JSON.stringify({ usuario_id: id, es_prueba: esPrueba }) });
+      const j = await pedir<{ clientes: Cliente[] }>("/clientes?pruebas=1"); setLista(j.clientes);
+    } catch (e) { setErr(e instanceof Error ? e.message : "Error"); }
+  };
+  const vista = useMemo(() => reales.filter((c) => {
     if (filtro === "En riesgo" ? c.nivel !== "alto" : filtro !== "Todos" && c.etapa !== filtro) return false;
     const t = q.trim().toLowerCase();
     return !t || `${c.negocio} ${c.persona} ${c.email}`.toLowerCase().includes(t);
-  }), [lista, filtro, q]);
+  }), [reales, filtro, q]);
   if (abrir != null) return <FichaVista id={abrir} onVolver={() => onFicha(null)} />;
   if (err) return <div style={{ ...card, color: "#B42318" }}>{err}</div>;
   if (!lista) return <div style={card}>Cargando clientes...</div>;
@@ -146,7 +250,7 @@ export function Clientes({ abrir, onFicha }: { abrir: number | null; onFicha: (i
       </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead><tr>{["Negocio", "Etapa", "Riesgo", "Último ingreso", "Ventas cargadas", "App", "MP", "Plan"].map((h) => <th key={h} style={{ textAlign: "left", fontSize: 12, color: "#5B6B80", fontWeight: 600, padding: "6px 8px", borderBottom: "1px solid #E3E8F0", whiteSpace: "nowrap" }}>{h}</th>)}</tr></thead>
+          <thead><tr>{["Negocio", "Etapa", "Riesgo", "Último ingreso", "Ventas cargadas", "App", "MP", "Plan", ""].map((h) => <th key={h} style={{ textAlign: "left", fontSize: 12, color: "#5B6B80", fontWeight: 600, padding: "6px 8px", borderBottom: "1px solid #E3E8F0", whiteSpace: "nowrap" }}>{h}</th>)}</tr></thead>
           <tbody>
             {vista.map((c) => (
               <tr key={c.usuario_id} onClick={() => onFicha(c.usuario_id)} style={{ cursor: "pointer" }}>
@@ -158,12 +262,23 @@ export function Clientes({ abrir, onFicha }: { abrir: number | null; onFicha: (i
                 <td style={td}>{c.app.instalada ? (c.app.la_abrio_hace_dias == null ? "Instalada" : `Abrió ${hace(c.app.la_abrio_hace_dias)}`) : c.app.vio_la_oferta ? "Vio la oferta" : "No instaló"}</td>
                 <td style={td}>{c.mp ? "Sí" : "No"}</td>
                 <td style={td}>{c.estado_plan}</td>
+                <td style={td}><button style={{ ...btn, padding: "4px 8px", fontSize: 11 }} onClick={(e) => { e.stopPropagation(); marcar(c.usuario_id, true); }}>Es de prueba</button></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {vista.length === 0 && <div style={{ ...chico, padding: 12 }}>No hay clientes con ese filtro.</div>}
+      <div style={{ marginTop: 18, paddingTop: 12, borderTop: "1px solid #E3E8F0" }}>
+        <b style={{ fontSize: 14, color: "#0A1628" }}>Cuentas de prueba, aisladas ({pruebas.length})</b>
+        <p style={{ ...chico, margin: "2px 0 8px" }}>No cuentan en ningún número ni aparecen en &quot;Qué pasó&quot;. Se aíslan solas las tuyas (mismo navegador que tu cuenta de admin) y las que dicen test, prueba o demo. Si alguna es un cliente de verdad, tocá &quot;Es un cliente real&quot; y no se vuelve a marcar.</p>
+        {pruebas.map((c) => (
+          <div key={c.usuario_id} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", padding: "6px 0", borderTop: "1px solid #EEF1F5", fontSize: 13, color: "#0A1628" }}>
+            <span><b>{c.negocio}</b> <span style={chico}>{c.email}{c.prueba_auto ? " · detectada sola" : ""}</span></span>
+            <button style={{ ...btn, padding: "4px 8px", fontSize: 11 }} onClick={() => marcar(c.usuario_id, false)}>Es un cliente real</button>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -201,6 +316,11 @@ function FichaVista({ id, onVolver }: { id: number; onVolver: () => void }) {
         <div style={{ fontSize: 13, color: "#0A1628", marginTop: 10 }}><b>Qué hacer:</b> {c.accion}.</div>
         <div style={{ ...chico, marginTop: 4, fontStyle: "italic" }}>&ldquo;{c.mensaje}&rdquo;</div>
         <Contacto c={c} onHecho={cargar} />
+      </section>
+
+      <section style={card}>
+        <h3 style={{ margin: "0 0 10px", fontSize: 15, color: "#0A1628" }}>Su negocio en LumoBi</h3>
+        <Radiografia r={f.radiografia} />
       </section>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 14 }}>
