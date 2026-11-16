@@ -137,6 +137,12 @@ export const GUIAS: Record<string, Guia> = {
     vos: "Usala antes de hacerle el pedido o para negociar: tenés los números de cada compra.",
     requisitos: ["facturas"],
   },
+  "/resumen-mensual": {
+    titulo: "Resumen del mes",
+    lumobi: "Te cuenta qué hizo LumoBi por tu negocio este mes. Separa lo que recuperaste (plata que se midió: el problema bajó después de que lo resolviste) de lo que detectó (plata en juego que vio, como faltantes de caja o subas de proveedores).",
+    vos: "Tocá cada cosa detectada para ver el detalle. Usá las flechas para ver meses anteriores.",
+    requisitos: [],
+  },
   "/pedidos": {
     titulo: "Pedidos",
     lumobi: "Mira cuánto vendés de verdad de cada producto y te dice qué se va a terminar en los próximos 7 días y cuánto pedir para cubrir 2 semanas, agrupado por proveedor.",
