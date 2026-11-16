@@ -108,11 +108,6 @@ export default function PrimerosPasos() {
     if (ok) cargarEstado(token);
   }
 
-  function conectarMercadoPago() {
-    if (!token) return;
-    window.location.href = API + "/api/mp/conectar?token=" + token;
-  }
-
   async function irAlInicio() {
     try {
       if (token) {
@@ -189,7 +184,7 @@ export default function PrimerosPasos() {
             texto="Si ya vendías antes, subí tus ventas (Excel, PDF o una foto del cuaderno) y NICOLE arranca con historia. Si empezás de cero, saltealo: se llena solo con la caja.">
             {estado?.ventas && <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Ya hay ventas cargadas.</div>}
             <SubirVentas token={token} onListo={() => cargarEstado(token)} />
-            <button style={btnSecundario} onClick={conectarMercadoPago}>Conectar Mercado Pago</button>
+            <button style={btnSecundario} onClick={() => router.push("/mercado-pago")}>Traer mis cobros de Mercado Pago</button>
           </Tarjeta>
 
           <Tarjeta n={5} total={TOTAL} hecho={!!estado?.locales} titulo="Tus locales (opcional)"

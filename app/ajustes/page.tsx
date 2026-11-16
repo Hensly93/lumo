@@ -284,7 +284,7 @@ function SecMP({ token }: { token: string }) {
 
   function conectar() {
     if (typeof window === "undefined") return;
-    window.location.href = `${API}/api/mp/conectar?token=${token}`;
+    window.location.href = "/mercado-pago";
   }
 
   if (!mp) return <div style={{ color: "var(--muted)", fontSize: 13 }}>Verificando...</div>;
@@ -310,7 +310,7 @@ function SecMP({ token }: { token: string }) {
         <>
           <Btn label={importando ? "Importando..." : "Importar pagos de MP"} onClick={importar} disabled={importando} />
           <div style={{ fontSize: 11, color: "var(--muted)", textAlign: "center" }}>Importa los últimos 18 meses</div>
-          <Btn label="Reconectar cuenta" onClick={conectar} outline />
+          <Btn label="Reconectar o desconectar" onClick={conectar} outline />
         </>
       ) : (
         <>
