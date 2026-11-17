@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { subscribePush, getMotivoPush } from "../hooks/usePush";
 import SubirVentas from "../components/SubirVentas";
 import CajaRapida from "../components/CajaRapida";
+import GuiaCaja from "../components/GuiaCaja";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const FUENTE = "var(--font-instrument), sans-serif";
@@ -108,7 +109,10 @@ export default function PrimerosPasos() {
     {
       id: "caja", titulo: "Abrí tu caja", etiqueta: "Necesario", hecho: !!estado?.turno,
       porque: "Escribí quién atiende la caja (puede ser tu nombre) y elegí un PIN de 4 números. LumoBi es una caja simple: cada venta que cobrás acá es lo que después analiza para decirte dónde perdés plata y qué hacer. Los productos los cargás mientras vendés.",
-      contenido: <CajaRapida token={token} onListo={() => cargarEstado(token)} />,
+      contenido: (<>
+        <CajaRapida token={token} onListo={() => cargarEstado(token)} />
+        <GuiaCaja />
+      </>),
     },
     {
       id: "avisos", titulo: "Activá los avisos en tu celu", etiqueta: "Recomendado", hecho: !!estado?.avisos,

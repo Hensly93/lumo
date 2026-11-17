@@ -7,6 +7,7 @@ import AnularVenta from "./AnularVenta";
 import { PanelEfectivo, PanelMixto, PanelVarios, PanelDescuento } from "./Cobro";
 import BotonesTicket, { imprimirTicket, leerImpresora, ConfigImpresora } from "./Ticket";
 import CajaSinInternet from "./CajaSinInternet";
+import GrillaRapida, { esFraccionable, esLitro, type Rapido } from "./GrillaRapida";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -722,6 +723,23 @@ export default function EmpleadoPage() {
 
   const refBusq = useRef<any>(null);
 
+  // Acceso rápido: los productos que el dueño marcó en el catálogo para cobrar sin código
+  const [rapidos, setRapidos] = useState<Rapido[]>([]);
+  useEffect(() => {
+    if (paso !== "activo" || !turno?.id) return;
+    let vivo = true;
+    fetchT(`${API}/api/scanner/rapidos`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (vivo && d && Array.isArray(d.productos)) setRapidos(d.productos); })
+      .catch(() => { /* sin conexión: la grilla no se muestra, se sigue con pistola o buscador */ });
+    return () => { vivo = false; };
+  }, [paso, turno?.id]);
+
+  async function agregarRapido(productoId: number, cantidad: number) {
+    await agregarAlCarrito(productoId, cantidad);
+    try { if (window.matchMedia('(pointer: fine)').matches) document.getElementById('scan-input')?.focus(); } catch { /* sin foco */ }
+  }
+
   async function refrescarCarrito() {
     if (!turno?.id) return;
     try {
@@ -1425,6 +1443,8 @@ export default function EmpleadoPage() {
               <div style={{ marginTop: 8 }}>{linkChico('+ Algo sin código (precio a mano)', () => setPanel('varios'))}</div>
             </div>
 
+            <GrillaRapida rapidos={rapidos} onAgregar={agregarRapido} />
+
             {esperas.length > 0 && (
               <div style={{ marginBottom: 16, padding: 14, borderRadius: 16, background: 'rgba(255,149,0,0.08)', border: '1px solid rgba(255,149,0,0.35)' }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: C.amber, marginBottom: 6, letterSpacing: 0.5 }}>VENTAS EN ESPERA</div>
@@ -1443,9 +1463,9 @@ export default function EmpleadoPage() {
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '12px 0', borderBottom: `1px solid ${C.cardBorder}` }}>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontSize: 15, color: item.tipo_linea === 'descuento' ? C.green : C.text, fontWeight: 700 }}>{item.producto_nombre}</div>
-                    {item.tipo_linea !== 'descuento' && <div style={{ fontSize: 12, color: C.muted }}>{fmt(parseFloat(item.precio_unitario))} {Number.isInteger(Number(item.cantidad)) ? 'c/u' : 'el kilo'}</div>}
+                    {item.tipo_linea !== 'descuento' && <div style={{ fontSize: 12, color: C.muted }}>{fmt(parseFloat(item.precio_unitario))} {(Number.isInteger(Number(item.cantidad)) && !esFraccionable(item.producto_unidad)) ? 'c/u' : (esLitro(item.producto_unidad) ? 'el litro' : 'el kilo')}</div>}
                   </div>
-                  {item.tipo_linea === 'descuento' ? null : !Number.isInteger(Number(item.cantidad)) ? <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{Number(item.cantidad).toLocaleString('es-AR', { maximumFractionDigits: 3 })} kg</span> : (
+                  {item.tipo_linea === 'descuento' ? null : (!Number.isInteger(Number(item.cantidad)) || esFraccionable(item.producto_unidad)) ? <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{Number(item.cantidad).toLocaleString('es-AR', { maximumFractionDigits: 3 })} {esLitro(item.producto_unidad) ? 'l' : 'kg'}</span> : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <button aria-label="Uno menos" onClick={() => cambiarCantidad(item, parseFloat(item.cantidad) - 1)} style={{ width: 36, height: 36, borderRadius: 10, border: `2px solid ${C.cardBorder}`, background: 'transparent', color: C.text, fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>−</button>
                       <span style={{ minWidth: 26, textAlign: 'center', fontSize: 16, fontWeight: 800, color: C.text }}>{parseFloat(item.cantidad)}</span>

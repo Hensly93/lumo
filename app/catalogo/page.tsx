@@ -24,6 +24,7 @@ type Producto = {
   updated_at: string;
   codigo_barras?: string | null;
   marca?: string | null;
+  acceso_rapido?: boolean;
 };
 
 type DupProd = { id: number; nombre: string; marca: string | null; codigo_barras: string | null; unidades_vendidas: number };
@@ -165,11 +166,12 @@ function Encabezado({ titulo, sub, atras }: { titulo: string; sub?: string; atra
 
 // ─── Tarjeta de producto ──────────────────────────────────────────────────────
 function ProductCard({
-  p, onEdit, onDelete, stale,
+  p, onEdit, onDelete, onRapido, stale,
 }: {
   p: Producto;
   onEdit: (p: Producto) => void;
   onDelete: (id: number) => void;
+  onRapido: (p: Producto) => void;
   stale?: PrecioStale;
 }) {
   const margen = margenPct(p.precio_venta, p.precio_costo);
@@ -226,6 +228,13 @@ function ProductCard({
         <a href={`/ficha/producto/${p.id}`} style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 700, color: "#007AFF", textDecoration: "none" }}>Ver ficha →</a>
       </div>
       <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+        <button onClick={() => onRapido(p)}
+          aria-pressed={!!p.acceso_rapido}
+          aria-label={p.acceso_rapido ? "Sacar de la grilla de la caja" : "Poner en la grilla de la caja"}
+          title="Aparece como botón grande en la caja, para cobrar sin código"
+          style={{ ...btnSecundario, padding: "6px 10px", fontSize: 11, ...(p.acceso_rapido ? { borderColor: "var(--yellow)", color: "var(--yellow)", fontWeight: 700 } : {}) }}>
+          {p.acceso_rapido ? "★ En la caja" : "☆ A la caja"}
+        </button>
         <button onClick={() => onEdit(p)} style={{ ...btnSecundario, padding: "6px 10px", fontSize: 11 }}>Editar</button>
         <button onClick={() => onDelete(p.id)} aria-label="Eliminar" style={{ ...btnSecundario, padding: "6px 9px", fontSize: 13, color: ROJO, borderColor: ROJO }}>×</button>
       </div>
@@ -845,6 +854,23 @@ export default function Catalogo() {
     showToast("Eliminado", true);
   }
 
+  async function alternarRapido(p: Producto) {
+    const quiere = !p.acceso_rapido;
+    try {
+      const r = await fetch(`${API}/api/productos/${p.id}/rapido`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token!}` },
+        body: JSON.stringify({ acceso_rapido: quiere }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { showToast(d.error || "No se pudo cambiar. Probá de nuevo.", false); return; }
+      setProductos(ps => ps.map(x => x.id === p.id ? { ...x, acceso_rapido: quiere } : x));
+      showToast(quiere ? "Ya aparece en la caja" : "Lo sacamos de la caja", true);
+    } catch {
+      showToast("Sin conexión. Probá de nuevo.", false);
+    }
+  }
+
   const productosFiltrados = productos
     .filter(p => {
       const matchCat = !catFiltro || p.categoria === catFiltro;
@@ -1332,6 +1358,20 @@ export default function Catalogo() {
 
           {token && <CambiosEquipo token={token} />}
 
+          {/* Grilla de la caja: cómo se arma */}
+          {productos.length > 0 && (
+            <div style={{ padding: "12px 16px 0" }}>
+              <div style={{ ...caja, padding: "12px 16px" }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>
+                  Grilla de la caja: {productos.filter(p => p.acceso_rapido).length} producto{productos.filter(p => p.acceso_rapido).length === 1 ? "" : "s"}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.6 }}>
+                  Tocá <strong>☆ A la caja</strong> en lo que vendés sin código de barras (pan, facturas, fiambre, verdura) y aparece como botón grande en la caja. Si se vende por kilo, poné “kg” en la unidad del producto y la caja pregunta cuántos kilos.
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Lista */}
           <div style={{ padding: "12px 16px 0", display: "flex", flexDirection: "column", gap: 8 }}>
             {productosFiltrados.length === 0 ? (
@@ -1340,7 +1380,7 @@ export default function Catalogo() {
               </div>
             ) : (
               productosFiltrados.map(p => (
-                <ProductCard key={p.id} p={p} onEdit={setEditando} onDelete={eliminarProducto} stale={stalePrecios.find(s => s.id === p.id)} />
+                <ProductCard key={p.id} p={p} onEdit={setEditando} onDelete={eliminarProducto} onRapido={alternarRapido} stale={stalePrecios.find(s => s.id === p.id)} />
               ))
             )}
           </div>
