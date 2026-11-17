@@ -5,6 +5,7 @@ import SwRegistrar from "./components/SwRegistrar";
 import AppShell from "./components/AppShell";
 import MetaPixel from "./components/MetaPixel";
 import PostHogInit from "./components/PostHogInit";
+import RapidoFetch from "./components/RapidoFetch";
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -53,8 +54,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es-AR" className={instrumentSans.variable}>
       <head>
         <link rel="apple-touch-icon" href="/api/pwa-icon?size=192" />
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com"} crossOrigin="anonymous" />
       </head>
       <body>
+        <RapidoFetch />
         <SwRegistrar />
         <MetaPixel />
         <PostHogInit />
