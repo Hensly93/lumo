@@ -112,13 +112,6 @@ export default function PrimerosPasos() {
       contenido: <CajaRapida token={token} modo="crear" onListo={() => cargarEstado(token)} />,
     },
     {
-      id: "avisos", titulo: "Activá los avisos en tu celu", etiqueta: "Recomendado", hecho: !!estado?.avisos,
-      porque: "Al cerrar cada turno te llega cuánto vendiste, si la caja cerró bien y qué hacer. Usá Chrome; y si podés, bajá LumoBi con el botón de arriba.",
-      contenido: estado?.avisos
-        ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Los avisos están activados.</div>
-        : <button style={btnPrimario} onClick={activarAvisos}>Activar avisos</button>,
-    },
-    {
       id: "catalogo", titulo: "Cargá tus productos con su costo", etiqueta: "Recomendado", hecho: hayProductos,
       porque: "Con el costo de lo que vendés, LumoBi te dice qué te deja plata y qué no. Podés hacerlo de a poco: con la pistola lectora, a mano o con la foto de la factura del proveedor.",
       contenido: <button style={hayProductos ? btnSecundario : btnPrimario} onClick={() => router.push("/catalogo")}>{hayProductos ? "Ver mis productos" : "Cargar mis productos"}</button>,
@@ -130,6 +123,13 @@ export default function PrimerosPasos() {
         <CajaRapida token={token} modo="abrir" />
         <GuiaCaja />
       </>),
+    },
+    {
+      id: "avisos", titulo: "Activá los avisos en tu celu", etiqueta: "Recomendado", hecho: !!estado?.avisos,
+      porque: "Al cerrar cada turno te llega cuánto vendiste, si la caja cerró bien y qué hacer. Usá Chrome; y si podés, bajá LumoBi con el botón de arriba.",
+      contenido: estado?.avisos
+        ? <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Los avisos están activados.</div>
+        : <button style={btnPrimario} onClick={activarAvisos}>Activar avisos</button>,
     },
     ...(estado && !estado.negocio ? [{
       id: "negocio", titulo: "Contanos de tu negocio", etiqueta: "Recomendado" as const, hecho: false,

@@ -1,11 +1,13 @@
 "use client";
-// RegistroSimple — registrarse en LumoBi con una pregunta por pantalla (14/11/2026)
-// Regla: que lo pueda hacer cualquiera, sin dudar. Un dato por pantalla, botones grandes, nada opcional
-// que distraiga. CUIT, zona y tamaño del negocio se piden después, cuando hacen falta.
-// Al terminar entra directo a "Abrí tu caja".
+// RegistroSimple — registrarse en LumoBi en 3 pantallas + una de bienvenida (17/11/2026)
+// Regla: que 9 de cada 10 lo terminen. Poco para escribir (rubro, tamaño con un toque, negocio + email + contraseña),
+// cada dato con su "para qué" en una línea, el precio a la vista antes de crear la cuenta (se arma con el tamaño:
+// locales, cajas y empleados) y, al terminar, una pantalla que muestra lo que LumoBi ya dejó hecho.
+// Celular, CUIT y dirección se piden después, cuando hacen falta.
 import InstalarLumo from "../components/InstalarLumo";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { track } from "../lib/track";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const TINTA = "#0A1628";
@@ -135,37 +137,113 @@ const btn = (activo: boolean): React.CSSProperties => ({
 
 const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
 
+// Tamaño del negocio: de esto sale el precio (precios.js). Se manda el tope de cada tramo, que es lo que define el escalón.
+const LOCALES = [1, 2, 3, 4, 5];
+const CAJAS = [1, 2, 3, 4, 5, 6];
+const EMPLEADOS: { l: string; v: number }[] = [
+  { l: "Hasta 5", v: 5 }, { l: "6 a 10", v: 10 }, { l: "11 a 20", v: 20 }, { l: "21 a 29", v: 29 }, { l: "30 o más", v: 30 },
+];
+
+type Plan = { plan: "normal" | "empresarial"; precio: number | null; desglose: { concepto: string; monto: number }[] };
+
+const plata = (n: number) => "$" + Math.round(n).toLocaleString("es-AR");
+
+// Nombre para la caja a partir del email (se puede cambiar después): "hens.castelly@gmail.com" → "Hens"
+function nombreDeEmail(email: string): string {
+  const base = (email.split("@")[0] || "").split(/[^a-zA-ZáéíóúñÁÉÍÓÚÑ]+/).filter(Boolean)[0] || "";
+  return base ? base.charAt(0).toUpperCase() + base.slice(1).toLowerCase() : "Dueño";
+}
+
+// PIN de 4 números al azar, sin repetidos ni escaleras fáciles
+function pinAlAzar(): string {
+  for (let i = 0; i < 30; i++) {
+    const n = crypto.getRandomValues(new Uint32Array(1))[0] % 10000;
+    const p = String(n).padStart(4, "0");
+    if (/^(\d)\1{3}$/.test(p) || "0123456789".includes(p) || "9876543210".includes(p)) continue;
+    return p;
+  }
+  return "4827";
+}
+
+function Chip({ activo, onClick, children }: { activo: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" aria-pressed={activo} onClick={onClick}
+      style={{
+        minWidth: 52, padding: "12px 14px", borderRadius: 12, cursor: "pointer", fontFamily: FUENTE, fontSize: 16, fontWeight: 700,
+        border: `1.5px solid ${activo ? AZUL : BORDE}`, background: activo ? "#EAF2FE" : "#FFFFFF", color: activo ? AZUL : TINTA,
+      }}>
+      {children}
+    </button>
+  );
+}
+
 export default function RegistroSimple() {
   const router = useRouter();
   const [paso, setPaso] = useState(0);
-  const [d, setD] = useState({ rubro: "", negocio: "", nombre: "", celular: "", email: "", password: "" });
+  const [d, setD] = useState({ rubro: "", negocio: "", email: "", password: "" });
+  const [tam, setTam] = useState({ locales: 1, cajas: 1, empleados: 5 });
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [planError, setPlanError] = useState(false);
   const [ver, setVer] = useState(false);
+  const [comoFunciona, setComoFunciona] = useState(false);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
-  const TOTAL = 4;
+  const [lista, setLista] = useState<{ nombre: string; pin: string | null }>({ nombre: "", pin: null });
+  const TOTAL = 3;
 
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement>) => { setD({ ...d, [k]: e.target.value }); setError(""); };
-  const siguiente = () => { setError(""); setPaso((p) => p + 1); };
+  const ir = (p: number) => { setError(""); setPaso(p); };
+
+  // Qué pantalla ve cada persona: sirve para saber en cuál se cae la gente
+  useEffect(() => { track("registro_paso", undefined, { paso }); }, [paso]);
+
+  // El precio se arma en vivo con el tamaño (cálculo público del servidor: la misma fórmula que se cobra)
+  useEffect(() => {
+    if (paso !== 1 && paso !== 2 && paso !== 3) return;
+    let vigente = true;
+    setPlanError(false);
+    fetch(`${API}/api/plan/calcular`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cajas: Array(tam.locales).fill(tam.cajas), empleados: tam.empleados }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("calc"))))
+      .then((p: Plan) => { if (vigente) setPlan(p); })
+      .catch(() => { if (vigente) { setPlan(null); setPlanError(true); } });
+    return () => { vigente = false; };
+  }, [tam, paso]);
 
   async function crear() {
+    if (!d.negocio.trim()) { setError("Escribí cómo se llama tu negocio"); return; }
     if (!emailOk(d.email)) { setError("Revisá el email: tiene que ser como nombre@gmail.com"); return; }
     if (d.password.length < 6) { setError("La contraseña tiene que tener 6 letras o números como mínimo"); return; }
     setCargando(true); setError("");
+    const nombre = nombreDeEmail(d.email);
     try {
       const r = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombre: d.nombre.trim(), negocio: d.negocio.trim(), tipo_negocio: d.rubro,
-          celular: d.celular, email: d.email.trim(), password: d.password,
-        }),
+        body: JSON.stringify({ nombre, negocio: d.negocio.trim(), tipo_negocio: d.rubro, email: d.email.trim(), password: d.password }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "No se pudo crear la cuenta. Probá de nuevo.");
       localStorage.setItem("lumo_token", data.token);
       localStorage.setItem("lumo_usuario", JSON.stringify(data.usuario));
       try { sessionStorage.setItem("lumo_ya_uso_prueba", data.plan && data.plan.ya_uso_prueba ? "1" : "0"); } catch { /* sin acceso */ }
-      router.replace("/primeros-pasos?paso=caja");
+
+      // Lo que LumoBi deja hecho solo. Si algo falla, no frena nada: queda como paso en "Primeros pasos".
+      const h = { "Content-Type": "application/json", Authorization: `Bearer ${data.token}` };
+      const pin = pinAlAzar();
+      const [, caja] = await Promise.all([
+        fetch(`${API}/api/plan/tamano`, { method: "PATCH", headers: h, body: JSON.stringify({ locales: tam.locales, cajas: tam.cajas, empleados: tam.empleados }) }).catch(() => null),
+        fetch(`${API}/api/usuario/empleados`, { method: "POST", headers: h, body: JSON.stringify({ nombre, pin }) })
+          .then(async (x) => (x.ok ? ((await x.json().catch(() => ({}))) as { id?: number }) : null)).catch(() => null),
+      ]);
+      if (caja && caja.id) {
+        // Quien arma la caja puede dar de alta productos al escanearlos (si no, la primera venta se traba)
+        await fetch(`${API}/api/usuario/empleados/${caja.id}`, { method: "PATCH", headers: h, body: JSON.stringify({ puede_cargar_productos: true }) }).catch(() => null);
+      }
+      setLista({ nombre, pin: caja ? pin : null });
+      ir(3);
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo crear la cuenta. Probá de nuevo.");
     } finally {
@@ -174,46 +252,59 @@ export default function RegistroSimple() {
   }
 
   const titulo = (t: string, sub?: string) => (
-    <div style={{ marginBottom: 18 }}>
-      <div style={{ fontSize: 23, fontWeight: 800, color: TINTA, lineHeight: 1.25 }}>{t}</div>
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ fontSize: 24, fontWeight: 800, color: TINTA, lineHeight: 1.25 }}>{t}</div>
       {sub && <div style={{ fontSize: 15, color: SUAVE, marginTop: 6, lineHeight: 1.5 }}>{sub}</div>}
+    </div>
+  );
+  const ayuda = (t: string) => <div style={{ fontSize: 13, color: SUAVE, marginTop: 5, lineHeight: 1.45 }}>{t}</div>;
+  const etiqueta = (t: string, sub?: string) => (
+    <div style={{ marginTop: 6 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: TINTA }}>{t}</div>
+      {sub && <div style={{ fontSize: 13, color: SUAVE, marginTop: 2 }}>{sub}</div>}
     </div>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <InstalarLumo compacta />
-      {/* Avance */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-        {paso > 0 && (
-          <button type="button" onClick={() => { setPaso(paso - 1); setError(""); }}
-            style={{ background: "none", border: "none", color: SUAVE, fontSize: 15, cursor: "pointer", padding: 0, fontFamily: FUENTE }}>
-            ← Atrás
-          </button>
-        )}
-        <div style={{ flex: 1, display: "flex", gap: 6, justifyContent: "flex-end" }}>
-          {Array.from({ length: TOTAL }, (_, i) => (
-            <div key={i} style={{ width: i === paso ? 22 : 8, height: 8, borderRadius: 4, background: i <= paso ? AZUL : "#E2E8F0" }} />
-          ))}
-        </div>
-      </div>
 
+      {/* Avance: solo en las 3 pantallas de datos */}
+      {paso < 3 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+          {paso > 0 && (
+            <button type="button" onClick={() => ir(paso - 1)}
+              style={{ background: "none", border: "none", color: SUAVE, fontSize: 15, cursor: "pointer", padding: 0, fontFamily: FUENTE }}>
+              ← Atrás
+            </button>
+          )}
+          <div style={{ flex: 1, display: "flex", gap: 6, justifyContent: "flex-end", alignItems: "center" }}>
+            <span style={{ fontSize: 13, color: SUAVE, marginRight: 4 }}>Paso {paso + 1} de {TOTAL}</span>
+            {Array.from({ length: TOTAL }, (_, i) => (
+              <div key={i} style={{ width: i === paso ? 22 : 8, height: 8, borderRadius: 4, background: i <= paso ? AZUL : "#E2E8F0" }} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 1. Qué vendés ── */}
       {paso === 0 && (
         <>
-          <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.55, padding: "12px 14px", background: "#EAF2FE", borderRadius: 12, marginBottom: 6 }}>
-            <strong style={{ color: TINTA }}>LumoBi es una caja simple para cobrar y, con cada venta, se convierte en el analista de tu negocio:</strong> no te da planillas ni números sueltos, te dice dónde perdés plata y qué hacer. Cobra con pistola lectora o buscando el producto, controla a tu equipo y predice cuánto vas a vender.
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-              {PILARES.map((p) => (
-                <span key={p.id} style={{ fontSize: 13, fontWeight: 700, color: TINTA, background: "#FFFFFF", border: "1px solid #D6E4FB", borderRadius: 999, padding: "5px 10px" }}>
-                  {p.icono} {p.titulo}
-                </span>
+          <div style={{ fontSize: 16, color: "#334155", lineHeight: 1.5, padding: "12px 14px", background: "#EAF2FE", borderRadius: 12 }}>
+            <strong style={{ color: TINTA }}>LumoBi te muestra dónde perdés plata y qué hacer.</strong> 5 días gratis, sin tarjeta.
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10, fontSize: 14 }}>
+              {["Cobrás con la caja de LumoBi", "LumoBi analiza cada venta", "Te avisa dónde perdés plata y qué hacer"].map((t, i) => (
+                <div key={t} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span aria-hidden style={{ width: 22, height: 22, borderRadius: 11, background: AZUL, color: "#fff", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
+                  <span>{t}</span>
+                </div>
               ))}
             </div>
           </div>
-          {titulo("¿Qué negocio tenés?", "LumoBi está hecho para comercios que venden productos. Tocá el que más se parece.")}
+          {titulo("¿Qué vendés?", "Tocá el que más se parece a tu negocio.")}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {RUBROS.map((r) => (
-              <button key={r.id} type="button" onClick={() => { setD({ ...d, rubro: r.id }); setPaso(1); }}
+              <button key={r.id} type="button" onClick={() => { setD({ ...d, rubro: r.id }); setError(""); }} aria-pressed={d.rubro === r.id}
                 style={{
                   padding: "16px 10px", borderRadius: 14, cursor: "pointer", fontFamily: FUENTE,
                   border: `1.5px solid ${d.rubro === r.id ? AZUL : BORDE}`, background: d.rubro === r.id ? "#EAF2FE" : "#FFFFFF",
@@ -224,62 +315,130 @@ export default function RegistroSimple() {
               </button>
             ))}
           </div>
+          {EJEMPLO[d.rubro] && <div style={{ fontSize: 14, color: "#1E3A8A", lineHeight: 1.55, padding: "10px 12px", background: "#EAF2FE", borderRadius: 10 }}>{EJEMPLO[d.rubro]}</div>}
+          <button type="button" style={btn(!!d.rubro)} onClick={() => { if (d.rubro) ir(1); else setError("Tocá el que más se parece a tu negocio"); }}>Seguir</button>
+          {error && <div role="alert" style={{ color: "#B91C1C", fontSize: 15 }}>{error}</div>}
         </>
       )}
 
+      {/* ── 2. Tamaño y plan ── */}
       {paso === 1 && (
-        <form onSubmit={(e) => { e.preventDefault(); if (d.negocio.trim() && d.nombre.trim()) siguiente(); }} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {titulo("¿Cómo se llama tu negocio?")}
-          <input style={input} value={d.negocio} onChange={set("negocio")} placeholder="Ej: Kiosco Don Pepe" aria-label="Nombre del negocio" autoFocus />
-          <div style={{ fontSize: 17, fontWeight: 700, color: TINTA, marginTop: 6 }}>¿Y vos cómo te llamás?</div>
-          <input style={input} value={d.nombre} onChange={set("nombre")} placeholder="Tu nombre" aria-label="Tu nombre" autoComplete="given-name" />
-          <button type="submit" style={btn(!!(d.negocio.trim() && d.nombre.trim()))}>Seguir</button>
-          <div style={{ fontSize: 13, fontWeight: 700, color: SUAVE, letterSpacing: 1, textTransform: "uppercase", marginTop: 10 }}>Qué vas a tener</div>
-          <Tarjeta id="cobrar" />
-          <Tarjeta id="controlar" />
-        </form>
-      )}
-
-      {paso === 2 && (
-        <form onSubmit={(e) => { e.preventDefault(); if (d.celular.replace(/\D/g, "").length >= 8) siguiente(); else setError("Escribí tu celular con el código de área, ej: 11 2345 6789"); }}
-          style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {titulo("¿Cuál es tu celular?", "Por si necesitás ayuda, te escribimos por WhatsApp.")}
-          <input style={input} type="tel" inputMode="tel" value={d.celular} onChange={set("celular")} placeholder="11 2345 6789" aria-label="Celular" autoComplete="tel" autoFocus />
-          {error && <div role="alert" style={{ color: "#B91C1C", fontSize: 15, lineHeight: 1.5 }}>{error}</div>}
-          <button type="submit" style={btn(d.celular.replace(/\D/g, "").length >= 8)}>Seguir</button>
-          <div style={{ fontSize: 13, fontWeight: 700, color: SUAVE, letterSpacing: 1, textTransform: "uppercase", marginTop: 10 }}>Y además</div>
-          <Tarjeta id="predecir" />
-          <Tarjeta id="recomendar" />
-          {EJEMPLO[d.rubro] && <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.55, fontStyle: "italic" }}>{EJEMPLO[d.rubro]}</div>}
-        </form>
-      )}
-
-      {paso === 3 && (
-        <form onSubmit={(e) => { e.preventDefault(); crear(); }} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {titulo("Último paso", "Con esto entrás a LumoBi desde cualquier celu o compu.")}
-          <input style={input} type="email" inputMode="email" value={d.email} onChange={set("email")} placeholder="Tu email" aria-label="Tu email" autoComplete="email" autoFocus />
-          <div style={{ position: "relative" }}>
-            <input style={{ ...input, paddingRight: 90 }} type={ver ? "text" : "password"} value={d.password} onChange={set("password")}
-              placeholder="Inventá una contraseña" aria-label="Contraseña" autoComplete="new-password" />
-            <button type="button" onClick={() => setVer(!ver)}
-              style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: AZUL, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FUENTE }}>
-              {ver ? "Ocultar" : "Ver"}
-            </button>
+        <>
+          {titulo("¿De qué tamaño es tu negocio?", "Con esto armamos tu plan. Si tenés un solo local, dejá todo como está y seguí.")}
+          {etiqueta("Locales")}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {LOCALES.map((n) => <Chip key={n} activo={tam.locales === n} onClick={() => setTam({ ...tam, locales: n })}>{n === 5 ? "5 o más" : n}</Chip>)}
           </div>
-          <div style={{ fontSize: 13, color: SUAVE }}>Mínimo 6 letras o números.</div>
+          {etiqueta("Cajas en cada local", "Una caja es un lugar donde se cobra.")}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {CAJAS.map((n) => <Chip key={n} activo={tam.cajas === n} onClick={() => setTam({ ...tam, cajas: n })}>{n === 6 ? "6 o más" : n}</Chip>)}
+          </div>
+          {etiqueta("Empleados", "Sin contarte a vos.")}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {EMPLEADOS.map((o) => <Chip key={o.v} activo={tam.empleados === o.v} onClick={() => setTam({ ...tam, empleados: o.v })}>{o.l}</Chip>)}
+          </div>
+
+          <div style={{ padding: "12px 14px", background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: 12, marginTop: 4 }}>
+            {plan && plan.plan === "normal" && plan.precio != null ? (
+              <>
+                <div style={{ fontSize: 13, color: "#047857" }}>Tu plan</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: "#065F46" }}>{plata(plan.precio)} <span style={{ fontSize: 15, fontWeight: 600 }}>por mes + IVA</span></div>
+                {plan.desglose.length > 1 && (
+                  <div style={{ fontSize: 13, color: "#047857", marginTop: 4, lineHeight: 1.5 }}>
+                    {plan.desglose.map((x) => <div key={x.concepto}>{x.concepto}: {plata(x.monto)}</div>)}
+                  </div>
+                )}
+              </>
+            ) : plan && plan.plan === "empresarial" ? (
+              <>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#065F46" }}>Plan a medida</div>
+                <div style={{ fontSize: 14, color: "#047857", marginTop: 2, lineHeight: 1.5 }}>Para un negocio de este tamaño armamos el precio con vos. Podés crear tu cuenta igual y probar 5 días gratis.</div>
+              </>
+            ) : (
+              <div style={{ fontSize: 14, color: "#047857" }}>{planError ? "Tu plan se calcula con este tamaño y lo ves antes de pagar." : "Calculando tu plan…"}</div>
+            )}
+            <div style={{ fontSize: 13, color: "#047857", marginTop: 6 }}>Pagás recién después de los 5 días gratis. Sin tarjeta.</div>
+          </div>
+          <button type="button" style={btn(true)} onClick={() => ir(2)}>Seguir</button>
+        </>
+      )}
+
+      {/* ── 3. Cuenta ── */}
+      {paso === 2 && (
+        <form onSubmit={(e) => { e.preventDefault(); crear(); }} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {titulo("Creá tu cuenta", "Último paso: tres datos.")}
+          <div>
+            <input style={input} value={d.negocio} onChange={set("negocio")} placeholder="Ej: Kiosco Don Pepe" aria-label="Nombre del negocio" autoComplete="organization" autoFocus />
+            {ayuda("Así se llama tu caja y tus informes.")}
+          </div>
+          <div>
+            <input style={input} type="email" inputMode="email" value={d.email} onChange={set("email")} placeholder="Tu email" aria-label="Tu email" autoComplete="email" />
+            {ayuda("Para entrar y recibir el resumen de cada turno.")}
+          </div>
+          <div>
+            <div style={{ position: "relative" }}>
+              <input style={{ ...input, paddingRight: 90 }} type={ver ? "text" : "password"} value={d.password} onChange={set("password")}
+                placeholder="Elegí una contraseña" aria-label="Contraseña" autoComplete="new-password" />
+              <button type="button" onClick={() => setVer(!ver)}
+                style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: AZUL, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FUENTE, padding: "8px 10px" }}>
+                {ver ? "Ocultar" : "Ver"}
+              </button>
+            </div>
+            {ayuda("Mínimo 6 letras o números. Se guarda cifrada.")}
+          </div>
           {error && <div role="alert" style={{ color: "#B91C1C", fontSize: 15, lineHeight: 1.5 }}>{error}</div>}
-          <button type="submit" disabled={cargando} style={btn(!cargando && !!d.email && d.password.length >= 6)}>
+          <button type="submit" disabled={cargando} style={btn(!cargando && !!d.negocio.trim() && !!d.email && d.password.length >= 6)}>
             {cargando ? "Creando tu cuenta…" : "Crear mi cuenta gratis"}
           </button>
-          <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.5, padding: "12px 14px", background: "#EAF2FE", borderRadius: 12, marginTop: 4 }}>
-            <strong style={{ color: TINTA }}>5 días gratis, sin tarjeta, con todo incluido.</strong> Después, desde $45.000 por mes + IVA. Si no te sirve, no pagás nada.
+          <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.55, padding: "10px 12px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12 }}>
+            <div><strong style={{ color: TINTA }}>5 días gratis, sin tarjeta.</strong>{plan && plan.plan === "normal" && plan.precio != null ? <> Después, {plata(plan.precio)} por mes + IVA.</> : null}</div>
+            <div style={{ marginTop: 4 }}>Nadie ve tus números: cada negocio ve solo lo suyo.</div>
           </div>
-          <Tarjeta id="datos" />
-          <Tarjeta id="avisos" />
+          <button type="button" onClick={() => setComoFunciona(!comoFunciona)} aria-expanded={comoFunciona}
+            style={{ background: "none", border: "none", padding: 0, color: AZUL, fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: FUENTE, textAlign: "left" }}>
+            {comoFunciona ? "Ocultar cómo funciona" : "¿Cómo funciona LumoBi? Mirá en 30 segundos"}
+          </button>
+          {comoFunciona && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <Tarjeta id="cobrar" />
+              <Tarjeta id="controlar" />
+              <Tarjeta id="predecir" />
+              <Tarjeta id="recomendar" />
+            </div>
+          )}
           <p style={{ margin: "2px 0 0", fontSize: 12, color: SUAVE, textAlign: "center", lineHeight: 1.6 }}>
-             Al crear tu cuenta aceptás los <a href="/terminos" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>términos</a> y la <a href="/privacidad" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>privacidad</a>.
+            Al crear tu cuenta aceptás los <a href="/terminos" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>términos</a> y la <a href="/privacidad" target="_blank" rel="noopener" style={{ color: "inherit", textDecoration: "underline" }}>privacidad</a>.
           </p>
         </form>
+      )}
+
+      {/* ── Cuenta lista ── */}
+      {paso === 3 && (
+        <>
+          {titulo("Tu cuenta quedó lista", "Esto ya lo dejó hecho LumoBi por vos:")}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              lista.pin ? `Caja creada a nombre de ${lista.nombre}` : null,
+              lista.pin ? `PIN de la caja: ${lista.pin}. Anotalo: es la llave para abrirla. Lo cambiás en Mi local.` : null,
+              plan && plan.plan === "normal" && plan.precio != null ? `Tu plan: ${plata(plan.precio)} por mes + IVA, recién después de los 5 días gratis.` : plan && plan.plan === "empresarial" ? "Tu plan: a medida. Lo armamos con vos." : "5 días de prueba gratis, sin tarjeta.",
+            ].filter(Boolean).map((t) => (
+              <div key={t as string} style={{ display: "flex", gap: 10, fontSize: 16, color: TINTA, lineHeight: 1.45 }}>
+                <span aria-hidden style={{ width: 24, height: 24, borderRadius: 12, background: "#16A34A", color: "#fff", fontSize: 14, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✓</span>
+                <span>{t}</span>
+              </div>
+            ))}
+          </div>
+          {!lista.pin && <div style={{ fontSize: 14, color: SUAVE, lineHeight: 1.5 }}>La caja la dejás lista en el primer paso de la próxima pantalla.</div>}
+          <div style={{ padding: "12px 14px", background: "#EAF2FE", borderRadius: 12 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: TINTA }}>Siguiente: cargá tus productos más vendidos</div>
+            <div style={{ fontSize: 14, color: "#334155", marginTop: 4, lineHeight: 1.5 }}>Con el costo de cada uno, LumoBi te dice cuáles te dejan plata y cuáles no. Podés empezar con los 20 que más vendés.</div>
+          </div>
+          <button type="button" style={btn(true)} onClick={() => router.replace("/primeros-pasos?paso=catalogo")}>Cargar mis productos</button>
+          <button type="button" onClick={() => router.replace("/primeros-pasos")}
+            style={{ background: "none", border: "none", color: SUAVE, fontSize: 15, cursor: "pointer", fontFamily: FUENTE, padding: 8 }}>
+            Lo hago después
+          </button>
+        </>
       )}
     </div>
   );
