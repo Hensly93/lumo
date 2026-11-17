@@ -218,7 +218,7 @@ function OnboardingInner() {
             type="text"
             value={nombreNegocio}
             onChange={(e) => setNombreNegocio(e.target.value)}
-            placeholder="Ej: Café Central"
+            placeholder="Ej: Kiosco Don Pepe"
             style={{
               width: "100%",
               padding: "14px 16px",
@@ -239,8 +239,6 @@ function OnboardingInner() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "20px" }}>
             {[
-              { label: "Restaurante y parrilla", valor: "restaurante" },
-              { label: "Café y bar", valor: "cafeteria" },
               { label: "Panadería", valor: "panaderia" },
               { label: "Kiosco", valor: "kiosko" },
               { label: "Almacén", valor: "almacen" },

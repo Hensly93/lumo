@@ -60,7 +60,7 @@ export default function MercadoPagoPage() {
 
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Tus cobros de Mercado Pago" sub="Es opcional: LumoBi funciona sin esto" />
+      <PageHeader title="Tus cobros de Mercado Pago" sub="Lo que le permite a LumoBi ver toda la plata que entra" />
       <div style={{ padding: "0 16px" }}>
         {!e && <div style={{ color: "var(--tinta-apagada)" }}>Cargando…</div>}
 
@@ -91,6 +91,7 @@ export default function MercadoPagoPage() {
             <Fila ok>Cruza lo que entró a tu Mercado Pago con lo que anotó tu caja. Si entró plata que nadie anotó, te avisa. Ejemplo: la caja anotó $80.000 y entraron $95.000: hay $15.000 sin anotar.</Fila>
             <Fila ok>Puede traer hasta 18 meses de tus cobros, así arranca con historia. Con más historia, los avisos y las predicciones se ajustan mejor a tu negocio.</Fila>
             <Fila ok>Ve la comisión real que te sacó Mercado Pago en cada cobro.</Fila>
+            <div style={{ ...texto, marginTop: 10, fontWeight: 700 }}>Sin conectarlo, LumoBi solo ve lo que se anota en la caja: no puede detectar plata que entró por QR o posnet y nadie anotó.</div>
           </div>
 
           <div style={{ ...caja, border: "2px solid var(--tinta)" }}>

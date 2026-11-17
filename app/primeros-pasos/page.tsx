@@ -107,7 +107,7 @@ export default function PrimerosPasos() {
   const pasos: PasoDef[] = token ? [
     {
       id: "caja", titulo: "Abrí tu caja", etiqueta: "Necesario", hecho: !!estado?.turno,
-      porque: "Escribí quién atiende la caja (puede ser tu nombre) y elegí un PIN de 4 números. Los productos los cargás mientras vendés.",
+      porque: "Escribí quién atiende la caja (puede ser tu nombre) y elegí un PIN de 4 números. LumoBi es una caja simple: cada venta que cobrás acá es lo que después analiza para decirte dónde perdés plata y qué hacer. Los productos los cargás mientras vendés.",
       contenido: <CajaRapida token={token} onListo={() => cargarEstado(token)} />,
     },
     {
@@ -133,7 +133,6 @@ export default function PrimerosPasos() {
       contenido: (<>
         {estado?.ventas && <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Ya hay ventas cargadas.</div>}
         <SubirVentas token={token} onListo={() => cargarEstado(token)} />
-        <button style={btnSecundario} onClick={() => router.push("/mercado-pago")}>Traer mis cobros de Mercado Pago</button>
       </>),
     },
     {

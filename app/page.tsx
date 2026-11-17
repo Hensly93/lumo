@@ -4,6 +4,7 @@ import { RecuperadoLinea } from "./components/RecuperadoCard";
 import { UltimoTurnoCard, ProyeccionCard, AprendizajeCard, type InformeTurno, type Proyeccion, type Aprendizaje } from "./components/PrimerosDias";
 import Nav from "./components/Nav";
 import BannerPasos from "./components/BannerPasos";
+import ConectarMP from "./components/ConectarMP";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
@@ -486,6 +487,7 @@ function HomeContent() {
 
             <BannerPasos token={token} onVentas={setHayVentas} soloVentas />
             <ActivacionCard compacta />
+            {hayVentas === true && <ConectarMP token={token} />}
 
             {hayVentas === false ? (
               <div style={{ margin: "0 0 16px", padding: "16px", borderRadius: 14, border: "1px solid var(--linea)", background: "var(--blanco)" }}>

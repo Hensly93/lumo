@@ -18,8 +18,6 @@ const RUBROS: { id: string; nombre: string; icono: string }[] = [
   { id: "kiosko", nombre: "Kiosco", icono: "🍫" },
   { id: "almacen", nombre: "Almacén", icono: "🥫" },
   { id: "supermercado", nombre: "Supermercado", icono: "🛒" },
-  { id: "cafeteria_bar", nombre: "Café o bar", icono: "☕" },
-  { id: "restaurante", nombre: "Restaurante o parrilla", icono: "🍽️" },
   { id: "panaderia", nombre: "Panadería", icono: "🥐" },
   { id: "farmacia", nombre: "Farmacia", icono: "💊" },
   { id: "retail_indumentaria", nombre: "Ropa u otro comercio", icono: "🛍️" },
@@ -30,8 +28,9 @@ type Pilar = { id: string; icono: string; titulo: string; resumen: string; items
 const PILARES: Pilar[] = [
   {
     id: "cobrar", icono: "🧾", titulo: "Cobrar",
-    resumen: "LumoBi es la caja de tu local.",
+    resumen: "Una caja simple, hecha para que cada venta alimente el análisis.",
     items: [
+      "Cada venta que cobrás es lo que LumoBi analiza para decirte dónde perdés plata",
       "Cobrás con pistola lectora o buscando el producto",
       "Efectivo, QR, débito y crédito",
       "Cada venta guarda qué se vendió y quién la cobró",
@@ -120,8 +119,6 @@ const EJEMPLO: Record<string, string> = {
   kiosko: "Por ejemplo: si hoy los alfajores se venden el doble que siempre, LumoBi te avisa y te sugiere un combo con lo que tus clientes ya compran juntos.",
   almacen: "Por ejemplo: si un producto que se vendía todos los días dejó de venderse, LumoBi te avisa que probablemente te falta stock y cuánta plata perdés por día.",
   supermercado: "Por ejemplo: LumoBi te muestra qué cajera cierra con diferencias, qué productos te dejan poca ganancia y qué reponer antes del fin de semana.",
-  cafeteria_bar: "Por ejemplo: si 6 de cada 10 que piden café se llevan una medialuna, LumoBi te arma el combo y te dice cuánto ganarías por mes.",
-  restaurante: "Por ejemplo: LumoBi te avisa una hora antes de tu franja fuerte cuánto vas a vender y qué platos no pueden faltar.",
   panaderia: "Por ejemplo: LumoBi te dice cuánto vas a vender mañana para que no sobre ni falte, y en qué horario se te va la plata.",
   farmacia: "Por ejemplo: LumoBi te muestra qué productos te dejan más ganancia y te avisa si una caja cierra con diferencia.",
   retail_indumentaria: "Por ejemplo: LumoBi te dice qué días y horarios rinden más, quién del equipo vende mejor y qué se dejó de vender.",
@@ -204,7 +201,7 @@ export default function RegistroSimple() {
       {paso === 0 && (
         <>
           <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.55, padding: "12px 14px", background: "#EAF2FE", borderRadius: 12, marginBottom: 6 }}>
-            <strong style={{ color: TINTA }}>LumoBi es la caja de tu negocio y el encargado que lo controla todo:</strong> cobra con pistola lectora, controla a tu equipo, te avisa dónde perdés plata, predice cuánto vas a vender y te dice qué hacer.
+            <strong style={{ color: TINTA }}>LumoBi es una caja simple para cobrar y, con cada venta, se convierte en el analista de tu negocio:</strong> no te da planillas ni números sueltos, te dice dónde perdés plata y qué hacer. Cobra con pistola lectora o buscando el producto, controla a tu equipo y predice cuánto vas a vender.
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
               {PILARES.map((p) => (
                 <span key={p.id} style={{ fontSize: 13, fontWeight: 700, color: TINTA, background: "#FFFFFF", border: "1px solid #D6E4FB", borderRadius: 999, padding: "5px 10px" }}>
@@ -213,7 +210,7 @@ export default function RegistroSimple() {
               ))}
             </div>
           </div>
-          {titulo("¿Qué negocio tenés?", "Tocá el que más se parece.")}
+          {titulo("¿Qué negocio tenés?", "LumoBi está hecho para comercios que venden productos. Tocá el que más se parece.")}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {RUBROS.map((r) => (
               <button key={r.id} type="button" onClick={() => { setD({ ...d, rubro: r.id }); setPaso(1); }}
