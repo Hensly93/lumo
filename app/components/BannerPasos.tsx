@@ -59,9 +59,14 @@ export default function BannerPasos({ token, onVentas, soloVentas }: { token: st
         // Primero lo único imprescindible: la caja (quién atiende + PIN + abrirla). El resto suma después.
         const lista: Paso[] = [
           {
-            id: "turno", hecho: !!e.turno, titulo: "Abrí tu caja",
-            porque: "Poné quién atiende y un PIN, y abrí la caja: en un minuto estás cobrando. Al cerrar el turno te llega cuánto vendiste y qué hacer.",
-            boton: "Abrir mi caja", ir: "/primeros-pasos?paso=caja",
+            id: "equipo", hecho: !!e.equipo, titulo: "Dejá lista tu caja",
+            porque: "Poné quién atiende y un PIN de 4 números. Solo se guarda: la caja se abre cuando vas a cobrar.",
+            boton: "Dejar lista la caja", ir: "/primeros-pasos?paso=caja",
+          },
+          {
+            id: "turno", hecho: !!e.turno, titulo: "Empezá a cobrar",
+            porque: "Cuando estés en el local, abrí la caja y cobrá tu primera venta. Al cerrar el turno te llega cuánto vendiste y qué hacer.",
+            boton: "Ir a cobrar", ir: "/primeros-pasos?paso=cobrar",
           },
           {
             id: "avisos", hecho: !!e.avisos, titulo: "Activá los avisos en tu celu",

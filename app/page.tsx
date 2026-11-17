@@ -495,7 +495,7 @@ function HomeContent() {
                 <div style={{ fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.55, marginBottom: 12 }}>
                   Cuando cobres tu primera venta con la caja, acá vas a ver cuánto vendiste, cuánto vas a vender y dónde se te va la plata.
                 </div>
-                <button onClick={() => router.push("/primeros-pasos?paso=caja")}
+                <button onClick={() => router.push("/primeros-pasos?paso=cobrar")}
                   style={{ width: "100%", padding: "12px", borderRadius: 8, border: "none", background: "var(--tinta)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                   Ir a la caja y cobrar
                 </button>

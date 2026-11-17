@@ -107,12 +107,9 @@ export default function PrimerosPasos() {
   // Lo único imprescindible es la caja. El resto suma, pero no frena la primera venta.
   const pasos: PasoDef[] = token ? [
     {
-      id: "caja", titulo: "Abrí tu caja", etiqueta: "Necesario", hecho: !!estado?.turno,
-      porque: "Escribí quién atiende la caja (puede ser tu nombre) y elegí un PIN de 4 números. LumoBi es una caja simple: cada venta que cobrás acá es lo que después analiza para decirte dónde perdés plata y qué hacer. Los productos los cargás mientras vendés.",
-      contenido: (<>
-        <CajaRapida token={token} onListo={() => cargarEstado(token)} />
-        <GuiaCaja />
-      </>),
+      id: "caja", titulo: "Dejá lista tu caja", etiqueta: "Necesario", hecho: !!estado?.equipo,
+      porque: "Escribí quién atiende la caja (puede ser tu nombre) y elegí un PIN de 4 números. Solo se guarda: la caja se abre más adelante, cuando estés en el local para cobrar. LumoBi es una caja simple: cada venta que cobrás es lo que después analiza para decirte dónde perdés plata y qué hacer.",
+      contenido: <CajaRapida token={token} modo="crear" onListo={() => cargarEstado(token)} />,
     },
     {
       id: "avisos", titulo: "Activá los avisos en tu celu", etiqueta: "Recomendado", hecho: !!estado?.avisos,
@@ -125,6 +122,14 @@ export default function PrimerosPasos() {
       id: "catalogo", titulo: "Cargá tus productos con su costo", etiqueta: "Recomendado", hecho: hayProductos,
       porque: "Con el costo de lo que vendés, LumoBi te dice qué te deja plata y qué no. Podés hacerlo de a poco: con la pistola lectora, a mano o con la foto de la factura del proveedor.",
       contenido: <button style={hayProductos ? btnSecundario : btnPrimario} onClick={() => router.push("/catalogo")}>{hayProductos ? "Ver mis productos" : "Cargar mis productos"}</button>,
+    },
+    {
+      id: "cobrar", titulo: "Empezá a cobrar", etiqueta: "Recomendado", hecho: !!estado?.turno,
+      porque: "Hacelo cuando estés en el local y listo para vender. Acá abrís la caja, conectás la pistola y cobrás la primera venta. Los productos los vas cargando mientras vendés.",
+      contenido: (<>
+        <CajaRapida token={token} modo="abrir" />
+        <GuiaCaja />
+      </>),
     },
     ...(estado && !estado.negocio ? [{
       id: "negocio", titulo: "Contanos de tu negocio", etiqueta: "Recomendado" as const, hecho: false,
@@ -155,7 +160,7 @@ export default function PrimerosPasos() {
   useEffect(() => {
     if (decidido.current || !estado || !cargado) return;
     decidido.current = true;
-    const ids: Record<string, string> = { equipo: "caja", codigo: "caja", turno: "caja", caja: "caja", avisos: "avisos", catalogo: "catalogo", ventas: "ventas", locales: "locales", negocio: "negocio" };
+    const ids: Record<string, string> = { equipo: "caja", codigo: "cobrar", turno: "cobrar", cobrar: "cobrar", caja: "caja", avisos: "avisos", catalogo: "catalogo", ventas: "ventas", locales: "locales", negocio: "negocio" };
     const pedido = ids[new URLSearchParams(window.location.search).get("paso") || ""];
     setAbierto(pedido ?? siguiente);
   }, [estado, cargado, siguiente]);

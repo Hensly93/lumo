@@ -1,6 +1,6 @@
 "use client";
 // GuiaCaja — qué hacer, paso por paso, para empezar a cobrar: abrir la caja, conectar la pistola y la primera venta.
-// Va dentro del paso "Abrí tu caja" de Primeros pasos. Todo lo que dice es lo que la caja hace hoy.
+// Va dentro del paso "Empezá a cobrar" de Primeros pasos. Todo lo que dice es lo que la caja hace hoy.
 import { useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 
@@ -35,7 +35,7 @@ export default function GuiaCaja() {
 
       <Paso n={1} titulo="Abrí la caja donde vas a cobrar">
         <div style={t2}>
-          Poné tu nombre y un PIN de 4 números en el formulario de arriba: con eso se abre la caja. Entrá con tu nombre y tu PIN. La primera vez la caja te pregunta si tenés billetes para dar vuelto: si no, tocá “No, arranco sin plata en la caja”.
+          Tocá <b>“Abrir la caja en este celu”</b> (arriba) cuando estés en el local. Entrá con tu nombre y tu PIN. La primera vez la caja te pregunta si tenés billetes para dar vuelto: si no, tocá “No, arranco sin plata en la caja”.
           Si la caja va a estar en otra compu o celu del local, tocá <b>“La caja está en otra compu o celu del local”</b>: te da el link para mandar por WhatsApp o un QR.
         </div>
       </Paso>

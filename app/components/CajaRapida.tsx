@@ -1,7 +1,8 @@
 "use client";
 // CajaRapida — de cuenta nueva a primera venta en un solo paso (14/11/2026)
 // Antes: cargar productos → crear empleado en otra pantalla → copiar link → entrar a Modo empleado.
-// Ahora: nombre + PIN acá mismo → "Abrir la caja". Los productos se dan de alta en la caja al escanearlos.
+// Dos modos: "crear" (configurar: nombre + PIN, NO abre la caja) y "abrir" (operar: entrar a la caja cuando el dueño va a cobrar).
+// Los productos se dan de alta en la caja al escanearlos.
 import { useEffect, useState, type CSSProperties } from "react";
 import LinkCaja from "./LinkCaja";
 
@@ -23,7 +24,7 @@ const btnS: CSSProperties = {
 
 type Empleado = { id: number; nombre: string };
 
-export default function CajaRapida({ token, onListo }: { token: string; onListo?: () => void }) {
+export default function CajaRapida({ token, onListo, modo = "crear" }: { token: string; onListo?: () => void; modo?: "crear" | "abrir" }) {
   const [empleados, setEmpleados] = useState<Empleado[] | null>(null);
   const [codigo, setCodigo] = useState<string | null>(null);
   const [nombre, setNombre] = useState("");
@@ -71,7 +72,6 @@ export default function CajaRapida({ token, onListo }: { token: string; onListo?
       }
       setEmpleados([...(empleados || []), { id: d.id || 0, nombre: n }]);
       if (onListo) onListo();
-      abrirCaja();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo guardar");
     } finally {
@@ -81,15 +81,33 @@ export default function CajaRapida({ token, onListo }: { token: string; onListo?
 
   if (empleados === null) return <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Cargando…</div>;
 
-  // Todavía no hay nadie para la caja: se crea acá mismo
-  if (!empleados.length) {
+  // Modo "abrir": es el momento de cobrar. Si todavía no hay quién atienda, se avisa dónde crearlo.
+  if (modo === "abrir" && !empleados.length) {
+    return <div style={{ fontSize: 13, color: "var(--muted, #64748B)", lineHeight: 1.5 }}>Primero creá quién atiende la caja (paso 1). Después vuelvas acá y la abrís.</div>;
+  }
+
+  // Modo "crear" y todavía no hay nadie para la caja: se crea acá mismo, sin abrirla
+  if (modo === "crear" && !empleados.length) {
     return (
       <>
         <input style={input} value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Quién atiende (puede ser tu nombre)" />
         <input style={input} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
           placeholder="PIN de 4 números" inputMode="numeric" type="password" autoComplete="new-password" />
         {error && <div style={{ fontSize: 13, color: "#B3261E" }}>{error}</div>}
-        <button style={btnP} onClick={crear} disabled={guardando}>{guardando ? "Guardando…" : "Crear y abrir la caja"}</button>
+        <button style={btnP} onClick={crear} disabled={guardando}>{guardando ? "Guardando…" : "Guardar"}</button>
+      </>
+    );
+  }
+
+  // Modo "crear" con gente ya cargada: queda listo, la caja se abre más abajo, cuando el dueño vaya a cobrar
+  if (modo === "crear") {
+    return (
+      <>
+        <div style={{ fontSize: 13, color: "#16A34A", fontWeight: 700 }}>✓ Listo</div>
+        <div style={{ fontSize: 13, color: "var(--muted, #64748B)", lineHeight: 1.5 }}>
+          En la caja: {empleados.map((e) => e.nombre).join(", ")}. Entran con su nombre y su PIN. La caja se abre más abajo, en <b>“Empezá a cobrar”</b>, cuando estés en el local.
+        </div>
+        <button style={btnS} onClick={() => { window.location.href = "/mi-local"; }}>Sumar a otra persona</button>
       </>
     );
   }
