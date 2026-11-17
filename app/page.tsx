@@ -131,10 +131,12 @@ function HomeContent() {
     if (!ready) return;
     if (!token) { router.replace("/landing"); return; }
     const headers = { Authorization: `Bearer ${token}` };
-    Promise.all([
-      fetch(`${API}/api/inicio${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers }).then(r => r.json()).catch(() => null),
-      fetch(`${API}/api/negocio/wow-moment`, { headers }).then(r => r.json()).catch(() => null),
-    ]).then(([ini, wow]) => {
+    // Carga rápida: lo último que vimos se muestra al instante y se actualiza en segundo plano.
+    // El análisis completo tarda; el dueño no tiene que mirar "Cargando..." cada vez que entra.
+    const clave = `lumo_inicio:${token.slice(-16)}:${sucursalId ?? 0}`;
+    let vigente = true;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const aplicar = (ini: any) => {
       setAnalisis(ini?.analisis ?? null);
       setAlertas(ini?.revisar?.items || []);
       // Si el motor no pudo analizar, no mostrar "En orden": no sabemos si está en orden
@@ -144,10 +146,48 @@ function HomeContent() {
       setProyeccion(ini?.proyeccion_hoy ?? null);
       setAprendizaje(ini?.aprendizaje ?? null);
       setPredPreliminar(!!ini?.hoy?.preliminar);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setPred(ini?.hoy?.disponible ? { disponible: true, facturacion: { disponible: true, venta_diaria_esperada: ini.hoy.esperado_dia, confianza: { pct: ini.hoy.confianza_pct } } } as any : null);
-      setWowPatterns(wow?.patrones || []);
+    };
+    let hayCache = false;
+    try {
+      const ci = localStorage.getItem(clave + ":i");
+      if (ci) {
+        const o = JSON.parse(ci);
+        if (o && !o.error) {
+          aplicar(o);
+          const cw = localStorage.getItem(clave + ":w");
+          if (cw) setWowPatterns(JSON.parse(cw)?.patrones || []);
+          setLoading(false);
+          hayCache = true;
+        }
+      }
+    } catch { /* sin cache: se carga normal */ }
+
+    // Cada pedido aparece apenas llega; ya no esperan el uno al otro
+    fetch(`${API}/api/inicio${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers }).then(r => r.json()).catch(() => null).then((ini) => {
+      if (!vigente) return;
+      if (ini && !ini.error) {
+        aplicar(ini);
+        try {
+          // Se guarda solo lo de esta cuenta: las copias de otras sesiones se borran
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith("lumo_inicio:") && !k.startsWith(`lumo_inicio:${token.slice(-16)}:`)) localStorage.removeItem(k);
+          }
+          localStorage.setItem(clave + ":i", JSON.stringify(ini));
+        } catch { /* sin espacio: no pasa nada */ }
+      } else if (!hayCache) {
+        aplicar(ini);
+      }
       setLoading(false);
     });
+    fetch(`${API}/api/negocio/wow-moment`, { headers }).then(r => r.json()).catch(() => null).then((wow) => {
+      if (!vigente || !wow) return;
+      setWowPatterns(wow.patrones || []);
+      try { localStorage.setItem(clave + ":w", JSON.stringify(wow)); } catch { /* idem */ }
+    });
+    return () => { vigente = false; };
   }, [ready, token, sucursalId]);
 
   const dq = dqScore(analisis?.data_quality_score);
