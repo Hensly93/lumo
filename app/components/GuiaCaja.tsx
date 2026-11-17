@@ -35,7 +35,7 @@ export default function GuiaCaja() {
 
       <Paso n={1} titulo="Abrí la caja donde vas a cobrar">
         <div style={t2}>
-          Poné tu nombre y un PIN de 4 números en el formulario de arriba: con eso se abre la caja. Entrá con tu nombre y tu PIN, y escribí con cuánta plata arrancás.
+          Poné tu nombre y un PIN de 4 números en el formulario de arriba: con eso se abre la caja. Entrá con tu nombre y tu PIN. La primera vez la caja te pregunta si tenés billetes para dar vuelto: si no, tocá “No, arranco sin plata en la caja”.
           Si la caja va a estar en otra compu o celu del local, tocá <b>“La caja está en otra compu o celu del local”</b>: te da el link para mandar por WhatsApp o un QR.
         </div>
       </Paso>

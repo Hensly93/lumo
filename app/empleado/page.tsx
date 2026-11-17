@@ -512,6 +512,9 @@ export default function EmpleadoPage() {
   const [turno, setTurno] = useState<any>(null);
   const [conteoPend, setConteoPend] = useState<any>(null);
   const [aperturaEfectivo, setAperturaEfectivo] = useState("");
+  const [primerTurno, setPrimerTurno] = useState(false);
+  const [ultimoCierre, setUltimoCierre] = useState<number | null>(null);
+  const [contarDeNuevo, setContarDeNuevo] = useState(false);
   const [egresoMonto, setEgresoMonto] = useState("");
   const [egresoMotivo, setEgresoMotivo] = useState("");
   const [conteoMonto, setConteoMonto] = useState("");
@@ -987,6 +990,9 @@ export default function EmpleadoPage() {
         SESION_TOKEN = d.sesion_token || ""; setTurno(d.turno_activo);
         setPaso("activo");
       } else {
+        setPrimerTurno(d.primer_turno === true);
+        setUltimoCierre(typeof d.ultimo_cierre === "number" ? d.ultimo_cierre : null);
+        setContarDeNuevo(false);
         setPaso("apertura");
       }
     } catch {
@@ -996,8 +1002,9 @@ export default function EmpleadoPage() {
     }
   }
 
-  async function handleApertura() {
-    if (!aperturaEfectivo) { setError("Escribí cuánta plata hay en la caja (si no hay, poné 0)"); return; }
+  // monto: si viene, se abre con ese efectivo sin pedir nada (primer turno en 0, o "sigue igual" que el último cierre)
+  async function handleApertura(monto?: number) {
+    if (monto === undefined && !aperturaEfectivo) { setError("Escribí cuánta plata hay en la caja (si no hay, poné 0)"); return; }
     setLoading(true);
     setError("");
     try {
@@ -1008,7 +1015,7 @@ export default function EmpleadoPage() {
           negocio_id: negocioId,
           nombre_empleado: empleadoSel,
           pin,
-          caja_apertura: parseFloat(aperturaEfectivo),
+          caja_apertura: monto !== undefined ? monto : parseFloat(aperturaEfectivo),
           sucursal_id: sucursalSel?.id ?? null,
         }),
       });
@@ -1313,21 +1320,43 @@ export default function EmpleadoPage() {
   );
 
   // ─── SCREEN 5: apertura ─────────────────────────────────────────────────────
-  if (paso === "apertura") return (
+  // Tres casos: primer turno del negocio (se pregunta si hay billetes para el vuelto, con "no" a un toque),
+  // turno siguiente (se pregunta si sigue la plata que quedó al cerrar) y "contar de nuevo" (el formulario de siempre).
+  if (paso === "apertura") {
+    const modoPrimero = primerTurno && !contarDeNuevo;
+    const modoSigue = !primerTurno && ultimoCierre !== null && !contarDeNuevo;
+    return (
     <main style={{ background: C.bg, minHeight: '100vh', fontFamily: 'var(--font-instrument), sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ maxWidth: 420, width: '100%' }}>
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <h2 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 24, color: C.muted, margin: '0 0 12px 0' }}>Bienvenido/a, {empleadoSel}</h2>
-          <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Cuánta plata en efectivo hay en la caja?</h1>
-          <p style={{ fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.5 }}>Contá los billetes antes de empezar. Así, al cerrar, se sabe si la caja cerró bien. Si no hay nada, poné 0.</p>
+          {modoPrimero ? (<>
+            <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 30, color: C.text, margin: 0 }}>Abramos tu primera caja</h1>
+            <p style={{ fontSize: 15, color: C.muted, marginTop: 12, lineHeight: 1.5 }}>¿Tenés billetes en el cajón para dar vuelto? Sirve para que, al cerrar, LumoBi te diga si la plata cerró bien. Si no estás seguro, arrancá sin plata.</p>
+          </>) : modoSigue ? (<>
+            <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 30, color: C.text, margin: 0 }}>¿Hay {fmt(ultimoCierre as number)} en la caja?</h1>
+            <p style={{ fontSize: 15, color: C.muted, marginTop: 12, lineHeight: 1.5 }}>Es lo que quedó al cerrar el último turno. Si hay otra cantidad, contá de nuevo.</p>
+          </>) : (<>
+            <h1 style={{ fontFamily: 'var(--font-instrument), sans-serif', fontWeight: 800, fontSize: 32, color: C.text, margin: 0 }}>¿Cuánta plata en efectivo hay en la caja?</h1>
+            <p style={{ fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.5 }}>Contá los billetes antes de empezar. Así, al cerrar, se sabe si la caja cerró bien. Si no hay nada, poné 0.</p>
+          </>)}
         </div>
         <ErrorBox error={error} />
-        <CurrencyInput value={aperturaEfectivo} onChange={v => { setAperturaEfectivo(v); setError(""); }} placeholder="15000" />
-        <PrimaryButton loading={loading} label="Abrir turno" onPress={handleApertura} color={C.green} />
-        <SecondaryButton label="← Volver" onPress={() => { setPaso("pin"); setError(""); }} color={C.muted} />
+        {modoPrimero ? (<>
+          <PrimaryButton loading={loading} label="No, arranco sin plata en la caja" onPress={() => handleApertura(0)} color={C.green} />
+          <SecondaryButton label="Sí, tengo billetes: contarlos" onPress={() => { setContarDeNuevo(true); setError(""); }} color={C.primary} />
+        </>) : modoSigue ? (<>
+          <PrimaryButton loading={loading} label="Sí, abrir turno" onPress={() => handleApertura(ultimoCierre as number)} color={C.green} />
+          <SecondaryButton label="No, contar de nuevo" onPress={() => { setContarDeNuevo(true); setError(""); }} color={C.primary} />
+        </>) : (<>
+          <CurrencyInput value={aperturaEfectivo} onChange={v => { setAperturaEfectivo(v); setError(""); }} placeholder="15000" />
+          <PrimaryButton loading={loading} label="Abrir turno" onPress={() => handleApertura()} color={C.green} />
+        </>)}
+        <SecondaryButton label="← Volver" onPress={() => { setPaso("pin"); setError(""); setContarDeNuevo(false); }} color={C.muted} />
       </div>
     </main>
-  );
+    );
+  }
 
   // ─── SCREEN 6: activo ───────────────────────────────────────────────────────
   if (paso === "activo") {
