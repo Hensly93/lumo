@@ -11,6 +11,10 @@ type Prod = {
   stock: number | null; stock_minimo: number | null; vendido30: number; dias_restantes: number | null; dias_sin_venta: number | null; estado: Estado;
 };
 type Resumen = { controlados: number; sin_control: number; agotados: number; bajos: number; negativos: number; sin_movimiento: number; capital: number; capital_parado: number };
+type Mov = { id: number; tipo: string; cantidad: number; stock_despues: number | null; creado: string };
+const TIPO_MOV: Record<string, string> = {
+  venta: "Venta", anulacion: "Venta anulada", compra: "Compra", compra_anulada: "Compra anulada", conteo: "Conteo", inicial: "Stock inicial",
+};
 type Filtro = "reponer" | "parados" | "todos" | "sin_control" | "negativos";
 
 const fmt = (n: number) => "$" + Math.round(n).toLocaleString("es-AR");
@@ -37,8 +41,21 @@ export default function StockVista({ token, avisar }: { token: string; avisar: (
   const [minimo, setMinimo] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [vista, setVista] = useState<"stock" | "ventas">("stock");
+  const [hist, setHist] = useState<Record<number, Mov[] | "cargando" | "error">>({});
 
   const h = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+
+  // De dónde sale el número de stock: cada venta, compra y conteo que lo movió
+  async function verHistorial(id: number) {
+    if (Array.isArray(hist[id])) { setHist(x => { const n = { ...x }; delete n[id]; return n; }); return; }
+    setHist(x => ({ ...x, [id]: "cargando" }));
+    try {
+      const r = await fetch(`${API}/api/stock/movimientos?producto_id=${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json();
+      if (!r.ok) throw new Error();
+      setHist(x => ({ ...x, [id]: d.movimientos as Mov[] }));
+    } catch { setHist(x => ({ ...x, [id]: "error" })); }
+  }
 
   const cargar = useCallback(async () => {
     try {
@@ -183,6 +200,22 @@ export default function StockVista({ token, avisar }: { token: string; avisar: (
                   <input inputMode="decimal" value={minimo} onChange={ev => setMinimo(ev.target.value)} placeholder="unidades" style={{ ...campo, flex: 1 }} />
                   <button onClick={() => guardarMinimo(p)} style={{ ...btn(true), padding: "10px 16px" }}>Guardar</button>
                 </div>
+                <button onClick={() => verHistorial(p.id)} style={{ ...btn(false), width: "100%", marginTop: 8, fontSize: 12, padding: "9px" }}>
+                  {Array.isArray(hist[p.id]) ? "Ocultar historial" : "Ver de dónde sale este número"}
+                </button>
+                {hist[p.id] === "cargando" && <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>Cargando…</div>}
+                {hist[p.id] === "error" && <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>No pude cargar el historial. Probá de nuevo.</div>}
+                {Array.isArray(hist[p.id]) && (
+                  <div style={{ marginTop: 6 }}>
+                    {(hist[p.id] as Mov[]).length === 0 && <div style={{ fontSize: 12, color: "var(--muted)" }}>Todavía no hay movimientos.</div>}
+                    {(hist[p.id] as Mov[]).map(m => (
+                      <div key={m.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "4px 0", borderBottom: "1px solid var(--border)" }}>
+                        <span>{new Date(m.creado).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" })} · {TIPO_MOV[m.tipo] ?? m.tipo}</span>
+                        <span>{m.cantidad > 0 ? "+" : ""}{num(m.cantidad)}{m.stock_despues != null ? ` → ${num(m.stock_despues)}` : ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <button onClick={() => dejar(p)} style={{ ...btn(false), width: "100%", marginTop: 8, fontSize: 12, padding: "9px", color: "var(--muted)" }}>Dejar de controlar este producto</button>
               </div>
             )}

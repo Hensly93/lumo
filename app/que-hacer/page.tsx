@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Nav from "../components/Nav";
 import { PageHeader } from "../components/ui";
+import CalidadDatos from "../components/CalidadDatos";
 import { useAuth } from "../hooks/useAuth";
 import { useSucursal } from "../hooks/useSucursal";
 
@@ -96,6 +97,8 @@ export default function QueHacer() {
                 </div>
               )}
             </div>
+
+            <CalidadDatos />
 
             {d.items.length === 0 && (
               <div style={{ ...tarjeta, ...chico }}>

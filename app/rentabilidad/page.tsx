@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Nav from "../components/Nav";
 import { useSucursal } from "../hooks/useSucursal";
 import { PageHeader } from "../components/ui";
+import CalidadDatos from "../components/CalidadDatos";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -131,6 +132,7 @@ export default function RentabilidadPage() {
 
       {r && r.hay_gastos && !editor && act && (
         <>
+          <CalidadDatos />
           <Recomendaciones recs={r.recomendaciones ?? []} />
 
           {/* Último mes cerrado */}
