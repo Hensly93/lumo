@@ -11,8 +11,9 @@ export const metadata: Metadata = {
 export default function Privacidad() {
   return (
     <PaginaLegal titulo="Política de privacidad" actualizado="13 de noviembre de 2026"
-      intro="LumoBi es una herramienta para comercios y gastronomía que muestra dónde el negocio pierde plata. Para eso usa los datos de tu negocio. Acá te contamos cuáles, para qué y qué control tenés sobre ellos.">
+      intro="LumoBi es una herramienta para comercios que muestra dónde el negocio pierde plata. Para eso usa los datos de tu negocio. Acá te contamos cuáles, para qué y qué control tenés sobre ellos.">
       <Seccion titulo="Qué datos usamos">
+        <p style={{ margin: 0 }}><strong>Aprender entre negocios:</strong> para saber qué es normal en cada rubro, LumoBi combina datos agrupados y anónimos de varios negocios del mismo rubro. Nunca se muestran ni se comparten los números de un negocio en particular, y solo se publica un promedio cuando hay suficientes negocios en el grupo.</p>
         <p style={{ margin: 0 }}><strong>De tu cuenta:</strong> nombre, email, celular, nombre del negocio, rubro, zona y, si lo cargás, CUIT.</p>
         <p style={{ margin: 0 }}><strong>De tu operación:</strong> productos, precios y costos, stock, ventas, turnos de caja, movimientos de la caja, facturas de proveedores y los nombres y PIN de tu equipo.</p>
         <p style={{ margin: 0 }}><strong>Si conectás Mercado Pago:</strong> los movimientos de tu cuenta, con tu autorización. Podés desconectarlo cuando quieras.</p>

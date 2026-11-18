@@ -13,7 +13,7 @@ export default function Terminos() {
     <PaginaLegal titulo="Términos y condiciones" actualizado="13 de noviembre de 2026"
       intro="Estos términos regulan el uso de LumoBi. Al crear una cuenta o usar el servicio, los aceptás. Si no estás de acuerdo, no lo uses.">
       <Seccion titulo="El servicio">
-        <p style={{ margin: 0 }}>LumoBi ofrece herramientas para comercios y gastronomía: caja, catálogo, stock, control del equipo y análisis que señalan dónde el negocio puede estar perdiendo plata. El servicio está en versión beta: puede tener errores, cambios y interrupciones.</p>
+        <p style={{ margin: 0 }}>LumoBi ofrece herramientas para comercios: caja, catálogo, stock, control del equipo y análisis que señalan dónde el negocio puede estar perdiendo plata. El servicio está en versión beta: puede tener errores, cambios y interrupciones.</p>
       </Seccion>
       <Seccion titulo="Tu cuenta">
         <p style={{ margin: 0 }}>Tenés que dar datos verdaderos y mantener tu contraseña y los PIN de tu equipo en reserva. Sos responsable de lo que se haga con tu cuenta y con los accesos que crees para tus empleados.</p>

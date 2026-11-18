@@ -6,11 +6,10 @@ import { subscribePush } from "../hooks/usePush";
 import ConfirmCancelSubscriptionModal from "../components/ConfirmCancelSubscriptionModal";
 import ConfirmDeleteAccountModal from "../components/ConfirmDeleteAccountModal";
 import CodigoAcceso from "../components/CodigoAcceso";
+import { opcionesRubro } from "../lib/rubros";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
-const TIPOS = ["kiosko","almacen","supermercado","retail_indumentaria","retail_electronica","retail_hogar","retail_otro","farmacia","retail","cafeteria","restaurante","parrilla","panaderia"];
-const NOMBRE_TIPO: Record<string, string> = { retail_indumentaria: "Ropa y calzado", retail_electronica: "Electrónica y tecnología", retail_hogar: "Hogar y bazar", retail_otro: "Otro comercio", retail: "Retail (general)" };
 const POS_OPTIONS = ["Ninguno","Maxirest","iZettle","Aloha","Lightspeed","Otro"];
 
 type Perfil = {
@@ -230,7 +229,7 @@ function SecNegocio({ token, perfil, onSave }: { token: string; perfil: Perfil; 
         <input style={inp()} placeholder="Nombre del negocio" value={form.negocio} onChange={set("negocio")} />
         <select style={inp()} value={form.tipo_negocio} onChange={set("tipo_negocio")}>
           <option value="">Tipo de negocio</option>
-          {TIPOS.map(t => <option key={t} value={t}>{NOMBRE_TIPO[t] ?? t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+          {opcionesRubro(perfil.tipo_negocio).map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
         </select>
         <input style={inp()} placeholder="Provincia" value={form.provincia} onChange={set("provincia")} />
         <input style={inp()} placeholder="Ciudad" value={form.ciudad} onChange={set("ciudad")} />

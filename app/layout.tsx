@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s | LumoBi",
   },
   description:
-    "Control de caja y detección de pérdidas de dinero para pymes, comercios y gastronomía de Argentina. Ventas, Mercado Pago y predicción en un solo lugar. 5 días gratis.",
+    "Control de caja y detección de pérdidas de dinero para kioscos, almacenes, supermercados y comercios de Argentina. Ventas, Mercado Pago y predicción en un solo lugar. 5 días gratis.",
   applicationName: "LumoBi",
   openGraph: {
     siteName: "LumoBi", locale: "es_AR", type: "website",

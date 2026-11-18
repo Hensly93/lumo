@@ -10,11 +10,11 @@ import { PAGINAS, SITIO } from "../soluciones/datos";
 export const metadata: Metadata = {
   title: { absolute: "LumoBi: control de caja y fugas de plata para pymes y comercios" },
   description:
-    "Control de caja y detección de pérdidas de dinero para pymes, comercios y gastronomía de Argentina. Ventas, Mercado Pago y predicción en un solo lugar. 5 días gratis.",
+    "Control de caja y detección de pérdidas de dinero para kioscos, almacenes, supermercados y comercios de Argentina. Ventas, Mercado Pago y predicción en un solo lugar. 5 días gratis.",
   keywords: [
     "control de caja", "arqueo de caja", "faltante de caja", "pérdidas de dinero en negocios", "fugas de plata",
     "business intelligence para pymes", "inteligencia de negocios", "software para pymes", "comercio minorista",
-    "comercio mayorista", "gastronomía", "restaurantes", "predicción de ventas", "Mercado Pago", "Argentina",
+    "comercio minorista", "kioscos", "supermercados", "predicción de ventas", "Mercado Pago", "Argentina",
   ],
   alternates: { canonical: "/landing" },
   openGraph: {
@@ -151,8 +151,8 @@ const FAQS = [
   { q: "¿Cuánto tarda en funcionar?", a: "El control de caja funciona desde el primer turno. Cuantos más días de datos tiene LumoBi, más precisa es la referencia de lo que es normal en tu negocio y mejores son los avisos." },
   { q: "¿Cuánto cuesta?", a: "Desde $45.000 + IVA por mes, con 1 local y hasta 3 cajas. Si tenés más locales, cajas o empleados, el precio se ajusta y lo ves antes de pagar. Para grandes superficies o muchos locales, escribinos." },
   { q: "¿Qué pasa cuando termina la prueba?", a: "Tus datos quedan guardados. Ves un resumen del último mes y, cuando activás el plan, volvés a ver todo. Si no lo activás, no pasa nada más." },
-  { q: "¿Mis datos están a salvo?", a: "Cada negocio ve únicamente su información. Los datos de un negocio nunca se mezclan con los de otro." },
-  { q: "¿Sirve para restaurantes, bares y comercios minoristas o mayoristas?", a: "Sí. LumoBi está pensado para pymes de comercio y gastronomía de Argentina: kioscos, almacenes, tiendas, restaurantes, bares, cafeterías, distribuidoras y comercios mayoristas. Funciona con un local o con varios." },
+  { q: "¿Mis datos están a salvo?", a: "Cada negocio ve únicamente su información: nadie accede a tus ventas ni a tus números. LumoBi también aprende de cómo funcionan los negocios de un mismo rubro, pero solo con datos agrupados y anónimos, nunca de un negocio en particular." },
+  { q: "¿Para qué tipo de negocios sirve?", a: "Para comercios que venden productos en Argentina: kioscos, almacenes, supermercados, tiendas de ropa y calzado, electrónica, hogar y bazar, farmacias y otros comercios. Funciona con un local o con varios." },
   { q: "¿Qué es el arqueo de caja y cómo me ayuda LumoBi?", a: "El arqueo de caja es contar el efectivo al cerrar y compararlo con las ventas registradas. LumoBi hace esa comparación en cada cierre de turno, la cruza con tus cobros digitales y te muestra la diferencia en pesos." },
   { q: "¿LumoBi es un sistema de business intelligence?", a: "Sí. Es inteligencia de negocios pensada para pymes: junta tu caja, tus ventas y Mercado Pago, detecta fugas de plata y predice tus ventas, sin tableros complicados." },
 ];
@@ -164,7 +164,7 @@ const JSONLD = [
     name: "LumoBi",
     url: SITIO,
     logo: `${SITIO}/brand/lumobi-logo-email.png`,
-    description: "Software argentino de control de caja y business intelligence para pymes, comercios y gastronomía.",
+    description: "Software argentino de control de caja y business intelligence para kioscos, almacenes, supermercados y comercios.",
     areaServed: "AR",
   },
   {
@@ -182,7 +182,7 @@ const JSONLD = [
     operatingSystem: "Web, Android, iOS",
     inLanguage: "es-AR",
     url: `${SITIO}/landing`,
-    description: "Control de caja, detección de pérdidas de dinero, análisis de ventas y cobros de Mercado Pago, y predicción de ventas para pymes, comercios minoristas y mayoristas, y gastronomía de Argentina.",
+    description: "Control de caja, detección de pérdidas de dinero, análisis de ventas y cobros de Mercado Pago, y predicción de ventas para kioscos, almacenes, supermercados y comercios de Argentina.",
     featureList: [
       "Control de caja y cierre de turno",
       "Detección de fugas de plata",
@@ -232,7 +232,7 @@ export default function Landing() {
       <section className="hero">
         <div className="wrap hero-grid">
           <div>
-            <div className="eyebrow">Control de caja y business intelligence para pymes, comercios y gastronomía de Argentina</div>
+            <div className="eyebrow">Control de caja y business intelligence para kioscos, almacenes, supermercados y comercios de Argentina</div>
             <h1>Tu negocio pierde plata todos los meses. LumoBi te dice dónde, cuánto y qué va a pasar.</h1>
             <p className="sub">
               Juntamos tu caja, tus ventas y Mercado Pago en un solo lugar. Detectamos las pérdidas de dinero de tu negocio, te avisamos antes de que crezcan y te decimos cuánto vas a vender los próximos días.
@@ -369,7 +369,7 @@ export default function Landing() {
           <h2 className="t">Tu información es tuya</h2>
           <div className="grid3" style={{ marginTop: 28 }}>
             {[
-              { t: "Solo vos ves tus datos", d: "Cada negocio ve únicamente su información. Nunca se mezcla con la de otro negocio." },
+              { t: "Solo vos ves tus datos", d: "Nadie accede a tus ventas ni a tus números. Para aprender, LumoBi usa solo datos agrupados y anónimos de varios negocios." },
               { t: "Hechos, no acusaciones", d: "LumoBi muestra diferencias y patrones por turno. No dice quién tiene la culpa: eso lo decidís vos." },
               { t: "No toca tu plata", d: "LumoBi no mueve dinero ni emite facturas. Interpreta lo que pasa en tu negocio y te anticipa lo que viene." },
             ].map((x) => (
@@ -386,7 +386,7 @@ export default function Landing() {
       <section className="s" style={{ background: C.blanco }}>
         <div className="wrap">
           <div className="kicker">PARA QUÉ NEGOCIOS</div>
-          <h2 className="t">LumoBi para pymes, comercios y gastronomía</h2>
+          <h2 className="t">LumoBi para kioscos, almacenes, supermercados y comercios</h2>
           <p className="lead">Control de caja, pérdidas de dinero, cobros de Mercado Pago e inteligencia de negocios para comercios minoristas y mayoristas, restaurantes, bares y cafeterías.</p>
           <div className="grid3">
             {PAGINAS.map((p) => (

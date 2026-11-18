@@ -8,6 +8,7 @@ import InstalarLumo from "../components/InstalarLumo";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { track } from "../lib/track";
+import { RUBROS } from "../lib/rubros";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const TINTA = "#0A1628";
@@ -15,17 +16,6 @@ const AZUL = "#0A5BD3";
 const SUAVE = "#64748B";
 const BORDE = "#CBD5E1";
 const FUENTE = "var(--font-instrument),-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
-
-const RUBROS: { id: string; nombre: string; icono: string }[] = [
-  { id: "kiosko", nombre: "Kiosco", icono: "🍫" },
-  { id: "almacen", nombre: "Almacén", icono: "🥫" },
-  { id: "supermercado", nombre: "Supermercado", icono: "🛒" },
-  { id: "retail_indumentaria", nombre: "Ropa y calzado", icono: "👕" },
-  { id: "retail_electronica", nombre: "Electrónica y tecnología", icono: "🔌" },
-  { id: "retail_hogar", nombre: "Hogar y bazar", icono: "🏠" },
-  { id: "farmacia", nombre: "Farmacia", icono: "💊" },
-  { id: "retail_otro", nombre: "Otro comercio", icono: "🛍️" },
-];
 
 // El core de LumoBi, contado en simple y agrupado por pilar. Solo lo que el producto ya hace.
 type Pilar = { id: string; icono: string; titulo: string; resumen: string; items: string[] };
@@ -396,7 +386,7 @@ export default function RegistroSimple() {
           </button>
           <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.55, padding: "10px 12px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12 }}>
             <div><strong style={{ color: TINTA }}>5 días gratis, sin tarjeta.</strong>{plan && plan.plan === "normal" && plan.precio != null ? <> Después, {plata(plan.precio)} por mes + IVA.</> : null}</div>
-            <div style={{ marginTop: 4 }}>Nadie ve tus números: cada negocio ve solo lo suyo.</div>
+            <div style={{ marginTop: 4 }}>Nadie ve tus números. LumoBi aprende de todos los negocios del rubro, pero solo con promedios anónimos.</div>
           </div>
           <button type="button" onClick={() => setComoFunciona(!comoFunciona)} aria-expanded={comoFunciona}
             style={{ background: "none", border: "none", padding: 0, color: AZUL, fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: FUENTE, textAlign: "left" }}>

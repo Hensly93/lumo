@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { RUBROS } from "../lib/rubros";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 
@@ -238,14 +239,7 @@ function OnboardingInner() {
           </label>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "20px" }}>
-            {[
-              { label: "Panadería", valor: "panaderia" },
-              { label: "Kiosco", valor: "kiosko" },
-              { label: "Almacén", valor: "almacen" },
-              { label: "Supermercado", valor: "supermercado" },
-              { label: "Farmacia", valor: "farmacia" },
-              { label: "Indumentaria y otros comercios", valor: "retail" }
-            ].map(({ label, valor }) => (
+            {RUBROS.map(({ id: valor, nombre: label }) => (
               <button
                 key={label}
                 onClick={() => { setTipoNegocio(valor); setError(""); }}
