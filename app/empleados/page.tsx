@@ -355,7 +355,7 @@ export default function Empleados() {
   return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       <PageHeader
-        title="Tu equipo"
+        title="Control del equipo"
         sub={loading ? "Cargando..." : `${today.charAt(0).toUpperCase() + today.slice(1)} · ${Math.max(empleados.length, erm?.empleados?.length || 0)} ${Math.max(empleados.length, erm?.empleados?.length || 0) === 1 ? "persona" : "personas"}`}
       />
 

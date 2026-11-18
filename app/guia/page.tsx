@@ -71,6 +71,11 @@ const TAREAS: Tarea[] = [
     boton: { texto: "Activar avisos", ir: "/primeros-pasos?paso=avisos" },
   },
   {
+    id: "quehacer", titulo: "Saber qué hacer hoy",
+    pasos: ["Tocá Qué hacer, en el menú de abajo.", "Ves una sola lista, con lo urgente primero y después lo que más plata mueve.", "En cada cosa tocás ¿De dónde sale? para ver los datos, y elegís probar una idea, marcarla como resuelta o descartarla."],
+    boton: { texto: "Ver qué hacer", ir: "/que-hacer" },
+  },
+  {
     id: "instalar", titulo: "Instalar LumoBi en el celu",
     pasos: ["Entrá a Cuenta (el icono de persona, arriba a la derecha).", "Tocá Instalar la app y seguí los pasos."],
     boton: { texto: "Instalar la app", ir: "/mas" },

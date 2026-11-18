@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "../components/ui";
+import Estado from "../components/Estado";
 import Nav from "../components/Nav";
 import BotonAplicar from "../components/BotonAplicar";
 
@@ -30,8 +31,7 @@ export default function CostosPage() {
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
       <PageHeader title="Precios que se te comieron" sub="Tu proveedor subió y vos no" />
       <div style={{ padding: "0 16px" }}>
-        {error && <div style={{ color: "var(--tinta-apagada)" }}>{error}</div>}
-        {!d && !error && <div style={{ color: "var(--tinta-apagada)" }}>Cargando…</div>}
+        <Estado error={error} cargando={!d && !error} />
         {d && !d.hay_datos && (
           <div style={{ color: "var(--tinta)", lineHeight: 1.6, fontSize: 14 }}>
             Todavía no puedo compararte costos: necesito al menos dos facturas de proveedor con el mismo producto. Sacale foto a las facturas en “Facturas de proveedores” y acá te aparece qué precio subir.

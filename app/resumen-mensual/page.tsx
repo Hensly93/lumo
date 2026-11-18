@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "../components/ui";
+import Estado from "../components/Estado";
 import Nav from "../components/Nav";
 import { $, caja, titulo, Lista } from "../ficha/FichaUI";
 
@@ -26,8 +27,7 @@ function Contenido() {
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
       <PageHeader title="Resumen del mes" sub={r ? `${r.etiqueta}${r.parcial ? " (hasta hoy)" : ""}` : ""} />
       <div style={{ padding: "0 16px" }}>
-        {error && <div style={{ color: "var(--tinta-apagada)" }}>{error}</div>}
-        {!r && !error && <div style={{ color: "var(--tinta-apagada)" }}>Cargando…</div>}
+        <Estado error={error} cargando={!r && !error} />
         {r && (<>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
             <button style={flecha} onClick={() => ir(r.anterior)}>‹ Mes anterior</button>

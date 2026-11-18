@@ -23,6 +23,16 @@ const links: NavItem[] = [
     ),
   },
   {
+    href: "/que-hacer",
+    label: "Qué hacer",
+    icon: (a) => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M9 11l3 3 8-8" stroke={a ? C : M} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h9" stroke={a ? C : M} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
     href: "/negocio",
     label: "Plata",
     icon: (a) => (
@@ -66,6 +76,9 @@ export default function Nav() {
   // Cada pestaña es un tema del negocio; las pantallas de adentro la dejan marcada.
   const isActive = (href: string) => {
     if (href === "/") return path === "/";
+    if (href === "/que-hacer") {
+      return ["/que-hacer", "/oportunidades", "/alertas"].some(p => path.startsWith(p));
+    }
     if (href === "/negocio") {
       return ["/negocio", "/fugas", "/periodos", "/rentabilidad", "/compras", "/predicciones", "/red"].some(p => path.startsWith(p));
     }
