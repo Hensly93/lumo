@@ -13,6 +13,8 @@ type Mes = {
   mes: string; en_curso: boolean; gastos_cargados: boolean; ventas: number; gastos: number | null; egresos_caja: number;
   por_categoria: Record<string, number>; ganancia_operativa: number | null; margen: number | null;
   impuestos_declarados: number | null; ganancia_despues_impuestos: number | null;
+  fuente_costo?: "real" | "manual" | null; costo_vendido?: number | null; cobertura_costo_pct?: number | null; costo_estimado?: boolean;
+  mercaderia_manual_ignorada?: number | null; pagos_proveedores_caja?: number | null;
 };
 type Equilibrio = {
   meses_usados: string[]; gastos_fijos_mes: number; costo_variable_pct: number; ventas_necesarias_mes: number; ventas_necesarias_dia: number;
@@ -121,7 +123,7 @@ export default function RentabilidadPage() {
         <div style={tarjeta}>
           <div style={titulo}>Empezá acá</div>
           <div style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.6, marginBottom: 12 }}>
-            Cargá los gastos del mes (alquiler, sueldos, mercadería…) como <strong>totales</strong>, sin facturas. En un minuto ves cuánto ganás de verdad y cuánto necesitás vender por día para cubrir todo.
+            Cargá los gastos del mes (alquiler, sueldos, servicios…) como <strong>totales</strong>, sin facturas. En un minuto ves cuánto ganás de verdad y cuánto necesitás vender por día para cubrir todo.
           </div>
           <button style={{ ...boton(true), width: "100%" }} onClick={() => setEditor(true)}>Cargar gastos</button>
         </div>
@@ -141,7 +143,10 @@ export default function RentabilidadPage() {
               </div>
               <div style={{ borderTop: "1px solid var(--border)", marginTop: 10, paddingTop: 8 }}>
                 <div style={fila}><span>Ventas</span><strong>{fmt(ult.ventas)}</strong></div>
-                <div style={fila}><span>Gastos cargados</span><span>−{fmt(ult.gastos)}</span></div>
+                {ult.fuente_costo === "real" && ult.costo_vendido != null && (
+                  <div style={fila}><span>Costo de lo que vendiste{ult.costo_estimado ? " (estimado)" : ""}</span><span>−{fmt(ult.costo_vendido)}</span></div>
+                )}
+                <div style={fila}><span>{ult.fuente_costo === "real" ? "Otros gastos cargados" : "Gastos cargados"}</span><span>−{fmt(ult.gastos)}</span></div>
                 {ult.egresos_caja > 0 && <div style={fila}><span>Gastos de caja (turnos)</span><span>−{fmt(ult.egresos_caja)}</span></div>}
                 {ult.impuestos_declarados != null && (
                   <>
@@ -150,6 +155,18 @@ export default function RentabilidadPage() {
                   </>
                 )}
               </div>
+              {ult.fuente_costo === "real" && (
+                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8, lineHeight: 1.5 }}>
+                  El costo sale de lo que realmente vendiste (el costo que tenía cada producto al venderlo){ult.cobertura_costo_pct != null && ult.cobertura_costo_pct < 95 ? `; hay costo cargado en el ${ult.cobertura_costo_pct}% de tus ventas y el resto se estima con el mismo margen` : ""}.
+                  {ult.mercaderia_manual_ignorada ? ` La mercadería que cargaste a mano (${fmt(ult.mercaderia_manual_ignorada)}) no se resta para no contarla dos veces.` : ""}
+                  {ult.pagos_proveedores_caja ? ` Los pagos a proveedores sacados de caja (${fmt(ult.pagos_proveedores_caja)}) tampoco se restan por la misma razón.` : ""}
+                </div>
+              )}
+              {ult.fuente_costo === "manual" && (
+                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8, lineHeight: 1.5 }}>
+                  Este mes usa la mercadería que cargaste a mano: tus productos todavía no tienen costo cargado. Cuando lo tengan, la ganancia se calcula sola con lo que vendés.
+                </div>
+              )}
             </div>
           )}
 
@@ -182,7 +199,7 @@ export default function RentabilidadPage() {
               <>
                 <div style={{ ...grande, fontSize: 22, color: colorGan(act.ganancia_operativa) }}>{fmt(act.ganancia_operativa)}</div>
                 <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4, lineHeight: 1.5 }}>
-                  Ventas {fmt(act.ventas)} − gastos {fmt(act.gastos)}{act.egresos_caja > 0 ? ` − caja ${fmt(act.egresos_caja)}` : ""}. Los gastos del mes se toman proporcionales a los días que pasaron ({act.avance_mes_pct.toLocaleString("es-AR")}% del mes).
+                  Ventas {fmt(act.ventas)}{act.fuente_costo === "real" && act.costo_vendido != null ? ` − costo de lo vendido ${fmt(act.costo_vendido)}` : ""} − gastos {fmt(act.gastos)}{act.egresos_caja > 0 ? ` − caja ${fmt(act.egresos_caja)}` : ""}. Los gastos del mes se toman proporcionales a los días que pasaron ({act.avance_mes_pct.toLocaleString("es-AR")}% del mes).
                 </div>
               </>
             ) : (
