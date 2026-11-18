@@ -20,9 +20,11 @@ const RUBROS: { id: string; nombre: string; icono: string }[] = [
   { id: "kiosko", nombre: "Kiosco", icono: "🍫" },
   { id: "almacen", nombre: "Almacén", icono: "🥫" },
   { id: "supermercado", nombre: "Supermercado", icono: "🛒" },
-  { id: "panaderia", nombre: "Panadería", icono: "🥐" },
+  { id: "retail_indumentaria", nombre: "Ropa y calzado", icono: "👕" },
+  { id: "retail_electronica", nombre: "Electrónica y tecnología", icono: "🔌" },
+  { id: "retail_hogar", nombre: "Hogar y bazar", icono: "🏠" },
   { id: "farmacia", nombre: "Farmacia", icono: "💊" },
-  { id: "retail_indumentaria", nombre: "Ropa u otro comercio", icono: "🛍️" },
+  { id: "retail_otro", nombre: "Otro comercio", icono: "🛍️" },
 ];
 
 // El core de LumoBi, contado en simple y agrupado por pilar. Solo lo que el producto ya hace.
@@ -121,9 +123,11 @@ const EJEMPLO: Record<string, string> = {
   kiosko: "Por ejemplo: si hoy los alfajores se venden el doble que siempre, LumoBi te avisa y te sugiere un combo con lo que tus clientes ya compran juntos.",
   almacen: "Por ejemplo: si un producto que se vendía todos los días dejó de venderse, LumoBi te avisa que probablemente te falta stock y cuánta plata perdés por día.",
   supermercado: "Por ejemplo: LumoBi te muestra qué cajera cierra con diferencias, qué productos te dejan poca ganancia y qué reponer antes del fin de semana.",
-  panaderia: "Por ejemplo: LumoBi te dice cuánto vas a vender mañana para que no sobre ni falte, y en qué horario se te va la plata.",
   farmacia: "Por ejemplo: LumoBi te muestra qué productos te dejan más ganancia y te avisa si una caja cierra con diferencia.",
   retail_indumentaria: "Por ejemplo: LumoBi te dice qué días y horarios rinden más, quién del equipo vende mejor y qué se dejó de vender.",
+  retail_electronica: "Por ejemplo: LumoBi te muestra qué producto vendés mucho pero te deja poca ganancia, y cuál se vendía seguido y hace días no sale.",
+  retail_hogar: "Por ejemplo: LumoBi te muestra qué productos te dejan más ganancia, cuáles se quedaron parados y qué horarios rinden más.",
+  retail_otro: "Por ejemplo: LumoBi te muestra qué productos te dejan poca ganancia, quién del equipo vende mejor y qué se dejó de vender.",
 };
 
 const input: React.CSSProperties = {
@@ -301,7 +305,7 @@ export default function RegistroSimple() {
               ))}
             </div>
           </div>
-          {titulo("¿Qué vendés?", "Tocá el que más se parece a tu negocio.")}
+          {titulo("¿Qué vendés?", "Tocá lo que más vendés. Si vendés de todo, elegí “Otro comercio”.")}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {RUBROS.map((r) => (
               <button key={r.id} type="button" onClick={() => { setD({ ...d, rubro: r.id }); setError(""); }} aria-pressed={d.rubro === r.id}
