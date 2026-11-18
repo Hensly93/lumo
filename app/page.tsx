@@ -106,6 +106,7 @@ function HomeContent() {
   const [aprendizaje, setAprendizaje] = useState<Aprendizaje | null>(null);
   const [predPreliminar, setPredPreliminar] = useState(false);
   const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [queHacer, setQueHacer] = useState<{ cantidad: number; urgentes: number; pesos_en_juego: number } | null>(null);
   const [pred, setPred] = useState<Prediccion | null>(null);
   const [vivo, setVivo] = useState<{ ventas?: number; tickets?: number; esperado_hasta_ahora?: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -181,6 +182,10 @@ function HomeContent() {
         aplicar(ini);
       }
       setLoading(false);
+    });
+    // La lista única de "qué hacer" (oportunidades + fugas + alertas): acá solo el resumen, el detalle está en /que-hacer
+    fetch(`${API}/api/que-hacer${sucursalId ? `?sucursal_id=${sucursalId}` : ""}`, { headers }).then(r => (r.ok ? r.json() : null)).catch(() => null).then((q) => {
+      if (vigente && q && q.resumen) setQueHacer(q.resumen);
     });
     fetch(`${API}/api/negocio/wow-moment`, { headers }).then(r => r.json()).catch(() => null).then((wow) => {
       if (!vigente || !wow) return;
@@ -588,11 +593,21 @@ function HomeContent() {
                     );
                   })}
                   {alertas.length > 3 && (
-                    <button onClick={() => router.push("/alertas")} style={{ padding: 0, border: "none", background: "transparent", color: "#007AFF", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                    <button onClick={() => router.push("/que-hacer")} style={{ padding: 0, border: "none", background: "transparent", color: "#007AFF", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
                       Ver las {alertas.length} →
                     </button>
                   )}
                 </div>
+              )}
+
+              {queHacer && queHacer.cantidad > 0 && (
+                <button onClick={() => router.push("/que-hacer")}
+                  style={{ width: "100%", textAlign: "left", margin: "0 0 16px", padding: 14, borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)", cursor: "pointer" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--tinta)" }}>
+                    {queHacer.cantidad} cosa{queHacer.cantidad === 1 ? "" : "s"} para hacer{queHacer.pesos_en_juego > 0 ? ` · $${Math.round(queHacer.pesos_en_juego).toLocaleString("es-AR")} en juego` : ""}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#007AFF", marginTop: 4 }}>Ver la lista completa →</div>
+                </button>
               )}
 
               {/* Lo que ya funcionó: cerrar el círculo de los consejos */}
