@@ -219,7 +219,7 @@ export function Hoy({ onFicha }: { onFicha: (id: number) => void }) {
 // ─── Clientes ───────────────────────────────────────────────────────────────
 
 type PesoNeg = { negocio_id: number; nombre: string; puntaje: number; serie: number[]; baja: boolean; cambio: number | null; partes: Record<string, number> | null };
-const PARTES: Record<string, string> = { historia: "Historia", caja: "Caja", costos: "Costos", facturas: "Facturas", acciones: "Acciones", meta: "Meta" };
+const PARTES: Record<string, string> = { historia: "Historia", caja: "Caja", costos: "Costos", facturas: "Facturas", acciones: "Acciones", ventas_al_dia: "Ventas al día" };
 // Cuánto pesa LumoBi en cada negocio (0 a 100). Interno: el cliente no lo ve.
 function Peso() {
   const [d, setD] = useState<PesoNeg[] | null>(null);
@@ -228,7 +228,7 @@ function Peso() {
   return (
     <section style={card}>
       <h2 style={{ margin: "0 0 4px", fontSize: 16, color: "#0A1628" }}>Cuánto pesa LumoBi en cada negocio</h2>
-      <p style={{ margin: "0 0 10px", fontSize: 12, color: "#5B6B80" }}>De 0 a 100: historia, caja, costos, facturas, acciones y meta. Los de abajo son los que más cerca están de soltarse. Te llega un aviso si uno baja dos semanas seguidas.</p>
+      <p style={{ margin: "0 0 10px", fontSize: 12, color: "#5B6B80" }}>De 0 a 100: historia, caja, costos, facturas, acciones y ventas al día. Los de abajo son los que más cerca están de soltarse. Te llega un aviso si uno baja dos semanas seguidas.</p>
       {d.map((n) => (
         <div key={n.negocio_id} style={{ padding: "8px 0", borderTop: "1px solid #EEF1F5" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 14, color: "#0A1628" }}>
