@@ -35,7 +35,7 @@ export default function MiNegocioPage() {
 
   const grupos: GrupoMenu[] = [
     { pregunta: "Vender y cobrar", items: [
-      { label: "Cobrar", desc: "Abrí la caja de venta: cada uno entra con su nombre y su PIN.", href: "/empleado", icon: icons.cobrar },
+      { label: "Cobrar", desc: "Cómo se abre la caja, el link y el código de tu local, y quién está atendiendo ahora.", href: "/caja", icon: icons.cobrar },
       { label: "Caja en vivo", desc: "Cómo va el día hora por hora, quién atiende y qué se movió en la caja.", href: "/en-vivo", icon: icons.caja },
     ] },
     { pregunta: "Productos y proveedores", items: [

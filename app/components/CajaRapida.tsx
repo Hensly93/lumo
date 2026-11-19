@@ -46,7 +46,8 @@ export default function CajaRapida({ token, onListo, modo = "crear" }: { token: 
     } catch { /* sin datos */ }
   }, [token]);
 
-  function abrirCaja() { window.location.href = codigo ? `/empleado?c=${encodeURIComponent(codigo)}` : "/empleado"; }
+  // Se abre en otra pestaña y pide el código: el dueño usa la caja como cualquier empleado y su panel queda abierto
+  function abrirCaja() { window.open("/empleado", "_blank", "noopener"); }
 
   async function crear() {
     setError("");
@@ -117,7 +118,9 @@ export default function CajaRapida({ token, onListo, modo = "crear" }: { token: 
       <div style={{ fontSize: 13, color: "var(--muted, #64748B)", lineHeight: 1.5 }}>
         En la caja: {empleados.map((e) => e.nombre).join(", ")}. Entran con su nombre y su PIN.
       </div>
+      {codigo && <div style={{ fontSize: 13, color: "var(--muted, #64748B)" }}>Código de tu negocio: <b style={{ letterSpacing: 2, color: "var(--text, #0A1628)" }}>{codigo}</b></div>}
       <button style={btnP} onClick={abrirCaja}>Abrir la caja en este celu</button>
+      <div style={{ fontSize: 12, color: "var(--muted, #64748B)", lineHeight: 1.5 }}>Se abre en otra pestaña y te pide el código y tu PIN. Tu panel sigue abierto acá.</div>
       {!compartir
         ? <button style={btnS} onClick={() => setCompartir(true)}>La caja está en otra compu o celu del local</button>
         : <LinkCaja />}

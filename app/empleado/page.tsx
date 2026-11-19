@@ -892,6 +892,9 @@ export default function EmpleadoPage() {
 
   // "Que este celu o compu se acuerde del código": casilla de la pantalla del codigo (apagada por defecto)
   const [recordar, setRecordar] = useState(false);
+  // Si el dueño tiene su sesión abierta en este navegador, le damos una salida a su panel (antes quedaba atrapado en la caja)
+  const [dueñoConSesion, setDueñoConSesion] = useState(false);
+  useEffect(() => { try { setDueñoConSesion(!!localStorage.getItem("lumo_token")); } catch { /* sin almacenamiento */ } }, []);
 
   // Cargar el codigo guardado SOLO si el dispositivo fue marcado como "recordado"
   useEffect(() => {
@@ -1145,6 +1148,11 @@ export default function EmpleadoPage() {
           Recordar este dispositivo
         </label>
         <PrimaryButton loading={loading} label="Continuar →" onPress={() => cargarSucursales(negocioId, recordar)} />
+        {dueñoConSesion && (
+          <div style={{ marginTop: 24, textAlign: 'center' }}>
+            <TextButton label="Soy el dueño: volver a mi panel" onPress={() => { window.location.href = "/"; }} />
+          </div>
+        )}
       </div>
     </main>
   );
