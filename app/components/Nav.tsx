@@ -23,7 +23,7 @@ const links: NavItem[] = [
 // Cada pestaña queda marcada también en las pantallas de adentro.
 const PANTALLAS: Record<string, string[]> = {
   "/que-hacer": ["/que-hacer", "/oportunidades", "/alertas"],
-  "/mi-negocio": ["/mi-negocio", "/caja", "/catalogo", "/pedidos", "/compras", "/costos", "/equipo", "/empleados", "/mi-local", "/en-vivo", "/red", "/comparar", "/ficha"],
+  "/mi-negocio": ["/mi-negocio", "/caja", "/catalogo", "/pedidos", "/compras", "/proveedores", "/costos", "/equipo", "/empleados", "/mi-local", "/en-vivo", "/red", "/comparar", "/ficha"],
   "/negocio": ["/negocio", "/periodos", "/rentabilidad", "/predicciones", "/resumen-mensual", "/fugas", "/benchmark"],
   "/mas": ["/mas", "/ajustes", "/guia", "/mercado-pago"],
 };

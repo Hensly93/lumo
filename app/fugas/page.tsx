@@ -1,5 +1,6 @@
 "use client";
 // Fugas — LumoBi: dónde se va la plata, cuánto, por qué lo sabemos y cómo cerrarla.
+import MotivosFugas from "../components/MotivosFugas";
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "../components/ui";
@@ -76,6 +77,7 @@ export default function FugasPage() {
   return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
       <PageHeader title="Fugas" sub="Dónde se te va la plata y cómo cerrarla" negocioEntero />
+      <MotivosFugas />
 
       {error && <div style={{ ...tarjeta, color: ROJO, fontSize: 13 }}>{error}</div>}
       {!d && !error && <div style={{ textAlign: "center", padding: 40, fontSize: 11, color: "var(--muted)", letterSpacing: 3, textTransform: "uppercase" }}>Calculando...</div>}

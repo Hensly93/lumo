@@ -40,6 +40,8 @@ export default function StockVista({ token, avisar }: { token: string; avisar: (
   const [abierto, setAbierto] = useState<number | null>(null);
   const [minimo, setMinimo] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [pidiendo, setPidiendo] = useState(false);
+  const [motivos, setMotivos] = useState<Record<number, string>>({});
   const [vista, setVista] = useState<"stock" | "ventas">("stock");
   const [hist, setHist] = useState<Record<number, Mov[] | "cargando" | "error">>({});
 
@@ -72,14 +74,19 @@ export default function StockVista({ token, avisar }: { token: string; avisar: (
     const items = Object.entries(vals).filter(([, v]) => v.trim() !== "").map(([id, v]) => ({ producto_id: Number(id), contado: Number(v.replace(",", ".")) }))
       .filter(x => Number.isFinite(x.contado) && x.contado >= 0);
     if (!items.length) { avisar("Escribí al menos una cantidad", false); return; }
+    // Si falta mercadería, pedimos el motivo antes de guardar (así se separa lo que se rompió o venció de lo que no se explica)
+    const faltan = items.filter(it => { const p = prods?.find(x => x.id === it.producto_id); return p && p.stock != null && it.contado < p.stock; });
+    if (faltan.some(f => !motivos[f.producto_id])) { setPidiendo(true); return; }
+    setPidiendo(false);
     setGuardando(true);
     try {
-      const r = await fetch(`${API}/api/stock/contar`, { method: "POST", headers: h, body: JSON.stringify({ items }) });
+      const conMotivo = items.map(it => (motivos[it.producto_id] ? { ...it, motivo: motivos[it.producto_id] } : it));
+      const r = await fetch(`${API}/api/stock/contar`, { method: "POST", headers: h, body: JSON.stringify({ items: conMotivo }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "No se pudo guardar");
-      const faltan = (d.diferencias || []).filter((x: { diferencia: number }) => x.diferencia < 0).length;
-      avisar(`Guardado: ${d.iniciales} nuevos, ${d.ajustes} corregidos${faltan ? `, ${faltan} con faltante` : ""}`, true);
-      setVals({}); setContando(false); await cargar();
+      const conFaltante = (d.diferencias || []).filter((x: { diferencia: number }) => x.diferencia < 0).length;
+      avisar(`Guardado: ${d.iniciales} nuevos, ${d.ajustes} corregidos${conFaltante ? `, ${conFaltante} con faltante` : ""}`, true);
+      setVals({}); setMotivos({}); setContando(false); await cargar();
     } catch (e) { avisar(e instanceof Error ? e.message : "No se pudo guardar", false); }
     finally { setGuardando(false); }
   }
@@ -222,6 +229,29 @@ export default function StockVista({ token, avisar }: { token: string; avisar: (
           </div>
         );
       })}
+
+      {pidiendo && (() => {
+        const faltantes = Object.entries(vals).filter(([, v]) => v.trim() !== "").map(([id, v]) => ({ p: prods.find(x => x.id === Number(id)), c: Number(v.replace(",", ".")) }))
+          .filter((x): x is { p: Prod; c: number } => !!x.p && x.p.stock != null && Number.isFinite(x.c) && x.c < (x.p.stock as number));
+        const OPC: [string, string][] = [["rompio", "Se rompió"], ["vencio", "Venció"], ["consumo", "Consumo propio"], ["no_se", "No sé"]];
+        return (
+          <div style={{ ...caja, borderColor: "#F5A623" }}>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>¿Qué pasó con lo que falta?</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", margin: "2px 0 8px", lineHeight: 1.4 }}>Contale a LumoBi el motivo de cada faltante. "No sé" también vale: así queda a la vista lo que no se explica.</div>
+            {faltantes.map(({ p, c }) => (
+              <div key={p.id} style={{ padding: "8px 0", borderTop: "1px solid var(--border)" }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{p.nombre} <span style={{ fontWeight: 400, color: "var(--muted)" }}>· faltan {num((p.stock as number) - c)}</span></div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                  {OPC.map(([cod, t]) => (
+                    <button key={cod} onClick={() => setMotivos(m => ({ ...m, [p.id]: cod }))}
+                      style={{ padding: "6px 10px", borderRadius: 16, fontSize: 12, cursor: "pointer", border: `1px solid ${motivos[p.id] === cod ? "var(--azul, #0A5BD3)" : "var(--border)"}`, background: motivos[p.id] === cod ? "rgba(10,91,211,0.1)" : "transparent", color: "var(--text)" }}>{t}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       <div style={{ position: "sticky", bottom: 84, display: "flex", gap: 8, paddingTop: 4 }}>
         {contando ? (

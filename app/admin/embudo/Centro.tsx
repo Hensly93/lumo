@@ -217,6 +217,32 @@ export function Hoy({ onFicha }: { onFicha: (id: number) => void }) {
 }
 
 // ─── Clientes ───────────────────────────────────────────────────────────────
+
+type PesoNeg = { negocio_id: number; nombre: string; puntaje: number; serie: number[]; baja: boolean; cambio: number | null; partes: Record<string, number> | null };
+const PARTES: Record<string, string> = { historia: "Historia", caja: "Caja", costos: "Costos", facturas: "Facturas", acciones: "Acciones", meta: "Meta" };
+// Cuánto pesa LumoBi en cada negocio (0 a 100). Interno: el cliente no lo ve.
+function Peso() {
+  const [d, setD] = useState<PesoNeg[] | null>(null);
+  useEffect(() => { pedir<{ negocios: PesoNeg[] }>("/peso").then((j) => setD(j.negocios)).catch(() => setD([])); }, []);
+  if (!d || d.length === 0) return null;
+  return (
+    <section style={card}>
+      <h2 style={{ margin: "0 0 4px", fontSize: 16, color: "#0A1628" }}>Cuánto pesa LumoBi en cada negocio</h2>
+      <p style={{ margin: "0 0 10px", fontSize: 12, color: "#5B6B80" }}>De 0 a 100: historia, caja, costos, facturas, acciones y meta. Los de abajo son los que más cerca están de soltarse. Te llega un aviso si uno baja dos semanas seguidas.</p>
+      {d.map((n) => (
+        <div key={n.negocio_id} style={{ padding: "8px 0", borderTop: "1px solid #EEF1F5" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 14, color: "#0A1628" }}>
+            <span style={{ fontWeight: 600 }}>{n.nombre}{n.baja ? "  ⚠️ bajando" : ""}</span>
+            <span><strong>{n.puntaje}</strong>{n.serie.length > 1 ? <span style={{ color: "#5B6B80", fontSize: 12 }}>  ({n.serie.join(" → ")})</span> : null}</span>
+          </div>
+          <div style={{ height: 6, borderRadius: 3, background: "#E3E8F0", marginTop: 5 }}><div style={{ width: `${n.puntaje}%`, height: "100%", borderRadius: 3, background: n.puntaje >= 60 ? "#12B76A" : n.puntaje >= 35 ? "#F79009" : "#F04438" }} /></div>
+          {n.partes && <div style={{ fontSize: 11, color: "#5B6B80", marginTop: 4 }}>{Object.entries(n.partes).map(([k, v]) => `${PARTES[k] || k} ${v}`).join(" · ")}</div>}
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function Clientes({ abrir, onFicha }: { abrir: number | null; onFicha: (id: number | null) => void }) {
   const [lista, setLista] = useState<Cliente[] | null>(null);
   const [err, setErr] = useState("");
@@ -241,6 +267,8 @@ export function Clientes({ abrir, onFicha }: { abrir: number | null; onFicha: (i
   if (err) return <div style={{ ...card, color: "#B42318" }}>{err}</div>;
   if (!lista) return <div style={card}>Cargando clientes...</div>;
   return (
+    <>
+    <Peso />
     <section style={card}>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
         {etapas.map((e) => (
@@ -280,6 +308,7 @@ export function Clientes({ abrir, onFicha }: { abrir: number | null; onFicha: (i
         ))}
       </div>
     </section>
+    </>
   );
 }
 const td: React.CSSProperties = { fontSize: 13, padding: "8px", borderBottom: "1px solid #EEF1F5", color: "#0A1628", verticalAlign: "top" };

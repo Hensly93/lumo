@@ -44,6 +44,7 @@ export default function MiNegocioPage() {
       { label: "Productos, precios y stock", desc: "Cargá productos, mirá márgenes, cambiá precios y controlá qué reponer.", href: "/catalogo", icon: icons.productos, estado: sinCosto ? `${sinCosto} sin costo` : undefined },
       { label: "Pedidos", desc: "Qué pedir esta semana y cuánto, por proveedor.", href: "/pedidos", icon: icons.pedidos },
       { label: "Facturas de proveedores", desc: "Sacale una foto a la factura y LumoBi carga lo que te cuesta cada cosa.", href: "/compras", icon: icons.factura },
+      { label: "Proveedores", desc: "Cuánto le comprás a cada uno, qué subió y dónde te conviene comprar.", href: "/proveedores", icon: icons.pedidos },
       { label: "Precios que se te comieron", desc: "Tu proveedor subió y vos no: a cuánto poner cada producto.", href: "/costos", icon: icons.precios },
     ] },
     { pregunta: "Gente y locales", items: [

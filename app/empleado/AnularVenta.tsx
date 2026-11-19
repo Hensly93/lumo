@@ -10,7 +10,14 @@ type Aut = { requiere: (d: any, reintentar: (autorizacionId: number) => unknown)
 const C = { primary: "#007AFF", text: "#0A1628", muted: "#6B8099", border: "#E8EDF5", red: "#FF3B30", green: "#00C48C" };
 const $ = (n: number) => "$" + Math.round(n).toLocaleString("es-AR");
 const MEDIO: Record<string, string> = { efectivo: "Efectivo", debito: "Débito", credito: "Crédito", transferencia: "Transferencia", mp: "Mercado Pago", qr: "QR" };
-const MOTIVOS = ["Me equivoqué al cobrar", "El cliente se arrepintió", "Devolución de un producto", "Otro"];
+// Los códigos son los del backend (anular_venta.js): lista fija para poder comparar entre personas
+const MOTIVOS: { codigo: string; texto: string }[] = [
+  { codigo: "error_carga", texto: "Me equivoqué al cobrar" },
+  { codigo: "arrepentimiento", texto: "El cliente se arrepintió" },
+  { codigo: "devolucion", texto: "Devolución de un producto" },
+  { codigo: "cambio", texto: "Cambio de producto" },
+  { codigo: "otro", texto: "Otro" },
+];
 
 export default function AnularVenta({ fetchT, API, aut, onClose }: { fetchT: FetchT; API: string; aut: Aut; onClose: () => void }) {
   const [ventas, setVentas] = useState<Venta[] | null>(null);
@@ -35,7 +42,7 @@ export default function AnularVenta({ fetchT, API, aut, onClose }: { fetchT: Fet
       const r = await fetchT(`${API}/api/scanner/anular`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(autId ? { "x-autorizacion": String(autId) } : {}) },
-        body: JSON.stringify({ transaccion_id: v.id, motivo: motivo || null }),
+        body: JSON.stringify({ transaccion_id: v.id, motivo }),
       });
       const d = await r.json().catch(() => null);
       if (r.status === 403 && aut.requiere(d, (id) => anular(v, id))) { setEnviando(false); return; }
@@ -76,12 +83,12 @@ export default function AnularVenta({ fetchT, API, aut, onClose }: { fetchT: Fet
                   <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Por qué se anula?</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
                     {MOTIVOS.map((m) => (
-                      <button key={m} onClick={() => setMotivo(m)} style={{ padding: "6px 10px", borderRadius: 16, border: `1px solid ${motivo === m ? C.primary : C.border}`, background: motivo === m ? "rgba(0,122,255,0.08)" : "#fff", color: C.text, fontSize: 13, cursor: "pointer" }}>{m}</button>
+                      <button key={m.codigo} onClick={() => setMotivo(m.codigo)} style={{ padding: "6px 10px", borderRadius: 16, border: `1px solid ${motivo === m.codigo ? C.primary : C.border}`, background: motivo === m.codigo ? "rgba(0,122,255,0.08)" : "#fff", color: C.text, fontSize: 13, cursor: "pointer" }}>{m.texto}</button>
                     ))}
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button disabled={enviando} onClick={() => anular(v)} style={{ flex: 1, padding: 12, borderRadius: 10, border: "none", background: C.red, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
-                      {enviando ? "Anulando…" : `Sí, anular ${$(v.monto)}`}
+                    <button disabled={enviando || !motivo} onClick={() => anular(v)} style={{ flex: 1, padding: 12, borderRadius: 10, border: "none", background: C.red, color: "#fff", fontWeight: 800, fontSize: 15, cursor: motivo ? "pointer" : "default", opacity: motivo ? 1 : 0.45 }}>
+                      {enviando ? "Anulando…" : motivo ? `Sí, anular ${$(v.monto)}` : "Elegí por qué"}
                     </button>
                     <button onClick={() => setElegida(null)} style={{ padding: "12px 14px", borderRadius: 10, border: `1px solid ${C.border}`, background: "#fff", color: C.text, fontSize: 15, cursor: "pointer" }}>No</button>
                   </div>
