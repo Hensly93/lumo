@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Nav from "../components/Nav";
 import { useAuth } from "../hooks/useAuth";
 import { PageHeader, HeroCard, SectionTitle, StatRow, StatCard, AlertCard } from "../components/ui";
@@ -166,6 +167,13 @@ export default function Red() {
               value={fmt(resumen.ventas_red_mes)}
               sub={[resumen.local_mas_ventas ? `El que más vende: ${resumen.local_mas_ventas}` : "", resumen.ventas_sin_local ? `Incluye ${fmt(resumen.ventas_sin_local)} de ventas sin local asignado` : ""].filter(Boolean).join(" · ") || undefined}
             />
+          )}
+
+          {sucursales.length > 1 && (
+            <Link href="/comparar" style={{ display: "block", margin: "0 16px 12px", padding: "14px 16px", borderRadius: 10, border: "1px solid var(--azul)", background: "var(--azul-claro)", color: "var(--tinta)", textDecoration: "none", fontWeight: 700, fontSize: 14 }}>
+              Comparar mis locales
+              <span style={{ display: "block", fontWeight: 400, fontSize: 12, color: "var(--tinta-suave)", marginTop: 2 }}>Cuál vende más por cliente, cuál gana menos, dónde falta plata</span>
+            </Link>
           )}
 
           {resumen && sucursales.length > 1 && (
