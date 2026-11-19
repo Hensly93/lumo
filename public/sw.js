@@ -30,7 +30,7 @@ self.addEventListener("push", (e) => {
     self.registration.showNotification(data.title || "LumoBi", {
       body: data.body || "Tenés predicciones nuevas.",
       icon: "/icons/icon-192.png",
-      badge: "/icons/icon-72.png",
+      badge: "/icons/badge-96.png",
       data: { url: data.url || "/predicciones" },
       requireInteraction: false,
     })
