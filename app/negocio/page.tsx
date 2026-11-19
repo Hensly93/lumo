@@ -1,12 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
 import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
 import MenuGuiado, { type GrupoMenu } from "../components/MenuGuiado";
 import PeriodoMesCard from "../components/PeriodoMesCard";
 import { useSucursal } from "../hooks/useSucursal";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const iconColor = "var(--azul)";
 
 const icons = {
@@ -60,38 +58,24 @@ const iconoCompras = (
 export default function NegocioPage() {
   const { sucursalId } = useSucursal();
 
-  const [mp, setMp] = useState<string | undefined>(undefined);
-  useEffect(() => {
-    const t = localStorage.getItem("lumo_token");
-    if (!t) return;
-    fetch(`${API}/api/mp/estado`, { headers: { Authorization: `Bearer ${t}` } })
-      .then(r => r.json()).then(d => setMp(d && d.conectado ? "Conectado" : "Sin conectar")).catch(() => {});
-  }, []);
-
   const grupos: GrupoMenu[] = [
-    { pregunta: "¿Qué hago para ganar más?", ayuda: "LumoBi encontró cosas concretas. Tocá una y hacé lo que dice.", items: [
-      { label: "Precios que se te comieron", desc: "Tu proveedor te subió el precio y vos no. Te digo a cuánto poner cada producto.", href: "/costos", icon: icons.rentabilidad, nuevo: true },
-      { label: "Fugas", desc: "¿Dónde se me va la plata? LumoBi lo busca solo y te dice cómo cerrarlo.", href: "/fugas", icon: icons.fugas },
-      { label: "Oportunidades", desc: "¿Cómo gano más? Ideas con la plata concreta, que probás con un botón.", href: "/oportunidades", icon: icons.predicciones },
+    { pregunta: "¿Cuánto gané?", items: [
+      { label: "Ganancia real", desc: "Lo que te queda de verdad: ventas menos el costo de lo que vendiste y tus gastos. Acá también cargás los gastos del mes.", href: "/rentabilidad", icon: icons.rentabilidad },
+      { label: "Resumen del mes", desc: "Todo lo que LumoBi detectó y recuperó para tu negocio este mes.", href: "/resumen-mensual", icon: icons.periodos },
     ] },
-    { pregunta: "¿Cómo me está yendo?", items: [
-      { label: "Resumen del mes", desc: "Todo lo que LumoBi hizo por tu negocio este mes, en una sola pantalla.", href: "/resumen-mensual", icon: icons.periodos },
-      { label: "Períodos", desc: "¿Vendo más o menos que antes? Este mes contra el anterior, comparado justo.", href: "/periodos", icon: icons.periodos },
-      { label: "Rentabilidad", desc: "¿Cuánto me queda de verdad? Después de pagar mercadería y gastos.", href: "/rentabilidad", icon: icons.rentabilidad },
-    ] },
-    { pregunta: "¿Qué viene?", items: [
+    { pregunta: "¿Cuánto vendí?", items: [
+      { label: "Ventas por período", desc: "¿Vendo más o menos que antes? Este mes contra el anterior, comparado justo.", href: "/periodos", icon: icons.periodos },
       { label: "Predicciones", desc: "¿Cuánto voy a vender los próximos días? LumoBi lo calcula con tu historia.", href: "/predicciones", icon: icons.predicciones },
     ] },
-    { pregunta: "Para que LumoBi acierte más", ayuda: "Cuantos más datos tiene de tu negocio, mejores son sus avisos.", items: [
-      { label: "Facturas de proveedores", desc: "Sacale una foto a la factura y LumoBi la lee. Así sabe cuánto te cuesta cada cosa.", href: "/compras", icon: iconoCompras },
-      { label: "Mercado Pago", desc: "Traé tus cobros para encontrar plata que nadie anotó. Es opcional.", href: "/mercado-pago", icon: icons.red, estado: mp },
-      { label: "Tus locales", desc: "Si tenés más de un local, cargalos para ver cómo te va en cada uno.", href: "/red", icon: icons.red },
+    { pregunta: "¿Dónde se me va la plata?", ayuda: "Todo lo que hay para hacer, ordenado, está en la pestaña Qué hacer.", items: [
+      { label: "Fugas de plata", desc: "Caja, precios y costos: dónde se te escapa y cómo cerrarlo.", href: "/fugas", icon: icons.fugas },
+      { label: "Oportunidades", desc: "Ideas con la plata concreta, que probás con un botón.", href: "/oportunidades", icon: icons.predicciones },
     ] },
   ];
 
   return (
-    <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Plata" sub="Qué hacer para ganar más, cómo te va y qué viene" />
+    <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 150 }}>
+      <PageHeader title="Plata" sub="Cuánto vendiste, cuánto ganás de verdad y qué se te escapa" />
 
       <div style={{ padding: "0 12px" }}>
         <PeriodoMesCard sucursalId={sucursalId} />

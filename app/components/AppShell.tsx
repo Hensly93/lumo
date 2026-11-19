@@ -5,6 +5,7 @@ import PushRegistrar from "./PushRegistrar";
 import PlanGate from "./PlanGate";
 import Tracker from "./Tracker";
 import GuiaPantalla from "./GuiaPantalla";
+import BotonNicole from "./BotonNicole";
 
 const SIN_HEADER = ["/landing", "/soluciones", "/login", "/empleado", "/reset-password", "/onboarding", "/admin", "/privacidad", "/terminos"];
 
@@ -20,6 +21,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Tracker />
       <PlanGate />
       {children}
+      {showHeader && <BotonNicole />}
     </>
   );
 }

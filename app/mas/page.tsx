@@ -55,15 +55,10 @@ export default function MasPage() {
   grupos.unshift({ pregunta: "Tu cuenta", items: [
     { label: "Ajustes", desc: "Tu negocio, tu plan, los avisos y tu cuenta.", href: "/ajustes", icon: icons.ajustes },
   ] });
-  grupos.splice(2, 0, { pregunta: "Lo que LumoBi encontró", ayuda: "Todo junto y ordenado en Qué hacer; acá, cada tema por separado.", items: [
-    { label: "Oportunidades", desc: "Dónde ganar más y perder menos, con promos armadas.", href: "/oportunidades", icon: icons.catalogo },
-    { label: "Fugas de plata", desc: "Plata que se te va: caja, precios, costos.", href: "/fugas", icon: icons.catalogo },
-    { label: "Precios que se te comieron", desc: "Tu proveedor subió y vos no.", href: "/costos", icon: icons.catalogo },
-    { label: "Resumen del mes", desc: "Lo que LumoBi detectó y recuperó este mes.", href: "/resumen-mensual", icon: icons.catalogo },
-  ] });
+
 
   return (
-    <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
+    <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 150 }}>
       <PageHeader title="Más" sub="Lo que LumoBi sabe de tu negocio, tus conexiones y tu cuenta" />
 
       <div style={{ padding: "0 12px" }}>

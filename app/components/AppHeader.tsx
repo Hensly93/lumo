@@ -51,21 +51,16 @@ export default function AppHeader() {
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
           <ActivacionChip />
-          <Link href="/guia" aria-label="Guía: cómo hacer cada cosa" style={{ width: 36, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
+          <Link href="/guia" aria-label="Guía: cómo hacer cada cosa" style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" stroke="#6B8099" strokeWidth="1.5" />
               <path d="M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.1-1.5 2.2M12 17h.01" stroke="#6B8099" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </Link>
-          <Link href="/que-hacer" aria-label="Qué hacer" style={{ width: 36, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="#6B8099" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
-          <Link href="/mas" aria-label="Cuenta y ajustes" style={{ width: 36, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="8" r="4" stroke="#6B8099" strokeWidth="1.5" />
-              <path d="M4 21a8 8 0 0116 0" stroke="#6B8099" strokeWidth="1.5" strokeLinecap="round" />
+          <Link href="/ajustes" aria-label="Ajustes" style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#45546B" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="12" cy="12" r="3" />
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" />
             </svg>
           </Link>
         </div>
