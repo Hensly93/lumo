@@ -15,7 +15,7 @@ const fmt = (n: number) => "$" + Math.round(n).toLocaleString("es-AR");
 
 type Accion = { id: string; tipo: string; titulo: string; detalle: string; arma?: boolean };
 type Item = {
-  id: string; origen: "hallazgo" | "alerta" | "comparacion"; hid: number | null; titulo: string; detalle: string; evidencia: string[];
+  id: string; origen: "hallazgo" | "alerta" | "comparacion" | "vencimiento"; hid: number | null; titulo: string; detalle: string; evidencia: string[];
   pesos: number | null; pesos_texto: string | null; urgente: boolean; acciones: Accion[]; accion_texto: string; url: string; puede_responder: boolean;
 };
 type Medido = { id: number; titulo: string; recuperado: number };
@@ -114,7 +114,7 @@ export default function QueHacer() {
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.4, color: it.urgente ? "var(--critico)" : "var(--tinta-apagada)" }}>
-                        {it.urgente ? "URGENTE" : it.origen === "hallazgo" ? "OPORTUNIDAD" : it.origen === "comparacion" ? "ENTRE TUS LOCALES" : "PARA MIRAR"}
+                        {it.urgente ? "URGENTE" : it.origen === "hallazgo" ? "OPORTUNIDAD" : it.origen === "comparacion" ? "ENTRE TUS LOCALES" : it.origen === "vencimiento" ? "VENCE PRONTO" : "PARA MIRAR"}
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 700, color: "var(--tinta)", marginTop: 2, lineHeight: 1.35 }}>{it.titulo}</div>
                     </div>

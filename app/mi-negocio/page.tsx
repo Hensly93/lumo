@@ -42,10 +42,14 @@ export default function MiNegocioPage() {
     ] },
     { pregunta: "Productos y proveedores", items: [
       { label: "Productos, precios y stock", desc: "Cargá productos, mirá márgenes, cambiá precios y controlá qué reponer.", href: "/catalogo", icon: icons.productos, estado: sinCosto ? `${sinCosto} sin costo` : undefined },
+      { label: "Qué se vende junto", desc: "Productos que se llevan en el mismo ticket: para armar combos y ponerlos cerca.", href: "/se-vende-junto", icon: icons.productos },
       { label: "Pedidos", desc: "Qué pedir esta semana y cuánto, por proveedor.", href: "/pedidos", icon: icons.pedidos },
       { label: "Facturas de proveedores", desc: "Sacale una foto a la factura y LumoBi carga lo que te cuesta cada cosa.", href: "/compras", icon: icons.factura },
       { label: "Proveedores", desc: "Cuánto le comprás a cada uno, qué subió y dónde te conviene comprar.", href: "/proveedores", icon: icons.pedidos },
       { label: "Precios que se te comieron", desc: "Tu proveedor subió y vos no: a cuánto poner cada producto.", href: "/costos", icon: icons.precios },
+    ] },
+    { pregunta: "Gastos", items: [
+      { label: "Vencimientos", desc: "Alquiler, luz, sueldos y cuotas: cuándo vence cada uno y cuánto hay que vender para cubrirlos.", href: "/vencimientos", icon: icons.factura },
     ] },
     { pregunta: "Gente y locales", items: [
       { label: "Equipo", desc: "Quién atiende, su PIN, el link de la caja y cómo cierra cada uno.", href: "/equipo", icon: icons.equipo },
