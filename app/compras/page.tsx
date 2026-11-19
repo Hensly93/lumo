@@ -147,7 +147,7 @@ export default function ComprasPage() {
 
   return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Facturas de proveedores" sub="Sacá la foto y LumoBi hace el resto" />
+      <PageHeader title="Facturas de proveedores" sub="Sacá la foto y LumoBi hace el resto" negocioEntero />
       <input ref={refFoto} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={e => { leer(e.target.files?.[0]); e.target.value = ""; }} />
       <input ref={refArchivo} type="file" accept="image/*,application/pdf" style={{ display: "none" }} onChange={e => { leer(e.target.files?.[0]); e.target.value = ""; }} />
 

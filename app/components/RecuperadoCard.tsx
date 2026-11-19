@@ -60,7 +60,7 @@ export default function RecuperadoCard() {
 }
 
 // Versión de una línea para el Inicio: lo que LumoBi ya te ayudó a recuperar (o lo que está midiendo)
-export function RecuperadoLinea() {
+export function RecuperadoLinea({ siempre = false }: { siempre?: boolean }) {
   const [d, setD] = useState<Resp | null>(null);
   useEffect(() => {
     const t = localStorage.getItem("lumo_token");
@@ -68,7 +68,17 @@ export function RecuperadoLinea() {
     fetch(`${API}/api/hallazgos/recuperado`, { headers: { Authorization: `Bearer ${t}` } })
       .then((r) => (r.ok ? r.json() : null)).then((x) => { if (x && Array.isArray(x.medidos)) setD(x); }).catch(() => {});
   }, []);
-  if (!d || (d.total_mensual <= 0 && d.en_seguimiento.length === 0)) return null;
+  if (!d && !siempre) return null;
+  if (d && d.total_mensual <= 0 && d.en_seguimiento.length === 0) {
+    if (!siempre) return null;
+    // Honesto: sin plata medida, no inventamos un número
+    return (
+      <div style={{ margin: "0 0 16px", padding: 14, borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)", fontSize: 14, color: "var(--tinta)", lineHeight: 1.5 }}>
+        Todavía no medimos plata recuperada. Cuando resuelvas algo de la lista de Qué hacer, LumoBi mide a los 28 días si mejoró y lo ves acá.
+      </div>
+    );
+  }
+  if (!d) return null;
   const dias = d.en_seguimiento.length ? Math.min(...d.en_seguimiento.map((s) => s.dias_faltan)) : 0;
   return (
     <a href="/oportunidades" style={{ display: "block", margin: "0 0 16px", padding: 14, borderRadius: 12, textDecoration: "none",

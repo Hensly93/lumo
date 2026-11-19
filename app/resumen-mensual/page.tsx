@@ -25,7 +25,7 @@ function Contenido() {
   const flecha = { border: "1px solid var(--linea)", background: "var(--blanco)", borderRadius: 16, padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "var(--tinta)", cursor: "pointer" } as const;
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Resumen del mes" sub={r ? `${r.etiqueta}${r.parcial ? " (hasta hoy)" : ""}` : ""} />
+      <PageHeader title="Resumen del mes" sub={r ? `${r.etiqueta}${r.parcial ? " (hasta hoy)" : ""}` : ""} negocioEntero />
       <div style={{ padding: "0 16px" }}>
         <Estado error={error} cargando={!r && !error} />
         {r && (<>

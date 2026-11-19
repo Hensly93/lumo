@@ -29,7 +29,7 @@ export default function CostosPage() {
 
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Precios que se te comieron" sub="Tu proveedor subió y vos no" />
+      <PageHeader title="Precios que se te comieron" sub="Tu proveedor subió y vos no" negocioEntero />
       <div style={{ padding: "0 16px" }}>
         <Estado error={error} cargando={!d && !error} />
         {d && !d.hay_datos && (

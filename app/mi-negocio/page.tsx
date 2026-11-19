@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
 import MenuGuiado, { type GrupoMenu } from "../components/MenuGuiado";
+import ValorCard from "../components/ValorCard";
+import { RecuperadoLinea } from "../components/RecuperadoCard";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const c = "var(--azul)";
@@ -55,6 +57,10 @@ export default function MiNegocioPage() {
       <PageHeader title="Mi negocio" sub="Todo lo que usás para trabajar, en un solo lugar" />
       <div style={{ padding: "0 12px" }}>
         <MenuGuiado grupos={grupos} />
+        <div style={{ marginTop: 16 }}>
+          <RecuperadoLinea siempre />
+          <ValorCard />
+        </div>
       </div>
       <Nav />
     </main>

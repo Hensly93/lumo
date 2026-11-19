@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import NicoleStarIcon from "./NicoleStarIcon";
+import { useSucursal } from "../hooks/useSucursal";
 
 // ── HeroCard ──────────────────────────────────────────────────────
 type HeroCardProps = {
@@ -109,11 +110,19 @@ export function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 // ── PageHeader ────────────────────────────────────────────────────
-export function PageHeader({ title, sub }: { title: string; sub?: string }) {
+// `negocioEntero`: la pantalla muestra datos de todo el negocio (catálogo, stock, compras...) y no se separan por local.
+// Si el dueño eligió un local en el selector, lo decimos, para que no piense que está viendo solo ese local.
+export function PageHeader({ title, sub, negocioEntero }: { title: string; sub?: string; negocioEntero?: boolean }) {
+  const { sucursalId } = useSucursal();
   return (
     <div style={{ padding:"10px 16px 12px" }}>
       <div style={{ fontFamily:"var(--font-instrument),sans-serif", fontSize:22, fontWeight:800, color:"var(--text)" }}>{title}</div>
       {sub && <div style={{ fontSize:11, color:"var(--muted)", marginTop:1 }}>{sub}</div>}
+      {negocioEntero && sucursalId != null && (
+        <div style={{ fontSize:12, color:"var(--tinta-apagada)", background:"var(--azul-claro)", borderRadius:8, padding:"7px 10px", marginTop:8, lineHeight:1.4 }}>
+          Esta pantalla muestra todo tu negocio, no solo el local elegido: los productos, el stock y las compras son de todos los locales juntos.
+        </div>
+      )}
     </div>
   );
 }

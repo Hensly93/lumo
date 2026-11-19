@@ -75,7 +75,7 @@ export default function FugasPage() {
 
   return (
     <main style={{ minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Fugas" sub="Dónde se te va la plata y cómo cerrarla" />
+      <PageHeader title="Fugas" sub="Dónde se te va la plata y cómo cerrarla" negocioEntero />
 
       {error && <div style={{ ...tarjeta, color: ROJO, fontSize: 13 }}>{error}</div>}
       {!d && !error && <div style={{ textAlign: "center", padding: 40, fontSize: 11, color: "var(--muted)", letterSpacing: 3, textTransform: "uppercase" }}>Calculando...</div>}

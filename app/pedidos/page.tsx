@@ -27,7 +27,7 @@ export default function Pedidos() {
   const copiar = async (g: Grupo) => { try { await navigator.clipboard.writeText(g.texto); setCopiado(g.proveedor); setTimeout(() => setCopiado(""), 3000); } catch { /* sin permiso */ } };
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Pedidos" sub="Qué pedir, cuánto y a quién" />
+      <PageHeader title="Pedidos" sub="Qué pedir, cuánto y a quién" negocioEntero />
       <div style={{ padding: "0 16px" }}>
         {error && <div style={{ color: "var(--tinta-apagada)" }}>{error}</div>}
         {!r && !error && <div style={{ color: "var(--tinta-apagada)" }}>Calculando…</div>}

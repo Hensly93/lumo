@@ -154,7 +154,7 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
 function Encabezado({ titulo, sub, atras }: { titulo: string; sub?: string; atras?: () => void }) {
   return (
     <>
-      <PageHeader title={titulo} sub={sub ?? ""} />
+      <PageHeader title={titulo} sub={sub ?? ""} negocioEntero />
       {atras && (
         <div style={{ padding: "0 16px 8px" }}>
           <button onClick={atras} style={{ ...btnSecundario, padding: "6px 12px", fontSize: 12 }}>Volver</button>

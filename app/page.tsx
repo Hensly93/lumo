@@ -4,6 +4,7 @@ import { RecuperadoLinea } from "./components/RecuperadoCard";
 import { UltimoTurnoCard, ProyeccionCard, AprendizajeCard, type InformeTurno, type Proyeccion, type Aprendizaje } from "./components/PrimerosDias";
 import Nav from "./components/Nav";
 import BannerPasos from "./components/BannerPasos";
+import MetaCard from "./components/MetaCard";
 import ConectarMP from "./components/ConectarMP";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -109,6 +110,7 @@ function HomeContent() {
   const [queHacer, setQueHacer] = useState<{ cantidad: number; urgentes: number; pesos_en_juego: number } | null>(null);
   const [pred, setPred] = useState<Prediccion | null>(null);
   const [vivo, setVivo] = useState<{ ventas?: number; tickets?: number; esperado_hasta_ahora?: number | null } | null>(null);
+  const [locales, setLocales] = useState<{ sucursal_id: number; nombre: string; turno_activo: { tipo: string; desde: number; quien?: string | null } | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalData, setModalData] = useState<ModalData | null>(null);
   const [wowPatterns, setWowPatterns] = useState<WowPattern[]>([]);
@@ -144,6 +146,7 @@ function HomeContent() {
       setMotorCaido(!ini || !!ini.error || ini.motor_ok === false);
       setInforme(ini?.informe_turno ?? null);
       setVivo(ini?.en_vivo?.total ?? null);
+      setLocales(Array.isArray(ini?.en_vivo?.sucursales) ? ini.en_vivo.sucursales : []);
       setProyeccion(ini?.proyeccion_hoy ?? null);
       setAprendizaje(ini?.aprendizaje ?? null);
       setPredPreliminar(!!ini?.hoy?.preliminar);
@@ -569,6 +572,41 @@ function HomeContent() {
                   style={{ width: "100%", marginTop: 14, padding: "11px", borderRadius: 8, border: "1px solid var(--linea)", background: "var(--papel)", color: "var(--tinta)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
                   Ver en vivo: hora por hora y quién atiende →
                 </button>
+              </div>
+
+              {/* Quién está en la caja ahora */}
+              {locales.length > 0 && (
+                <div style={{ margin: "0 0 16px", padding: "12px 16px", borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, color: "var(--tinta-apagada)", textTransform: "uppercase", marginBottom: 6 }}>En la caja ahora</div>
+                  {locales.map(l => (
+                    <div key={l.sucursal_id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", fontSize: 14, color: "var(--tinta)" }}>
+                      {locales.length > 1 && <span style={{ fontWeight: 600 }}>{l.nombre}</span>}
+                      <span style={{ color: l.turno_activo ? "var(--tinta)" : "var(--tinta-apagada)", marginLeft: locales.length > 1 ? "auto" : 0 }}>
+                        {l.turno_activo
+                          ? `${l.turno_activo.quien ? l.turno_activo.quien + " · " : ""}turno ${l.turno_activo.tipo}, desde las ${l.turno_activo.desde}`
+                          : "Sin turno abierto"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* La meta del mes */}
+              <MetaCard />
+
+              {/* Atajos a lo que se hace todos los días */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "0 0 16px" }}>
+                {[
+                  { t: "Cobrar", h: "/caja" },
+                  { t: "Caja en vivo", h: "/en-vivo" },
+                  { t: "Cargar factura", h: "/compras" },
+                  { t: "Contar stock", h: "/catalogo" },
+                ].map(a => (
+                  <button key={a.h} onClick={() => router.push(a.h)}
+                    style={{ padding: "14px 10px", borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)", color: "var(--tinta)", fontSize: 14, fontWeight: 700, cursor: "pointer", minHeight: 48 }}>
+                    {a.t}
+                  </button>
+                ))}
               </div>
 
               {/* 2. LO QUE TENÉS QUE MIRAR HOY: cada cosa una sola vez */}

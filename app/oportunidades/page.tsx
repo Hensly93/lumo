@@ -9,7 +9,7 @@ import PrecisionCard from "../components/PrecisionCard";
 export default function Oportunidades() {
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 100 }}>
-      <PageHeader title="Oportunidades" sub="Dónde ganar más y perder menos" />
+      <PageHeader title="Oportunidades" sub="Dónde ganar más y perder menos" negocioEntero />
       <div style={{ padding: "0 16px" }}>
         <RecuperadoCard />
         <RadiografiaCard />
