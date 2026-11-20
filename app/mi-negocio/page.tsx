@@ -1,5 +1,5 @@
 "use client";
-// Mi negocio: TODO lo operativo en un solo lugar (cobrar, caja, productos, stock, pedidos, facturas, equipo).
+// Mi negocio: lo operativo en tres bloques — Vender, Productos y Comprar (19/11/2026). Vencimientos sale del menú (la ruta sigue existiendo).
 import { useEffect, useState } from "react";
 import { PageHeader } from "../components/ui";
 import Nav from "../components/Nav";
@@ -36,30 +36,27 @@ export default function MiNegocioPage() {
   }, []);
 
   const grupos: GrupoMenu[] = [
-    { pregunta: "Vender y cobrar", items: [
-      { label: "Cobrar", desc: "Cómo se abre la caja, el link y el código de tu local, y quién está atendiendo ahora.", href: "/caja", icon: icons.cobrar },
-      { label: "Caja en vivo", desc: "Cómo va el día hora por hora, quién atiende y qué se movió en la caja.", href: "/en-vivo", icon: icons.caja },
+    { pregunta: "Vender", ayuda: "La caja y quién atiende.", items: [
+      { label: "Cobrar", desc: "El link y el código de tu caja.", href: "/caja", icon: icons.cobrar },
+      { label: "Caja en vivo", desc: "Cómo va el día, hora por hora.", href: "/en-vivo", icon: icons.caja },
+      { label: "Equipo", desc: "Quién atiende, su PIN y cómo cierra cada uno.", href: "/equipo", icon: icons.equipo },
+      { label: "Tus locales", desc: "Si tenés más de uno, mirá cada local.", href: "/red", icon: icons.local },
     ] },
-    { pregunta: "Productos y proveedores", items: [
-      { label: "Productos, precios y stock", desc: "Cargá productos, mirá márgenes, cambiá precios y controlá qué reponer.", href: "/catalogo", icon: icons.productos, estado: sinCosto ? `${sinCosto} sin costo` : undefined },
-      { label: "Qué se vende junto", desc: "Productos que se llevan en el mismo ticket: para armar combos y ponerlos cerca.", href: "/se-vende-junto", icon: icons.productos },
-      { label: "Pedidos", desc: "Qué pedir esta semana y cuánto, por proveedor.", href: "/pedidos", icon: icons.pedidos },
-      { label: "Facturas de proveedores", desc: "Sacale una foto a la factura y LumoBi carga lo que te cuesta cada cosa.", href: "/compras", icon: icons.factura },
-      { label: "Proveedores", desc: "Cuánto le comprás a cada uno, qué subió y dónde te conviene comprar.", href: "/proveedores", icon: icons.pedidos },
-      { label: "Precios que se te comieron", desc: "Tu proveedor subió y vos no: a cuánto poner cada producto.", href: "/costos", icon: icons.precios },
+    { pregunta: "Productos", ayuda: "Qué vendés y a qué precio.", items: [
+      { label: "Productos, precios y stock", desc: "Cargá, cambiá precios y mirá qué reponer.", href: "/catalogo", icon: icons.productos, estado: sinCosto ? `${sinCosto} sin costo` : undefined },
+      { label: "Combos", desc: "Qué se vende junto, y armá un combo con precio.", href: "/se-vende-junto", icon: icons.productos },
     ] },
-    { pregunta: "Gastos", items: [
-      { label: "Vencimientos", desc: "Alquiler, luz, sueldos y cuotas: cuándo vence cada uno y cuánto hay que vender para cubrirlos.", href: "/vencimientos", icon: icons.factura },
-    ] },
-    { pregunta: "Gente y locales", items: [
-      { label: "Equipo", desc: "Quién atiende, su PIN, el link de la caja y cómo cierra cada uno.", href: "/equipo", icon: icons.equipo },
-      { label: "Tus locales", desc: "Si tenés más de un local, cargalos para ver cómo te va en cada uno.", href: "/red", icon: icons.local },
+    { pregunta: "Comprar", ayuda: "Qué pedir y cuánto te cuesta.", items: [
+      { label: "Pedidos", desc: "Qué pedir esta semana, por proveedor.", href: "/pedidos", icon: icons.pedidos },
+      { label: "Proveedores", desc: "A quién le comprás y qué subió.", href: "/proveedores", icon: icons.pedidos },
+      { label: "Facturas de proveedores", desc: "Sacale una foto y LumoBi lee el costo.", href: "/compras", icon: icons.factura },
+      { label: "Precios que se te comieron", desc: "Tu proveedor subió: a cuánto poner cada cosa.", href: "/costos", icon: icons.precios },
     ] },
   ];
 
   return (
     <main style={{ background: "var(--papel)", minHeight: "100vh", paddingBottom: 150 }}>
-      <PageHeader title="Mi negocio" sub="Todo lo que usás para trabajar, en un solo lugar" />
+      <PageHeader title="Mi negocio" sub="Vender, productos y compras" />
       <div style={{ padding: "0 12px" }}>
         <MenuGuiado grupos={grupos} />
         <div style={{ marginTop: 16 }}>

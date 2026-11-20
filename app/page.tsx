@@ -102,6 +102,7 @@ function HomeContent() {
   const [analisis, setAnalisis] = useState<Analisis | null>(null);
   const [motorCaido, setMotorCaido] = useState(false);
   const [informe, setInforme] = useState<InformeTurno | null>(null);
+  const [verMas, setVerMas] = useState(false);
   const [proyeccion, setProyeccion] = useState<Proyeccion | null>(null);
   const [aprendizaje, setAprendizaje] = useState<Aprendizaje | null>(null);
   const [predPreliminar, setPredPreliminar] = useState(false);
@@ -534,7 +535,6 @@ function HomeContent() {
 
             <BannerPasos token={token} onVentas={setHayVentas} soloVentas />
             <ActivacionCard compacta />
-            {hayVentas === true && <ConectarMP token={token} />}
 
             {hayVentas === false ? (
               <div style={{ margin: "0 0 16px", padding: "16px", borderRadius: 14, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
@@ -571,38 +571,6 @@ function HomeContent() {
                   style={{ width: "100%", marginTop: 14, padding: "11px", borderRadius: 8, border: "1px solid var(--linea)", background: "var(--papel)", color: "var(--tinta)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
                   Ver en vivo: hora por hora y quién atiende →
                 </button>
-              </div>
-
-              {/* Quién está en la caja ahora */}
-              {locales.length > 0 && (
-                <div style={{ margin: "0 0 16px", padding: "12px 16px", borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, color: "var(--tinta-apagada)", textTransform: "uppercase", marginBottom: 6 }}>En la caja ahora</div>
-                  {locales.map(l => (
-                    <div key={l.sucursal_id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", fontSize: 14, color: "var(--tinta)" }}>
-                      {locales.length > 1 && <span style={{ fontWeight: 600 }}>{l.nombre}</span>}
-                      <span style={{ color: l.turno_activo ? "var(--tinta)" : "var(--tinta-apagada)", marginLeft: locales.length > 1 ? "auto" : 0 }}>
-                        {l.turno_activo
-                          ? `${l.turno_activo.quien ? l.turno_activo.quien + " · " : ""}turno ${l.turno_activo.tipo}, desde las ${l.turno_activo.desde}`
-                          : "Sin turno abierto"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Atajos a lo que se hace todos los días */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "0 0 16px" }}>
-                {[
-                  { t: "Cobrar", h: "/caja" },
-                  { t: "Caja en vivo", h: "/en-vivo" },
-                  { t: "Cargar factura", h: "/compras" },
-                  { t: "Contar stock", h: "/catalogo" },
-                ].map(a => (
-                  <button key={a.h} onClick={() => router.push(a.h)}
-                    style={{ padding: "14px 10px", borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)", color: "var(--tinta)", fontSize: 14, fontWeight: 700, cursor: "pointer", minHeight: 48 }}>
-                    {a.t}
-                  </button>
-                ))}
               </div>
 
               {/* 2. LO QUE TENÉS QUE MIRAR HOY: cada cosa una sola vez */}
@@ -647,6 +615,46 @@ function HomeContent() {
               {/* Lo que ya funcionó: cerrar el círculo de los consejos */}
               <RecuperadoLinea />
 
+              {/* Lo secundario queda a un toque: la Home responde "¿cómo voy y qué hago?" */}
+              <button onClick={() => setVerMas(v => !v)} aria-expanded={verMas}
+                style={{ width: "100%", margin: "0 0 12px", padding: "12px", borderRadius: 10, border: "1px solid var(--linea)", background: "var(--blanco)", color: "var(--tinta)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                {verMas ? "Ver menos" : "Ver más de hoy"}
+              </button>
+              {verMas && (<>
+              {/* Quién está en la caja ahora */}
+              {locales.length > 0 && (
+                <div style={{ margin: "0 0 16px", padding: "12px 16px", borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, color: "var(--tinta-apagada)", textTransform: "uppercase", marginBottom: 6 }}>En la caja ahora</div>
+                  {locales.map(l => (
+                    <div key={l.sucursal_id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "5px 0", fontSize: 14, color: "var(--tinta)" }}>
+                      {locales.length > 1 && <span style={{ fontWeight: 600 }}>{l.nombre}</span>}
+                      <span style={{ color: l.turno_activo ? "var(--tinta)" : "var(--tinta-apagada)", marginLeft: locales.length > 1 ? "auto" : 0 }}>
+                        {l.turno_activo
+                          ? `${l.turno_activo.quien ? l.turno_activo.quien + " · " : ""}turno ${l.turno_activo.tipo}, desde las ${l.turno_activo.desde}`
+                          : "Sin turno abierto"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Atajos a lo que se hace todos los días */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "0 0 16px" }}>
+                {[
+                  { t: "Cobrar", h: "/caja" },
+                  { t: "Caja en vivo", h: "/en-vivo" },
+                  { t: "Cargar factura", h: "/compras" },
+                  { t: "Contar stock", h: "/catalogo" },
+                ].map(a => (
+                  <button key={a.h} onClick={() => router.push(a.h)}
+                    style={{ padding: "14px 10px", borderRadius: 12, border: "1px solid var(--linea)", background: "var(--blanco)", color: "var(--tinta)", fontSize: 14, fontWeight: 700, cursor: "pointer", minHeight: 48 }}>
+                    {a.t}
+                  </button>
+                ))}
+              </div>
+
+              {hayVentas === true && <ConectarMP token={token} />}
+
               {/* 3. ÚLTIMO TURNO (corto) */}
               {informe && <UltimoTurnoCard informe={informe} compacto />}
 
@@ -671,9 +679,10 @@ function HomeContent() {
                   </>
                 );
               })()}
+              </>)}
             </>)}
 
-            {aprendizaje && !aprendizaje.completo && <AprendizajeCard a={aprendizaje} />}
+            {verMas && aprendizaje && !aprendizaje.completo && <AprendizajeCard a={aprendizaje} />}
           </div>
         )}
 
