@@ -109,7 +109,12 @@ function HomeContent() {
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [queHacer, setQueHacer] = useState<{ cantidad: number; urgentes: number; pesos_en_juego: number } | null>(null);
   const [pred, setPred] = useState<Prediccion | null>(null);
-  const [vivo, setVivo] = useState<{ ventas?: number; tickets?: number; esperado_hasta_ahora?: number | null } | null>(null);
+  const [vivo, setVivo] = useState<{
+    ventas?: number; tickets?: number; esperado_hasta_ahora?: number | null;
+    esperado_rango_hasta_ahora?: { min: number; max: number } | null; comparable?: boolean;
+    dias_datos?: number | null; dias_necesarios?: number; dia_base?: string | null; factores?: string[]; base_insuficiente?: boolean;
+  } | null>(null);
+  const [verBase, setVerBase] = useState(false);
   const [locales, setLocales] = useState<{ sucursal_id: number; nombre: string; turno_activo: { tipo: string; desde: number; quien?: string | null } | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalData, setModalData] = useState<ModalData | null>(null);
@@ -554,16 +559,39 @@ function HomeContent() {
                 <div style={{ fontSize: 34, fontWeight: 800, color: "var(--tinta)", fontFamily: "var(--font-instrument), sans-serif", lineHeight: 1.1 }}>{fmt(vivo?.ventas ?? 0)}</div>
                 <div style={{ fontSize: 13, color: "var(--tinta-apagada)", marginTop: 4, lineHeight: 1.5 }}>
                   vendido en {vivo?.tickets ?? 0} ventas
-                  {vivo?.esperado_hasta_ahora != null && vivo.esperado_hasta_ahora > 0 && (() => {
-                    const d = Math.round(((vivo.ventas ?? 0) / vivo.esperado_hasta_ahora - 1) * 100);
-                    return (vivo.ventas ?? 0) > 0
-                      ? <> · <strong style={{ color: d >= -10 ? "var(--ok, #16A34A)" : "var(--critico, #DC2626)" }}>{Math.abs(d)}% {d >= 0 ? "más" : "menos"}</strong> que lo normal a esta hora</>
-                      : <> · lo normal a esta hora: {fmt(vivo.esperado_hasta_ahora)}</>;
+                  {vivo?.base_insuficiente ? (
+                    <div style={{ marginTop: 6 }}>Todavía no hay historia para decirte qué es normal: llevás {vivo.dias_datos ?? 0} días con ventas y hacen falta {vivo.dias_necesarios ?? 14}.</div>
+                  ) : vivo?.comparable !== false && vivo?.esperado_rango_hasta_ahora && (vivo.esperado_hasta_ahora ?? 0) > 0 && (() => {
+                    const r = vivo.esperado_rango_hasta_ahora!;
+                    const v = vivo.ventas ?? 0;
+                    const rango = <>entre <strong>{fmt(r.min)}</strong> y <strong>{fmt(r.max)}</strong></>;
+                    if (v <= 0) return <div style={{ marginTop: 6 }}>Lo habitual a esta hora: {rango}.</div>;
+                    const arriba = v > r.max, abajo = v < r.min;
+                    return (
+                      <div style={{ marginTop: 6 }}>
+                        <strong style={{ color: abajo ? "var(--critico, #DC2626)" : "var(--ok, #16A34A)" }}>{arriba ? "Por encima de lo habitual" : abajo ? "Por debajo de lo habitual" : "Dentro de lo habitual"}</strong> a esta hora ({rango}).
+                      </div>
+                    );
                   })()}
                 </div>
-                {facturacion != null && (
+                {!vivo?.base_insuficiente && vivo?.comparable !== false && vivo?.esperado_rango_hasta_ahora && (vivo.esperado_hasta_ahora ?? 0) > 0 && (
+                  <>
+                    <button onClick={() => setVerBase(v => !v)} aria-expanded={verBase}
+                      style={{ padding: 0, margin: "8px 0 0", border: "none", background: "transparent", color: "#007AFF", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                      {verBase ? "Ocultar" : "¿En qué se basa?"}
+                    </button>
+                    {verBase && (
+                      <div style={{ marginTop: 6, fontSize: 13, color: "var(--tinta-apagada)", lineHeight: 1.5 }}>
+                        Es una estimación, no un dato. Sale de tus últimos {vivo.dias_datos ?? "—"} días con ventas, tomando como base {vivo.dia_base ? `los ${vivo.dia_base}` : "este día de la semana"}
+                        {vivo.factores && vivo.factores.length > 0 ? <> y ajustando por: {vivo.factores.join(", ")}</> : null}. La franja es el margen de error.
+                        No sabe de promociones, faltantes de stock, eventos ni cambios en tu equipo: usala como referencia, no como meta.
+                      </div>
+                    )}
+                  </>
+                )}
+                {facturacion != null && !vivo?.base_insuficiente && (
                   <div style={{ fontSize: 14, color: "var(--tinta)", marginTop: 10, lineHeight: 1.5 }}>
-                    {predPreliminar ? "Un día normal tuyo (preliminar): " : "Deberías cerrar cerca de "}<strong>{fmt(facturacion)}</strong>.
+                    {predPreliminar ? "Un día normal tuyo (preliminar): " : "Para hoy se espera cerca de "}<strong>{fmt(facturacion)}</strong>.
                   </div>
                 )}
                 {facturacion == null && proyeccion && <div style={{ marginTop: 10 }}><ProyeccionCard p={proyeccion} /></div>}
