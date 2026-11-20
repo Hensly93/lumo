@@ -41,6 +41,7 @@ export default function QueHacer() {
   const [error, setError] = useState(false);
   const [abiertos, setAbiertos] = useState<Record<string, boolean>>({});
   const [hechos, setHechos] = useState<Record<string, string>>({});
+  const [filtro, setFiltro] = useState<"todo" | "urgentes" | "oportunidades" | "alertas">("todo");
 
   const cargar = useCallback(() => {
     if (!token) return;
@@ -106,7 +107,31 @@ export default function QueHacer() {
               </div>
             )}
 
-            {d.items.map(it => {
+            {d.items.length > 0 && (() => {
+              const cuenta = {
+                todo: d.items.length,
+                urgentes: d.items.filter(i => i.urgente).length,
+                oportunidades: d.items.filter(i => i.origen === "hallazgo").length,
+                alertas: d.items.filter(i => i.origen !== "hallazgo").length,
+              };
+              const chips: { k: typeof filtro; t: string }[] = [
+                { k: "todo", t: "Todo" }, { k: "urgentes", t: "Urgentes" }, { k: "oportunidades", t: "Oportunidades" }, { k: "alertas", t: "Alertas" },
+              ];
+              return (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "0 0 12px" }}>
+                  {chips.filter(c => c.k === "todo" || cuenta[c.k] > 0).map(c => (
+                    <button key={c.k} onClick={() => setFiltro(c.k)} aria-pressed={filtro === c.k}
+                      style={{ fontSize: 13, fontWeight: 600, padding: "7px 13px", borderRadius: 99, cursor: "pointer",
+                        border: filtro === c.k ? "1px solid var(--tinta)" : "1px solid var(--linea)",
+                        background: filtro === c.k ? "var(--tinta)" : "var(--blanco)", color: filtro === c.k ? "var(--blanco)" : "var(--tinta)" }}>
+                      {c.t} {cuenta[c.k]}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
+
+            {d.items.filter(it => filtro === "todo" || (filtro === "urgentes" ? it.urgente : filtro === "oportunidades" ? it.origen === "hallazgo" : it.origen !== "hallazgo")).map(it => {
               const respondido = hechos[it.id];
               const abierto = abiertos[it.id];
               return (
@@ -155,6 +180,7 @@ export default function QueHacer() {
                       {(it.acciones.length > 0) && <Link href={it.url} style={btn()}>Ver el detalle</Link>}
                       {it.puede_responder && it.hid != null && (
                         <>
+                          <button style={btn()} onClick={() => post(`${it.hid}/feedback`, { accion: "util" }, it.id, "Anotado: era real. Eso ayuda a que LumoBi afine lo que te avisa.")}>Era real</button>
                           <button style={btn()} onClick={() => post(`${it.hid}/feedback`, { accion: "resuelto" }, it.id, "Marcado como resuelto. LumoBi mide en 28 días si bajó.")}>Ya lo resolví</button>
                           <button style={btn()} onClick={() => post(`${it.hid}/feedback`, { accion: "no_sirve" }, it.id, "Listo, no te lo muestro más.")}>No me sirve</button>
                         </>
@@ -164,6 +190,10 @@ export default function QueHacer() {
                 </div>
               );
             })}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 14, margin: "4px 2px 8px" }}>
+              <Link href="/resumen-mensual" style={{ fontSize: 14, fontWeight: 700, color: "#007AFF", textDecoration: "none" }}>Resumen del mes →</Link>
+              <Link href="/fugas" style={{ fontSize: 14, fontWeight: 700, color: "#007AFF", textDecoration: "none" }}>Fugas de plata →</Link>
+            </div>
           </>
         )}
       </div>
