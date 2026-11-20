@@ -181,6 +181,7 @@ export default function QueHacer() {
                       {it.puede_responder && it.hid != null && (
                         <>
                           <button style={btn()} onClick={() => post(`${it.hid}/feedback`, { accion: "util" }, it.id, "Anotado: era real. Eso ayuda a que LumoBi afine lo que te avisa.")}>Era real</button>
+                          <button style={btn()} onClick={() => post(`${it.hid}/feedback`, { accion: "falsa_alarma" }, it.id, "Anotado: era falsa alarma. LumoBi te avisa menos de esto y mide su acierto.")}>Falsa alarma</button>
                           <button style={btn()} onClick={() => post(`${it.hid}/feedback`, { accion: "resuelto" }, it.id, "Marcado como resuelto. LumoBi mide en 28 días si bajó.")}>Ya lo resolví</button>
                           <button style={btn()} onClick={() => post(`${it.hid}/feedback`, { accion: "no_sirve" }, it.id, "Listo, no te lo muestro más.")}>No me sirve</button>
                         </>
