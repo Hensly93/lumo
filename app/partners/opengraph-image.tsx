@@ -3,7 +3,7 @@
 // Le habla a quien quiere ganar plata recomendando LumoBi (NO al dueño de un comercio): por eso no reusa la imagen general.
 import { ImageResponse } from "next/og";
 
-export const alt = "Trabajá con LumoBi: ganá plata extra todos los meses buscando negocios. $22.500 por cada negocio que sumás y $10.000 por mes por cada uno que siga.";
+export const alt = "LumoBi busca vendedores a comisión: cada comercio que traés te paga $22.500 y después te sigue pagando $10.000 todos los meses.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -21,9 +21,10 @@ export default function Imagen() {
           <div style={{ fontSize: 40, fontWeight: 700, color: "#00C2FF" }}>Partners</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: "#00C2FF", marginBottom: 12 }}>TRABAJÁ CON NOSOTROS</div>
-          <div style={{ fontSize: 62, fontWeight: 800, lineHeight: 1.08 }}>Ganá plata extra todos los meses buscando negocios para nosotros</div>
-          <div style={{ fontSize: 34, lineHeight: 1.25, marginTop: 16, color: "#CFE3F5" }}>$22.500 por cada negocio que sumás + $10.000 por mes por cada uno que siga</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: "#00C2FF", marginBottom: 12 }}>BUSCAMOS VENDEDORES A COMISIÓN</div>
+          <div style={{ fontSize: 64, fontWeight: 800, lineHeight: 1.08 }}>Cada comercio que traés te paga $22.500</div>
+          <div style={{ fontSize: 38, lineHeight: 1.2, marginTop: 12, color: "#CFE3F5" }}>y después te sigue pagando $10.000 todos los meses</div>
+          <div style={{ fontSize: 30, lineHeight: 1.2, marginTop: 12, color: "#00C2FF" }}>10 comercios = $100.000 por mes, sin volver a venderles</div>
         </div>
         <div style={{ display: "flex", gap: 18 }}>
           {["Formación gratis", "Cobrás por transferencia", "Tus horarios"].map((t) => (

@@ -82,16 +82,17 @@ export default function PaginaPartners() {
 
         {/* 1. La promesa */}
         <section style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: C.azul, letterSpacing: 0.5, marginBottom: 8 }}>LUMOBI PARTNERS · TRABAJÁ CON NOSOTROS</div>
-          <h1 style={{ fontSize: 34, lineHeight: 1.1, margin: "0 0 12px" }}>Ganá plata extra todos los meses buscando negocios para nosotros.</h1>
+          <div style={{ fontSize: 14, fontWeight: 800, color: C.azul, letterSpacing: 0.5, marginBottom: 8 }}>BUSCAMOS VENDEDORES A COMISIÓN</div>
+          <h1 style={{ fontSize: 34, lineHeight: 1.1, margin: "0 0 10px" }}>Cada comercio que traés te paga {pesos(alta)}.</h1>
+          <div style={{ fontSize: 22, fontWeight: 700, color: C.azul, lineHeight: 1.25, margin: "0 0 14px" }}>Y después te sigue pagando {pesos(mes)} todos los meses.</div>
           <div style={{ background: C.blanco, border: `2px solid ${C.azul}`, borderRadius: 14, padding: "12px 14px", marginBottom: 12 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.3 }}>🎉 {pesos(alta)} por cada negocio que sumás</div>
-            <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.3, color: C.azul }}>🔁 + {pesos(mes)} por mes por CADA uno que siga</div>
-            <div style={{ fontSize: 16, color: C.suave, marginTop: 6 }}>Con 10 negocios: <b style={{ color: C.tinta }}>{pesos(mes * 10)} todos los meses</b>. Con 50: <b style={{ color: C.tinta }}>{pesos(mes * 50)}</b>.</div>
+            <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.35 }}>10 comercios = {pesos(mes * 10)} por mes</div>
+            <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.35 }}>50 comercios = {pesos(mes * 50)} por mes</div>
+            <div style={{ fontSize: 15, color: C.suave, marginTop: 6, lineHeight: 1.45 }}>Sin volver a venderles: mientras el comercio siga con LumoBi, vos seguís cobrando.</div>
           </div>
-          <p style={{ ...grande, marginBottom: 18 }}>Buscás kioscos grandes, autoservicios y supermercados que quieran dejar de perder plata, les mostrás LumoBi y nosotros hacemos el resto. Te formamos gratis en 10 minutos, manejás tus horarios y cobrás por transferencia.</p>
+          <p style={{ ...grande, marginBottom: 18 }}>Le presentás LumoBi a kioscos grandes, autoservicios y supermercados. Nosotros les damos el sistema, la ayuda y el soporte. Vos cobrás por transferencia y manejás tus horarios.</p>
           <div style={{ display: "grid", gap: 10 }}>
-            <a href="#alta" style={{ ...boton, display: "block", textAlign: "center", textDecoration: "none", fontSize: 18, padding: 17 }}>Quiero empezar a ganar</a>
+            <a href="#alta" style={{ ...boton, display: "block", textAlign: "center", textDecoration: "none", fontSize: 18, padding: 17 }}>Quiero mi link y empezar</a>
             <button style={{ ...botonSec, fontSize: 17 }} onClick={() => setVideo(true)}>▶ Mirá cómo funciona (1 minuto)</button>
           </div>
         </section>
