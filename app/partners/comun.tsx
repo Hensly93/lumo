@@ -37,8 +37,8 @@ export async function pedir<T>(ruta: string, opts: { metodo?: string; cuerpo?: u
   return j as T;
 }
 
-export type Reglas = { alta_pct: number; cartera_pct: number; elite_clientes: number; elite_cartera_pct: number; bono_referido: number; bono_meta: number; retencion_dias: number; precio_base?: number };
-export const REGLAS_BASE: Reglas = { alta_pct: 0.5, cartera_pct: 0.15, elite_clientes: 30, elite_cartera_pct: 0.2, bono_referido: 20000, bono_meta: 3, retencion_dias: 15, precio_base: 45000 };
+export type Reglas = { alta_monto: number; cartera_monto: number; elite_clientes: number; elite_cartera_monto: number; bono_por_negocio: number; bono_tope: number; retencion_dias: number; precio_base?: number };
+export const REGLAS_BASE: Reglas = { alta_monto: 22500, cartera_monto: 10000, elite_clientes: 30, elite_cartera_monto: 12000, bono_por_negocio: 6000, bono_tope: 10, retencion_dias: 15, precio_base: 45000 };
 
 export const tarjeta: React.CSSProperties = { background: C.blanco, border: `1px solid ${C.linea}`, borderRadius: 16, padding: 18, marginBottom: 14 };
 export const input: React.CSSProperties = {

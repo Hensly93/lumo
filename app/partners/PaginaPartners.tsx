@@ -32,11 +32,10 @@ export default function PaginaPartners() {
     if (q) fetch(`${API}/api/partners/codigo/${encodeURIComponent(q)}`).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.valido) setRefNombre(j.nombre); }).catch(() => {});
   }, []);
 
-  const base = R.precio_base || 45000;
-  const alta = base * R.alta_pct;
-  const mes = base * R.cartera_pct;
-  // Lo que cobrarías en el mes M si sumás N comercios por mes y todos siguen pagando
-  const enMes = (m: number) => n * alta + n * (m - 1) * mes;
+  const alta = R.alta_monto;
+  const mes = R.cartera_monto;
+  // Mes M sumando N comercios por mes (todos siguen pagando): los nuevos del mes dejan su alta y TODOS los anteriores dejan su mensualidad.
+  const cuenta = (m: number) => { const nuevos = n, cartera = n * (m - 1); return { nuevos, cartera, deNuevos: nuevos * alta, deCartera: cartera * mes, total: nuevos * alta + cartera * mes }; };
   const video1 = lecciones(R)[1];
 
   function seguir(e: React.FormEvent) {
@@ -110,15 +109,21 @@ export default function PaginaPartners() {
             <div style={{ fontSize: 48, fontWeight: 800, minWidth: 70, textAlign: "center" }}>{n}</div>
             <BotonRedondo onClick={() => setN(Math.min(20, n + 1))}>+</BotonRedondo>
           </div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {[3, 6, 12].map((m) => (
-              <div key={m} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: C.papel, borderRadius: 12, padding: "12px 14px" }}>
-                <span style={{ fontSize: 16, color: C.suave }}>En el mes {m} cobrás</span>
-                <b style={{ fontSize: 22 }}>{pesos(enMes(m))}</b>
+          <div style={{ display: "grid", gap: 10 }}>
+            {[3, 6, 12].map((m) => { const c = cuenta(m); return (
+              <div key={m} style={{ background: C.papel, borderRadius: 14, padding: "12px 14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <span style={{ fontSize: 16, fontWeight: 700 }}>En el mes {m} cobrás</span>
+                  <b style={{ fontSize: 24 }}>{pesos(c.total)}</b>
+                </div>
+                <div style={{ fontSize: 14, color: C.suave, marginTop: 6, lineHeight: 1.5 }}>
+                  🎉 {c.nuevos} {c.nuevos === 1 ? "comercio nuevo" : "comercios nuevos"}: {pesos(c.deNuevos)}<br />
+                  🔁 {c.cartera} que ya tenés en tu cartera: {pesos(c.deCartera)}
+                </div>
               </div>
-            ))}
+            ); })}
           </div>
-          <p style={{ fontSize: 14, color: C.apagada, margin: "12px 0 0", lineHeight: 1.5 }}>Es una cuenta, no una promesa: supone que todos los comercios siguen pagando. Algunos se dan de baja.</p>
+          <p style={{ fontSize: 14, color: C.apagada, margin: "12px 0 0", lineHeight: 1.5 }}>Tu cartera crece cada mes: los comercios que ya tenés siguen pagando y se suman los nuevos. Es una cuenta, no una promesa: supone que nadie se da de baja, y algunos se dan.</p>
         </section>
 
         {/* 4. Cómo funciona, 3 pasos con dibujo */}
@@ -159,8 +164,8 @@ export default function PaginaPartners() {
             ["💳", "Cobrás cuando el comercio paga. Si solo prueba y no paga, no hay comisión."],
             ["⏳", `La plata queda ${R.retencion_dias} días en espera y después te la transferimos a tu alias o CBU.`],
             ["🧾", "Para cobrar necesitás CUIT o CUIL y hacer factura (por ejemplo, como monotributista)."],
-            ["🤝", `Si invitás a alguien a ser partner y llega a ${R.bono_meta} comercios pagando, te damos ${pesos(R.bono_referido)}, una sola vez. No es una pirámide.`],
-            ["⭐", `Con ${R.elite_clientes} comercios pagando pasás a Elite: los nuevos te dejan ${pesos(base * R.elite_cartera_pct)} por mes.`],
+            ["🤝", `Si invitás a alguien a ser partner, cobrás ${pesos(R.bono_por_negocio)} por cada comercio que él traiga y pague, hasta ${R.bono_tope} comercios (${pesos(R.bono_por_negocio * R.bono_tope)} por cada partner que invites). No cobrás de los que invite él: no es una pirámide.`],
+            ["⭐", `Con ${R.elite_clientes} comercios pagando pasás a Elite: los nuevos te dejan ${pesos(R.elite_cartera_monto)} por mes.`],
             ["🚫", "Prohibido prometer ahorros, mandar spam o hacerte pasar por empleado de LumoBi."],
           ].map(([ic, t]) => (
             <div key={t} style={{ display: "flex", gap: 12, fontSize: 16, lineHeight: 1.45, color: C.suave, marginBottom: 12 }}>

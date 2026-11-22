@@ -13,7 +13,7 @@ type Panel = {
   resumen: { clientes: number; pagando: number; en_prueba: number; este_mes: number; pendiente: number; disponible: number; cobrado: number; cartera_mensual: number; elite: boolean };
   clientes: Cliente[];
   movimientos: Mov[];
-  referidos: { id: number; nombre: string; creado: string; pagando: number; bono: boolean }[];
+  referidos: { id: number; nombre: string; creado: string; pagando: number; bonos: number; ganado: number }[];
   liquidaciones: { id: number; total: number; estado: string; creado: string; pagada_en: string | null }[];
 };
 type Material = { link: string; mensajes: { titulo: string; texto: string }[]; consejos: string[] };
@@ -21,7 +21,7 @@ type Material = { link: string; mensajes: { titulo: string; texto: string }[]; c
 const COLOR_ESTADO: Record<Cliente["estado"], [string, string]> = {
   pagando: [C.ok, C.okFondo], prueba: [C.azul, "#E8F0FC"], sin_pagar: [C.atencion, C.atencionFondo], baja: [C.apagada, C.papel],
 };
-const NOMBRE_MOV: Record<Mov["tipo"], string> = { alta: "Comisión de alta", cartera: "Comisión de cartera", bono_referido: "Bono por partner invitado" };
+const NOMBRE_MOV: Record<Mov["tipo"], string> = { alta: "Comisión de alta", cartera: "Comisión de cartera", bono_referido: "Por un partner que invitaste" };
 const NOMBRE_ESTADO_MOV: Record<string, string> = { pendiente: "en espera", disponible: "para cobrar", liquidada: "cobrada", anulada: "anulada" };
 
 export default function PanelPartner() {
@@ -96,7 +96,7 @@ export default function PanelPartner() {
 
       <div style={tarjeta}>
         {s.elite ? (
-          <div><b>Sos partner Elite.</b> <span style={{ color: C.suave }}>Los negocios que sumes desde ahora te dejan {pesos((R.precio_base || 45000) * R.elite_cartera_pct)} por mes.</span></div>
+          <div><b>Sos partner Elite.</b> <span style={{ color: C.suave }}>Los comercios que sumes desde ahora te dejan {pesos(R.elite_cartera_monto)} por mes.</span></div>
         ) : (
           <>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
@@ -105,7 +105,7 @@ export default function PanelPartner() {
             <div style={{ height: 10, background: C.papel, borderRadius: 5, overflow: "hidden" }}>
               <div style={{ width: `${Math.min(100, (s.pagando / R.elite_clientes) * 100)}%`, height: "100%", background: C.azul }} />
             </div>
-            <div style={{ fontSize: 13, color: C.apagada, marginTop: 8 }}>Te faltan {faltaElite}. En Elite, cada negocio nuevo te deja {pesos((R.precio_base || 45000) * R.elite_cartera_pct)} por mes en vez de {pesos((R.precio_base || 45000) * R.cartera_pct)}.</div>
+            <div style={{ fontSize: 13, color: C.apagada, marginTop: 8 }}>Te faltan {faltaElite}. En Elite, cada comercio nuevo te deja {pesos(R.elite_cartera_monto)} por mes en vez de {pesos(R.cartera_monto)}.</div>
           </>
         )}
       </div>
@@ -171,14 +171,14 @@ export default function PanelPartner() {
           </div>
           <div style={tarjeta}>
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Invitá a otros partners</div>
-            <p style={{ margin: "0 0 10px", color: C.suave, fontSize: 14, lineHeight: 1.5 }}>Si alguien que invitás llega a {R.bono_meta} negocios pagando, cobrás {pesos(R.bono_referido)} una vez. No cobrás de lo que venda después.</p>
+            <p style={{ margin: "0 0 10px", color: C.suave, fontSize: 14, lineHeight: 1.5 }}>Por cada comercio que traiga y pague alguien que invitaste, cobrás {pesos(R.bono_por_negocio)}, hasta {R.bono_tope} comercios por partner ({pesos(R.bono_por_negocio * R.bono_tope)}). No cobrás de los que invite él.</p>
             <Copiar texto={d.partner.link_partners} etiqueta="Copiar link para partners" />
             {d.referidos.length > 0 && (
               <div style={{ marginTop: 12 }}>
                 {d.referidos.map((r) => (
                   <div key={r.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 14, padding: "8px 0", borderTop: `1px solid ${C.linea}` }}>
                     <span>{r.nombre}</span>
-                    <span style={{ color: r.bono ? C.ok : C.apagada, fontWeight: 600 }}>{r.bono ? "Bono ganado" : `${Math.min(r.pagando, R.bono_meta)} de ${R.bono_meta}`}</span>
+                    <span style={{ color: r.bonos ? C.ok : C.apagada, fontWeight: 600 }}>{r.bonos} de {R.bono_tope} comercios · {pesos(r.ganado)}</span>
                   </div>
                 ))}
               </div>
@@ -189,6 +189,7 @@ export default function PanelPartner() {
 
       {tab === "plata" && (
         <>
+          <Proyeccion d={d} />
           <div style={tarjeta}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 15, marginBottom: 6 }}><span>Cobrado en total</span><b>{pesos(s.cobrado)}</b></div>
             <p style={{ margin: 0, fontSize: 13, color: C.apagada, lineHeight: 1.5 }}>Cada comisión queda {R.retencion_dias} días en espera por si el pago se cae y después pasa a &quot;para cobrar&quot;. Liquidamos por transferencia a tu alias o CBU.</p>
@@ -219,6 +220,36 @@ export default function PanelPartner() {
 
       {tab === "cuenta" && <DatosCobro d={d} alGuardar={cargar} />}
     </Marco>
+  );
+}
+
+// Proyección desde la cartera REAL del partner: lo que ya cobra por mes + los comercios nuevos que sume, acumulándose.
+function Proyeccion({ d }: { d: Panel }) {
+  const R = d.reglas;
+  const [n, setN] = useState(3);
+  const fila = (m: number) => {
+    const cartera = d.resumen.pagando + n * (m - 1);
+    const total = d.resumen.cartera_mensual + n * (m - 1) * R.cartera_monto + n * R.alta_monto;
+    return { cartera, total };
+  };
+  const btn: React.CSSProperties = { width: 48, height: 48, borderRadius: 24, border: `2px solid ${C.azul}`, background: C.blanco, color: C.azul, fontSize: 26, fontWeight: 700, cursor: "pointer", fontFamily: FUENTE, lineHeight: 1 };
+  return (
+    <div style={tarjeta}>
+      <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>Tu proyección</div>
+      <div style={{ fontSize: 14, color: C.suave, marginBottom: 12, lineHeight: 1.5 }}>Hoy tenés {d.resumen.pagando} {d.resumen.pagando === 1 ? "comercio pagando" : "comercios pagando"} ({pesos(d.resumen.cartera_mensual)} por mes). Si sumás por mes:</div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 12 }}>
+        <button style={btn} onClick={() => setN(Math.max(0, n - 1))}>−</button>
+        <div style={{ fontSize: 40, fontWeight: 800, minWidth: 56, textAlign: "center" }}>{n}</div>
+        <button style={btn} onClick={() => setN(Math.min(30, n + 1))}>+</button>
+      </div>
+      {[3, 6, 12].map((m) => { const f = fila(m); return (
+        <div key={m} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: C.papel, borderRadius: 12, padding: "10px 12px", marginBottom: 8 }}>
+          <span style={{ fontSize: 14, color: C.suave }}>Dentro de {m} meses<br /><b style={{ color: C.tinta }}>{f.cartera} en cartera</b> + {n} nuevos</span>
+          <b style={{ fontSize: 20 }}>{pesos(f.total)}</b>
+        </div>
+      ); })}
+      <div style={{ fontSize: 12, color: C.apagada, lineHeight: 1.5 }}>Supone que nadie se da de baja. Es una cuenta, no una promesa.</div>
+    </div>
   );
 }
 

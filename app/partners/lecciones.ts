@@ -9,9 +9,8 @@ export type Leccion = { id: string; titulo: string; minutos: string; icono: stri
 const $ = (n: number) => "$" + Math.round(n).toLocaleString("es-AR");
 
 export function lecciones(R: Reglas): Leccion[] {
-  const base = R.precio_base || 45000;
-  const alta = base * R.alta_pct;
-  const mes = base * R.cartera_pct;
+  const alta = R.alta_monto;
+  const mes = R.cartera_monto;
   return [
     {
       id: "que-es", titulo: "Qué es LumoBi", minutos: "1 min", icono: "🏪",
