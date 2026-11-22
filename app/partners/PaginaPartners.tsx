@@ -8,6 +8,7 @@ import Link from "next/link";
 import { API, C, FUENTE, REGLAS_BASE, Reglas, boton, botonSec, input, pedir, pesos, tarjeta, guardarToken, tokenPartner } from "./comun";
 import { lecciones } from "./lecciones";
 import Historias from "./Historias";
+import { QUE_HACE } from "./guia";
 
 const WHATSAPP = "5491166959457";
 
@@ -147,8 +148,20 @@ export default function PaginaPartners() {
             </div>
           ))}
           <div style={{ ...tarjeta, background: "#E8F0FC", borderColor: "#C9DAF6", margin: "4px 0 0", fontSize: 16, lineHeight: 1.5 }}>
-            🎓 Apenas te registrás, hacés una <b>formación de 5 minutos</b> que te explica todo: qué es LumoBi, a quién buscar y qué decir.
+            🎓 Apenas te registrás, hacés una <b>formación corta</b> (7 lecciones de 1 o 2 minutos) que te explica todo: qué hace LumoBi, a quién buscar, cómo encontrar clientes en la calle y por internet, y qué decir.
           </div>
+        </section>
+
+        {/* Qué hace LumoBi: lo que el partner va a recomendar */}
+        <section style={tarjeta}>
+          <h2 style={h2}>Qué hace LumoBi</h2>
+          <p style={{ ...grande, fontSize: 16, marginBottom: 14 }}>Lo que le vas a recomendar a los comercios:</p>
+          {QUE_HACE.map((x) => (
+            <div key={x.titulo} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
+              <div style={{ width: 46, height: 46, borderRadius: 23, background: C.papel, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 23, flexShrink: 0 }}>{x.icono}</div>
+              <div><div style={{ fontWeight: 800, fontSize: 17 }}>{x.titulo}</div><div style={{ fontSize: 15, color: C.suave, lineHeight: 1.45 }}>{x.texto}</div></div>
+            </div>
+          ))}
         </section>
 
         {/* 5. A quién */}

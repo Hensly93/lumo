@@ -1,5 +1,5 @@
 "use client";
-// Formación de LumoBi Partners: 5 lecciones tipo historia (pasan solas, como un video) + una pregunta al final de cada una,
+// Formación de LumoBi Partners: 7 lecciones tipo historia (pasan solas, como un video) + una pregunta al final de cada una,
 // y la primera misión: mandarle el link a 3 personas. Se puede repetir cuando quiera.
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -129,7 +129,7 @@ export default function Formacion() {
     <Marco>
       <h1 style={{ fontSize: 26, margin: "0 0 6px" }}>{todas ? "Tu formación ✅" : "Antes de arrancar: tu formación"}</h1>
       <p style={{ color: C.suave, fontSize: 17, margin: "0 0 14px", lineHeight: 1.5 }}>
-        {todas ? "Ya la terminaste. Podés volver a ver cualquier lección cuando quieras." : "Son 5 lecciones de 1 minuto. Pasan solas, como un video. Al final de cada una hay una pregunta fácil."}
+        {todas ? "Ya la terminaste. Podés volver a ver cualquier lección cuando quieras." : `Son ${L.length} lecciones cortas. Pasan solas, como un video. Al final de cada una hay una pregunta fácil.`}
       </p>
       <div style={{ height: 12, background: C.blanco, border: `1px solid ${C.linea}`, borderRadius: 6, overflow: "hidden", marginBottom: 18 }}>
         <div style={{ width: `${(prog.hechas.length / L.length) * 100}%`, height: "100%", background: C.ok, transition: "width .4s" }} />

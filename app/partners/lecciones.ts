@@ -1,6 +1,7 @@
-// Formación de LumoBi Partners: 5 lecciones cortas. Frases cortas, una idea por pantalla, sin palabras técnicas.
+// Formación de LumoBi Partners: 7 lecciones cortas. Frases cortas, una idea por pantalla, sin palabras técnicas.
 // Los montos salen de las reglas reales del programa (backend), así nunca quedan desactualizados.
 import type { Reglas } from "./comun";
+import { QUE_HACE, CALLE, INTERNET } from "./guia";
 
 export type Pantalla = { icono: string; titulo: string; texto?: string; color?: string };
 export type Pregunta = { texto: string; opciones: string[]; correcta: number; porque: string };
@@ -13,18 +14,16 @@ export function lecciones(R: Reglas): Leccion[] {
   const mes = R.cartera_monto;
   return [
     {
-      id: "que-es", titulo: "Qué es LumoBi", minutos: "1 min", icono: "🏪",
+      id: "que-es", titulo: "Qué es y qué hace LumoBi", minutos: "2 min", icono: "🏪",
       pantallas: [
         { icono: "🏪", titulo: "LumoBi es una app para comercios", texto: "Kioscos, almacenes, autoservicios, ropa, electrónica, ferreterías." },
-        { icono: "🧾", titulo: "El comercio cobra con LumoBi", texto: "Es su caja: ahí pasa cada venta." },
-        { icono: "👀", titulo: "Y LumoBi mira todo lo que pasa", texto: "Cada venta, cada turno, cada empleado." },
-        { icono: "🔔", titulo: "Le avisa al dueño cuando pierde plata", texto: "Falta plata en la caja. Vende algo más barato de lo que le costó. Un horario que vende poco." },
-        { icono: "🙌", titulo: "Ayuda al dueño que no puede estar siempre", texto: "Porque tiene empleados, turnos o más de un local." },
+        ...QUE_HACE.map((x) => ({ icono: x.icono, titulo: x.titulo, texto: x.texto })),
+        { icono: "🙌", titulo: "Al que más le sirve", texto: "Al dueño que no puede estar siempre: tiene empleados, turnos o más de un local." },
       ],
       pregunta: {
         texto: "¿Qué hace LumoBi?",
-        opciones: ["Le avisa al dueño dónde pierde plata", "Hace envíos a domicilio", "Presta plata"],
-        correcta: 0, porque: "LumoBi es la caja del comercio y le avisa al dueño cuando algo no cierra.",
+        opciones: ["Es la caja del comercio y le avisa al dueño dónde pierde plata", "Hace envíos a domicilio", "Presta plata"],
+        correcta: 0, porque: "LumoBi es la caja del comercio: mira cada venta y cada turno, y le avisa al dueño cuando algo no cierra.",
       },
     },
     {
@@ -55,6 +54,24 @@ export function lecciones(R: Reglas): Leccion[] {
         texto: "¿Cuál es el mejor cliente para LumoBi?",
         opciones: ["Un almacén con 2 empleados", "Un bar", "Un mayorista"],
         correcta: 0, porque: "Vende productos y tiene empleados: LumoBi le muestra lo que pasa en cada turno.",
+      },
+    },
+    {
+      id: "calle", titulo: "Buscar clientes en la calle", minutos: "2 min", icono: "🚶",
+      pantallas: CALLE.map((x) => ({ icono: x.icono, titulo: x.titulo, texto: x.texto })),
+      pregunta: {
+        texto: "Entrás a un almacén y está lleno de gente. ¿Qué hacés?",
+        opciones: ["Vuelvo en un horario tranquilo", "Le hablo al dueño igual, mientras cobra", "Le dejo el link al empleado y me voy"],
+        correcta: 0, porque: "Con el local lleno, el dueño no te va a escuchar. Volvé a media mañana o media tarde.",
+      },
+    },
+    {
+      id: "internet", titulo: "Buscar clientes por internet", minutos: "2 min", icono: "🌐",
+      pantallas: INTERNET.map((x) => ({ icono: x.icono, titulo: x.titulo, texto: x.texto })),
+      pregunta: {
+        texto: "¿Cuál es la mejor forma de escribirle a comercios que encontraste en Google Maps?",
+        opciones: ["Uno por uno, con el nombre del local", "El mismo mensaje a 300 números juntos", "Comprar una lista de teléfonos"],
+        correcta: 0, porque: "Un mensaje personalizado se lee. Los mensajes masivos son spam: WhatsApp te bloquea y está prohibido en el programa.",
       },
     },
     {

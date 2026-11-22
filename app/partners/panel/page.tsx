@@ -3,6 +3,7 @@
 // mensajes listos para WhatsApp, partners que invitó y sus datos de cobro.
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { QUE_HACE, CALLE, INTERNET, DUDAS, EN_30_SEGUNDOS, Item } from "../guia";
 import { C, FUENTE, Copiar, boton, input, pedir, pesos, fecha, tarjeta, tokenPartner, salirPartner, whatsapp, Reglas } from "../comun";
 
 type Cliente = { negocio_id: number; nombre: string; rubro: string | null; desde: string; estado: "prueba" | "pagando" | "sin_pagar" | "baja"; detalle: string; arranque: string; ganado: number; mensual: number };
@@ -29,7 +30,7 @@ export default function PanelPartner() {
   const [d, setD] = useState<Panel | null>(null);
   const [m, setM] = useState<Material | null>(null);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<"cartera" | "mensajes" | "plata" | "cuenta">("cartera");
+  const [tab, setTab] = useState<"cartera" | "mensajes" | "guia" | "plata" | "cuenta">("cartera");
   const [enviados, setEnviados] = useState(0);
   const [nuevo, setNuevo] = useState(false);
 
@@ -119,7 +120,7 @@ export default function PanelPartner() {
       )}
 
       <div style={{ display: "flex", gap: 6, marginBottom: 12, overflowX: "auto" }}>
-        {([["cartera", "👥 Mis clientes"], ["mensajes", "📲 Mensajes"], ["plata", "💸 Mi plata"], ["cuenta", "⚙️ Mis datos"]] as const).map(([k, t]) => (
+        {([["cartera", "👥 Mis clientes"], ["mensajes", "📲 Mensajes"], ["guia", "🎓 Guía"], ["plata", "💸 Mi plata"], ["cuenta", "⚙️ Mis datos"]] as const).map(([k, t]) => (
           <button key={k} onClick={() => setTab(k)} style={{ padding: "10px 14px", borderRadius: 20, border: `1px solid ${tab === k ? C.azul : C.linea}`, background: tab === k ? C.azul : C.blanco, color: tab === k ? C.blanco : C.tinta, fontWeight: 700, fontSize: 14, fontFamily: FUENTE, whiteSpace: "nowrap", cursor: "pointer" }}>{t}</button>
         ))}
       </div>
@@ -184,6 +185,29 @@ export default function PanelPartner() {
               </div>
             )}
           </div>
+        </>
+      )}
+
+      {tab === "guia" && (
+        <>
+          <div style={{ ...tarjeta, background: "#E8F0FC", borderColor: "#C9DAF6" }}>
+            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 6 }}>Explicalo en 30 segundos</div>
+            <div style={{ fontSize: 16, lineHeight: 1.55, color: C.tinta, marginBottom: 12 }}>{EN_30_SEGUNDOS}</div>
+            <Copiar texto={EN_30_SEGUNDOS} />
+          </div>
+          <Bloque titulo="Qué hace LumoBi" items={QUE_HACE} />
+          <Bloque titulo="Buscar clientes en la calle" items={CALLE} numerado />
+          <Bloque titulo="Buscar clientes por internet" items={INTERNET} />
+          <div style={tarjeta}>
+            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 10 }}>Cuando te dicen…</div>
+            {DUDAS.map((x) => (
+              <div key={x.pregunta} style={{ padding: "10px 0", borderTop: `1px solid ${C.linea}` }}>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>{x.pregunta}</div>
+                <div style={{ fontSize: 15, color: C.suave, lineHeight: 1.5, marginTop: 3 }}>{x.respuesta}</div>
+              </div>
+            ))}
+          </div>
+          <button style={{ ...boton, background: C.blanco, color: C.azul, border: `1px solid ${C.azul}` }} onClick={() => router.push("/partners/formacion")}>🎓 Ver la formación de nuevo</button>
         </>
       )}
 
@@ -254,10 +278,10 @@ function Proyeccion({ d }: { d: Panel }) {
 }
 
 // "Tu próxima tarea": una sola cosa para hacer ahora, la más importante. Así nunca se pregunta qué sigue.
-function Tarea({ d, enviados, onEnviar, irA, irFormacion, mensaje }: { d: Panel; enviados: number; onEnviar: () => void; irA: (t: "cartera" | "mensajes" | "plata" | "cuenta") => void; irFormacion: () => void; mensaje: string }) {
+function Tarea({ d, enviados, onEnviar, irA, irFormacion, mensaje }: { d: Panel; enviados: number; onEnviar: () => void; irA: (t: "cartera" | "mensajes" | "guia" | "plata" | "cuenta") => void; irFormacion: () => void; mensaje: string }) {
   const sinArrancar = d.clientes.find((c) => c.estado === "prueba" && c.arranque !== "Ya usa la caja");
   let t: { icono: string; titulo: string; texto: string; boton: string; accion?: () => void; href?: string };
-  if (!d.partner.formacion) t = { icono: "🎓", titulo: "Hacé tu formación", texto: "5 lecciones de 1 minuto. Te explican todo lo que tenés que saber.", boton: "Empezar", accion: irFormacion };
+  if (!d.partner.formacion) t = { icono: "🎓", titulo: "Hacé tu formación", texto: "7 lecciones cortas: qué hace LumoBi, cómo encontrar clientes en la calle y por internet, y qué decir.", boton: "Empezar", accion: irFormacion };
   else if (!d.clientes.length && enviados < 3) t = { icono: "📲", titulo: `Mandale tu link a ${3 - enviados} comercio${3 - enviados === 1 ? "" : "s"} más`, texto: "Se abre WhatsApp con el mensaje listo. Elegís el contacto y enviás.", boton: "Mandar por WhatsApp", href: whatsapp(mensaje) };
   else if (sinArrancar) t = { icono: "💬", titulo: `Ayudá a ${sinArrancar.nombre} a arrancar`, texto: `${sinArrancar.arranque}. Escribile: el que usa la caja en la prueba es el que se queda.`, boton: "Ver mis clientes", accion: () => irA("cartera") };
   else if (d.resumen.disponible > 0 && !d.partner.cobro.completo) t = { icono: "🏦", titulo: "Cargá tus datos para cobrar", texto: `Tenés ${pesos(d.resumen.disponible)} para cobrar. Sin tu alias o CBU no te podemos transferir.`, boton: "Cargar mis datos", accion: () => irA("cuenta") };
@@ -298,6 +322,20 @@ function DatosCobro({ d, alGuardar }: { d: Panel; alGuardar: () => void }) {
         <button type="submit" style={boton}>Guardar</button>
       </form>
       <p style={{ fontSize: 13, color: C.apagada, margin: "14px 0 0" }}>Email de la cuenta: {d.partner.email}</p>
+    </div>
+  );
+}
+
+function Bloque({ titulo, items, numerado }: { titulo: string; items: Item[]; numerado?: boolean }) {
+  return (
+    <div style={tarjeta}>
+      <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12 }}>{titulo}</div>
+      {items.map((x, k) => (
+        <div key={x.titulo} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 21, background: C.papel, display: "flex", alignItems: "center", justifyContent: "center", fontSize: numerado ? 17 : 21, fontWeight: 800, flexShrink: 0 }}>{numerado ? k + 1 : x.icono}</div>
+          <div><div style={{ fontWeight: 700, fontSize: 16 }}>{x.titulo}</div><div style={{ fontSize: 15, color: C.suave, lineHeight: 1.45 }}>{x.texto}</div></div>
+        </div>
+      ))}
     </div>
   );
 }
