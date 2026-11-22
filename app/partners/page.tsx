@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import PaginaPartners from "./PaginaPartners";
 
 export const metadata: Metadata = {
-  title: { absolute: "LumoBi Partners: ganá todos los meses recomendando LumoBi a comercios" },
-  description: "Recomendá LumoBi a los comercios que conocés y cobrá una comisión por cada negocio que se suma y todos los meses mientras siga. Sin inversión y sin cupo.",
+  title: { absolute: "Trabajá con LumoBi: ganá plata recomendando a comercios (no necesitás tener negocio)" },
+  description: "No necesitás tener un negocio. Recomendás LumoBi a comercios y cobrás $22.500 por cada uno que se suma y $10.000 todos los meses mientras siga. Sin invertir, desde tu celular.",
   alternates: { canonical: "/partners" },
   openGraph: {
-    title: "LumoBi Partners",
-    description: "Cobrá por cada comercio que traés a LumoBi y todos los meses mientras siga.",
+    title: "Trabajá con LumoBi: ganá plata recomendando a comercios",
+    description: "No necesitás tener un negocio. Sin invertir, desde tu celular. Cobrás por cada comercio que se suma y todos los meses mientras siga.",
     url: "/partners", siteName: "LumoBi", locale: "es_AR", type: "website",
-    images: [{ url: "/og-lumobi.png", width: 1200, height: 630, alt: "LumoBi Partners" }],
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function Page() {
