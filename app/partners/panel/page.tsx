@@ -267,7 +267,7 @@ export default function PanelPartner() {
 // Mensaje para invitar a alguien a ser partner (con su link de invitación)
 function invitacion(d: Panel) {
   const R = d.reglas;
-  return `Hola! Estoy trabajando como partner de LumoBi: recomiendo a comercios un sistema que les avisa dónde pierden plata, y cobro ${pesos(R.alta_monto)} cuando un comercio paga su primer mes y ${pesos(R.cartera_monto)} todos los meses que sigue. No hay que invertir nada y no tiene horario. Si te interesa, sumate con mi link: ${d.partner.link_partners}`;
+  return `Hola! Estoy trabajando como partner de LumoBi: recomiendo a comercios un sistema que les avisa dónde pierden plata, y cobro ${pesos(R.alta_monto)} cuando un comercio paga su primer mes y ${pesos(R.cartera_monto)} todos los meses que sigue. Te dan formación y un panel para seguir a tus clientes. Si te interesa, mirá acá: ${d.partner.link_partners}`;
 }
 
 // Proyección desde la cartera REAL del partner: lo que ya cobra por mes + los comercios nuevos que sume, acumulándose.

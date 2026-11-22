@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import PaginaPartners from "./PaginaPartners";
 
 export const metadata: Metadata = {
-  title: { absolute: "Trabajá con LumoBi: cobrá $22.500 por cada comercio que recomendás (no necesitás tener negocio)" },
-  description: "No necesitás tener un negocio. Recomendás LumoBi a comercios y cobrás $22.500 por cada uno que se suma y $10.000 todos los meses mientras siga. Sin invertir, desde tu celular.",
+  title: { absolute: "LumoBi busca vendedores a comisión: $22.500 por cada comercio" },
+  description: "Vendé LumoBi, un sistema para kioscos grandes, autoservicios y supermercados. Cobrás $22.500 por cada comercio que se suma y $10.000 por mes por cada comercio que siga. Formación incluida.",
   alternates: { canonical: "/partners" },
   openGraph: {
-    title: "Trabajá con LumoBi: cobrá $22.500 por cada comercio que recomendás",
-    description: "Y $10.000 por mes por CADA comercio que siga (con 10 comercios, $100.000 todos los meses). No necesitás tener un negocio ni invertir nada.",
+    title: "LumoBi busca vendedores a comisión: $22.500 por cada comercio",
+    description: "Y $10.000 por mes por CADA comercio que siga (con 10 comercios, $100.000 todos los meses). Formación incluida y cobro por transferencia.",
     url: "/partners", siteName: "LumoBi", locale: "es_AR", type: "website",
   },
   twitter: { card: "summary_large_image" },

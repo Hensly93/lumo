@@ -82,12 +82,12 @@ export default function PaginaPartners() {
 
         {/* 1. La promesa */}
         <section style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: C.azul, letterSpacing: 0.5, marginBottom: 8 }}>LUMOBI PARTNERS · TRABAJÁ CON NOSOTROS</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: C.azul, letterSpacing: 0.5, marginBottom: 8 }}>LUMOBI PARTNERS · VENDEDORES A COMISIÓN</div>
           <h1 style={{ fontSize: 34, lineHeight: 1.1, margin: "0 0 10px" }}>Cobrá {pesos(alta)} por cada comercio que recomendás.</h1>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.azul, lineHeight: 1.25, margin: "0 0 8px" }}>Y {pesos(mes)} por mes por CADA comercio que siga.</div>
           <div style={{ fontSize: 17, color: C.suave, margin: "0 0 14px" }}>Ejemplo: con 10 comercios cobrás <b style={{ color: C.tinta }}>{pesos(mes * 10)} todos los meses</b>. Con 50, <b style={{ color: C.tinta }}>{pesos(mes * 50)}</b>.</div>
-          <div style={{ background: C.okFondo, border: "1px solid #B7DFCB", borderRadius: 12, padding: "12px 14px", fontSize: 17, fontWeight: 700, marginBottom: 12 }}>✅ No necesitás tener un negocio. Es para cualquier persona que quiera ganar plata.</div>
-          <p style={{ ...grande, marginBottom: 18 }}>No tiene horario. No tenés que invertir nada. Les recomendás LumoBi a comercios desde tu celular y cobrás por cada uno que se suma.</p>
+          <div style={{ background: C.okFondo, border: "1px solid #B7DFCB", borderRadius: 12, padding: "12px 14px", fontSize: 17, fontWeight: 700, marginBottom: 12 }}>💼 Buscamos vendedores a comisión. Vos le presentás LumoBi a comercios; nosotros les damos el sistema y te pagamos por cada uno.</div>
+          <p style={{ ...grande, marginBottom: 18 }}>Manejás tus horarios. Te damos la formación, los mensajes y tu panel para seguir a tus clientes. Cobrás por transferencia.</p>
           <div style={{ display: "grid", gap: 10 }}>
             <a href="#alta" style={{ ...boton, display: "block", textAlign: "center", textDecoration: "none", fontSize: 18, padding: 17 }}>Quiero ser partner</a>
             <button style={{ ...botonSec, fontSize: 17 }} onClick={() => setVideo(true)}>▶ Mirá cómo funciona (1 minuto)</button>
