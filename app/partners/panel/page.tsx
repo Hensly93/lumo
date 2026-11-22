@@ -3,7 +3,7 @@
 // mensajes listos para WhatsApp, partners que invitó y sus datos de cobro.
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { QUE_HACE, CALLE, INTERNET, DUDAS, EN_30_SEGUNDOS, Item } from "../guia";
+import { DOLOR, QUE_HACE, CALLE, INTERNET, DUDAS, EN_30_SEGUNDOS, Item } from "../guia";
 import { C, FUENTE, Copiar, boton, input, pedir, pesos, fecha, tarjeta, tokenPartner, salirPartner, whatsapp, Reglas } from "../comun";
 
 type Cliente = { negocio_id: number; nombre: string; rubro: string | null; desde: string; estado: "prueba" | "pagando" | "sin_pagar" | "baja"; detalle: string; arranque: string; ganado: number; mensual: number };
@@ -114,7 +114,7 @@ export default function PanelPartner() {
       {!d.partner.cobro.completo && d.resumen.pagando + d.resumen.pendiente + d.resumen.disponible > 0 && (
         <div style={{ ...tarjeta, background: C.atencionFondo, borderColor: "#F1D29A" }}>
           <b>Cargá tus datos de cobro</b>
-          <p style={{ margin: "6px 0 10px", color: C.suave, fontSize: 14 }}>Sin tu CUIT/CUIL y tu alias o CBU no te podemos transferir.</p>
+          <p style={{ margin: "6px 0 10px", color: C.suave, fontSize: 14 }}>Sin tu CBU, CVU o alias no te podemos transferir.</p>
           <button style={{ ...boton, padding: "10px 14px", fontSize: 15, width: "auto" }} onClick={() => setTab("cuenta")}>Cargar ahora</button>
         </div>
       )}
@@ -195,7 +195,8 @@ export default function PanelPartner() {
             <div style={{ fontSize: 16, lineHeight: 1.55, color: C.tinta, marginBottom: 12 }}>{EN_30_SEGUNDOS}</div>
             <Copiar texto={EN_30_SEGUNDOS} />
           </div>
-          <Bloque titulo="Qué hace LumoBi" items={QUE_HACE} />
+          <Bloque titulo="El problema: el comercio pierde plata y no se entera" items={DOLOR} />
+          <Bloque titulo="La solución: qué hace LumoBi" items={QUE_HACE} />
           <Bloque titulo="Buscar clientes en la calle" items={CALLE} numerado />
           <Bloque titulo="Buscar clientes por internet" items={INTERNET} />
           <div style={tarjeta}>
@@ -281,10 +282,10 @@ function Proyeccion({ d }: { d: Panel }) {
 function Tarea({ d, enviados, onEnviar, irA, irFormacion, mensaje }: { d: Panel; enviados: number; onEnviar: () => void; irA: (t: "cartera" | "mensajes" | "guia" | "plata" | "cuenta") => void; irFormacion: () => void; mensaje: string }) {
   const sinArrancar = d.clientes.find((c) => c.estado === "prueba" && c.arranque !== "Ya usa la caja");
   let t: { icono: string; titulo: string; texto: string; boton: string; accion?: () => void; href?: string };
-  if (!d.partner.formacion) t = { icono: "🎓", titulo: "Hacé tu formación", texto: "7 lecciones cortas: qué hace LumoBi, cómo encontrar clientes en la calle y por internet, y qué decir.", boton: "Empezar", accion: irFormacion };
+  if (!d.partner.formacion) t = { icono: "🎓", titulo: "Hacé tu formación", texto: "7 lecciones cortas: el problema que resuelve LumoBi, cómo encontrar clientes en la calle y por internet, y qué decir.", boton: "Empezar", accion: irFormacion };
   else if (!d.clientes.length && enviados < 3) t = { icono: "📲", titulo: `Mandale tu link a ${3 - enviados} comercio${3 - enviados === 1 ? "" : "s"} más`, texto: "Se abre WhatsApp con el mensaje listo. Elegís el contacto y enviás.", boton: "Mandar por WhatsApp", href: whatsapp(mensaje) };
   else if (sinArrancar) t = { icono: "💬", titulo: `Ayudá a ${sinArrancar.nombre} a arrancar`, texto: `${sinArrancar.arranque}. Escribile: el que usa la caja en la prueba es el que se queda.`, boton: "Ver mis clientes", accion: () => irA("cartera") };
-  else if (d.resumen.disponible > 0 && !d.partner.cobro.completo) t = { icono: "🏦", titulo: "Cargá tus datos para cobrar", texto: `Tenés ${pesos(d.resumen.disponible)} para cobrar. Sin tu alias o CBU no te podemos transferir.`, boton: "Cargar mis datos", accion: () => irA("cuenta") };
+  else if (d.resumen.disponible > 0 && !d.partner.cobro.completo) t = { icono: "🏦", titulo: "Cargá tus datos para cobrar", texto: `Tenés ${pesos(d.resumen.disponible)} para cobrar. Sin tu CBU, CVU o alias no te podemos transferir.`, boton: "Cargar mis datos", accion: () => irA("cuenta") };
   else t = { icono: "🚀", titulo: "Sumá otro comercio", texto: "Cada comercio que se queda te deja plata todos los meses.", boton: "Mandar por WhatsApp", href: whatsapp(mensaje) };
   const estilo: React.CSSProperties = { ...boton, display: "block", textAlign: "center", textDecoration: "none", background: t.href ? "#1FA855" : C.azul };
   return (
@@ -312,11 +313,10 @@ function DatosCobro({ d, alGuardar }: { d: Panel; alGuardar: () => void }) {
   return (
     <div style={tarjeta}>
       <div style={{ fontWeight: 700, marginBottom: 4 }}>Datos para cobrar</div>
-      <p style={{ margin: "0 0 12px", color: C.suave, fontSize: 14 }}>La cuenta tiene que estar a tu nombre.</p>
+      <p style={{ margin: "0 0 12px", color: C.suave, fontSize: 14 }}>Solo necesitamos tu CBU, CVU o alias para transferirte.</p>
       <form onSubmit={guardar} style={{ display: "grid", gap: 10 }}>
-        <input style={input} placeholder="CUIT o CUIL" inputMode="numeric" value={f.cuit} onChange={(e) => setF({ ...f, cuit: e.target.value })} />
-        <input style={input} placeholder="Alias o CBU/CVU" value={f.alias_cbu} onChange={(e) => setF({ ...f, alias_cbu: e.target.value })} />
-        <input style={input} placeholder="Titular de la cuenta" value={f.titular} onChange={(e) => setF({ ...f, titular: e.target.value })} />
+        <input style={input} placeholder="CBU, CVU o alias" value={f.alias_cbu} onChange={(e) => setF({ ...f, alias_cbu: e.target.value })} />
+        <input style={input} placeholder="Titular de la cuenta (opcional)" value={f.titular} onChange={(e) => setF({ ...f, titular: e.target.value })} />
         {err && <div style={{ color: C.critico, fontSize: 14 }}>{err}</div>}
         {msg && <div style={{ color: C.ok, fontSize: 14 }}>{msg}</div>}
         <button type="submit" style={boton}>Guardar</button>

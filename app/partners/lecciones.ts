@@ -1,7 +1,7 @@
 // Formación de LumoBi Partners: 7 lecciones cortas. Frases cortas, una idea por pantalla, sin palabras técnicas.
 // Los montos salen de las reglas reales del programa (backend), así nunca quedan desactualizados.
 import type { Reglas } from "./comun";
-import { QUE_HACE, CALLE, INTERNET } from "./guia";
+import { DOLOR, QUE_HACE, CALLE, INTERNET } from "./guia";
 
 export type Pantalla = { icono: string; titulo: string; texto?: string; color?: string };
 export type Pregunta = { texto: string; opciones: string[]; correcta: number; porque: string };
@@ -14,16 +14,17 @@ export function lecciones(R: Reglas): Leccion[] {
   const mes = R.cartera_monto;
   return [
     {
-      id: "que-es", titulo: "Qué es y qué hace LumoBi", minutos: "2 min", icono: "🏪",
+      id: "que-es", titulo: "El problema y la solución", minutos: "2 min", icono: "🧠",
       pantallas: [
-        { icono: "🏪", titulo: "LumoBi es una app para comercios", texto: "Kioscos, almacenes, autoservicios, ropa, electrónica, ferreterías." },
+        { icono: "🏪", titulo: "Casi todos los comercios tienen el mismo problema", texto: "Kioscos, almacenes, autoservicios, ropa, electrónica, ferreterías." },
+        ...DOLOR.map((x) => ({ icono: x.icono, titulo: x.titulo, texto: x.texto })),
+        { icono: "💡", titulo: "LumoBi es la solución", texto: "No es una caja más: es la inteligencia que cuida la plata del comercio." },
         ...QUE_HACE.map((x) => ({ icono: x.icono, titulo: x.titulo, texto: x.texto })),
-        { icono: "🙌", titulo: "Al que más le sirve", texto: "Al dueño que no puede estar siempre: tiene empleados, turnos o más de un local." },
       ],
       pregunta: {
-        texto: "¿Qué hace LumoBi?",
-        opciones: ["Es la caja del comercio y le avisa al dueño dónde pierde plata", "Hace envíos a domicilio", "Presta plata"],
-        correcta: 0, porque: "LumoBi es la caja del comercio: mira cada venta y cada turno, y le avisa al dueño cuando algo no cierra.",
+        texto: "¿Cuál es el problema que resuelve LumoBi?",
+        opciones: ["El comercio pierde plata y no sabe dónde", "El comercio no tiene dónde cobrar", "El comercio no tiene página web"],
+        correcta: 0, porque: "LumoBi aprende el negocio, detecta cuándo se pierde plata, avisa al dueño en el momento y le dice qué hacer. La caja es solo la forma de juntar los datos.",
       },
     },
     {

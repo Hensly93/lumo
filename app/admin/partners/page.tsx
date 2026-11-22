@@ -82,7 +82,7 @@ export default function AdminPartners() {
                   <td style={td}>{pesos(p.pendiente)}</td>
                   <td style={{ ...td, fontWeight: 700, color: p.disponible > 0 ? C.ok : C.tinta }}>{pesos(p.disponible)}</td>
                   <td style={td}>{pesos(p.pagado)}</td>
-                  <td style={td}>{p.alias_cbu ? <>{p.alias_cbu}<div style={{ color: C.apagada }}>{p.cuit} · {p.titular}</div></> : <span style={{ color: C.atencion }}>Falta cargar</span>}</td>
+                  <td style={td}>{p.alias_cbu ? <>{p.alias_cbu}<div style={{ color: C.apagada }}>{[p.titular, p.cuit].filter(Boolean).join(" · ")}</div></> : <span style={{ color: C.atencion }}>Falta cargar</span>}</td>
                   <td style={td}>
                     <div style={{ display: "grid", gap: 6 }}>
                       {p.disponible > 0 && <button style={btn} onClick={() => accion(() => llamar(`/${p.id}/liquidar`, {}), `Liquidación creada para ${p.nombre}: transferí y marcala como pagada arriba.`)}>Liquidar</button>}
