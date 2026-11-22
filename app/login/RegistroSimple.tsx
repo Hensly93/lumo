@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { track } from "../lib/track";
 import { RUBROS } from "../lib/rubros";
+import { leerRefPartner } from "../components/PartnerRef";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "https://lumo-backend-1.onrender.com";
 const TINTA = "#0A1628";
@@ -216,7 +217,7 @@ export default function RegistroSimple() {
       const r = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, negocio: d.negocio.trim(), tipo_negocio: d.rubro, email: d.email.trim(), password: d.password }),
+        body: JSON.stringify({ nombre, negocio: d.negocio.trim(), tipo_negocio: d.rubro, email: d.email.trim(), password: d.password, partner_codigo: leerRefPartner() || undefined }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "No se pudo crear la cuenta. Probá de nuevo.");

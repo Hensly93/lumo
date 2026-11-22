@@ -6,8 +6,9 @@ import PlanGate from "./PlanGate";
 import Tracker from "./Tracker";
 import GuiaPantalla from "./GuiaPantalla";
 import BotonNicole from "./BotonNicole";
+import PartnerRef from "./PartnerRef";
 
-const SIN_HEADER = ["/landing", "/soluciones", "/login", "/empleado", "/reset-password", "/onboarding", "/admin", "/privacidad", "/terminos"];
+const SIN_HEADER = ["/landing", "/soluciones", "/login", "/empleado", "/reset-password", "/onboarding", "/admin", "/privacidad", "/terminos", "/partners"];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -17,6 +18,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <>
       {showHeader && <AppHeader />}
       {showHeader && <GuiaPantalla />}
+      <PartnerRef />
       <PushRegistrar />
       <Tracker />
       <PlanGate />
