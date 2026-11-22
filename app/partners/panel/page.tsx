@@ -135,7 +135,7 @@ export default function PanelPartner() {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 6, marginBottom: 12, overflowX: "auto" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
         {([["cartera", "👥 Mis clientes"], ["mensajes", "📲 Mensajes"], ["guia", "🎓 Guía"], ["plata", "💸 Mi plata"], ["cuenta", "⚙️ Mis datos"]] as const).map(([k, t]) => (
           <button key={k} onClick={() => setTab(k)} style={{ padding: "10px 14px", borderRadius: 20, border: `1px solid ${tab === k ? C.azul : C.linea}`, background: tab === k ? C.azul : C.blanco, color: tab === k ? C.blanco : C.tinta, fontWeight: 700, fontSize: 14, fontFamily: FUENTE, whiteSpace: "nowrap", cursor: "pointer" }}>{t}</button>
         ))}
