@@ -226,7 +226,7 @@ export default function PanelPartner() {
 // Proyección desde la cartera REAL del partner: lo que ya cobra por mes + los comercios nuevos que sume, acumulándose.
 function Proyeccion({ d }: { d: Panel }) {
   const R = d.reglas;
-  const [n, setN] = useState(3);
+  const [n, setN] = useState(10);
   const fila = (m: number) => {
     const cartera = d.resumen.pagando + n * (m - 1);
     const total = d.resumen.cartera_mensual + n * (m - 1) * R.cartera_monto + n * R.alta_monto;
@@ -239,8 +239,8 @@ function Proyeccion({ d }: { d: Panel }) {
       <div style={{ fontSize: 14, color: C.suave, marginBottom: 12, lineHeight: 1.5 }}>Hoy tenés {d.resumen.pagando} {d.resumen.pagando === 1 ? "comercio pagando" : "comercios pagando"} ({pesos(d.resumen.cartera_mensual)} por mes). Si sumás por mes:</div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 12 }}>
         <button style={btn} onClick={() => setN(Math.max(0, n - 1))}>−</button>
-        <div style={{ fontSize: 40, fontWeight: 800, minWidth: 56, textAlign: "center" }}>{n}</div>
-        <button style={btn} onClick={() => setN(Math.min(30, n + 1))}>+</button>
+        <input type="number" inputMode="numeric" min={0} max={999} value={n} onChange={(e) => setN(Math.max(0, Math.min(999, Math.floor(Number(e.target.value) || 0))))} style={{ width: 96, fontSize: 36, fontWeight: 800, textAlign: "center", border: `2px solid ${C.linea}`, borderRadius: 12, padding: "2px 0", color: C.tinta, fontFamily: FUENTE, background: C.blanco }} />
+        <button style={btn} onClick={() => setN(Math.min(999, n + 1))}>+</button>
       </div>
       {[3, 6, 12].map((m) => { const f = fila(m); return (
         <div key={m} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: C.papel, borderRadius: 12, padding: "10px 12px", marginBottom: 8 }}>
@@ -248,7 +248,7 @@ function Proyeccion({ d }: { d: Panel }) {
           <b style={{ fontSize: 20 }}>{pesos(f.total)}</b>
         </div>
       ); })}
-      <div style={{ fontSize: 12, color: C.apagada, lineHeight: 1.5 }}>Supone que nadie se da de baja. Es una cuenta, no una promesa.</div>
+      <div style={{ fontSize: 12, color: C.apagada, lineHeight: 1.5 }}>Poné tu número. No hay tope: cuantos más sumás, más cobrás. La cuenta supone que tus comercios siguen pagando.</div>
     </div>
   );
 }

@@ -14,7 +14,7 @@ const WHATSAPP = "5491166959457";
 export default function PaginaPartners() {
   const router = useRouter();
   const [R, setR] = useState<Reglas>(REGLAS_BASE);
-  const [n, setN] = useState(3);
+  const [n, setN] = useState(10);
   const [ref, setRef] = useState<string | null>(null);
   const [refNombre, setRefNombre] = useState<string | null>(null);
   const [video, setVideo] = useState(false);
@@ -103,11 +103,18 @@ export default function PaginaPartners() {
         {/* 3. Calculadora con botones grandes */}
         <section style={tarjeta}>
           <h2 style={h2}>Hacé la cuenta</h2>
-          <div style={{ fontSize: 17, color: C.suave, marginBottom: 12 }}>¿Cuántos comercios podés sumar por mes?</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, marginBottom: 16 }}>
+          <div style={{ fontSize: 17, color: C.suave, marginBottom: 12 }}>¿Cuántos comercios vas a sumar por mes? Poné tu número.</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 12 }}>
             <BotonRedondo onClick={() => setN(Math.max(1, n - 1))}>−</BotonRedondo>
-            <div style={{ fontSize: 48, fontWeight: 800, minWidth: 70, textAlign: "center" }}>{n}</div>
-            <BotonRedondo onClick={() => setN(Math.min(20, n + 1))}>+</BotonRedondo>
+            <input type="number" inputMode="numeric" min={1} max={999} value={n}
+              onChange={(e) => setN(Math.max(1, Math.min(999, Math.floor(Number(e.target.value) || 1))))}
+              style={{ width: 110, fontSize: 44, fontWeight: 800, textAlign: "center", border: `2px solid ${C.linea}`, borderRadius: 14, padding: "4px 0", color: C.tinta, fontFamily: FUENTE, background: C.blanco }} />
+            <BotonRedondo onClick={() => setN(Math.min(999, n + 1))}>+</BotonRedondo>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 16 }}>
+            {[5, 10, 20, 30, 50].map((x) => (
+              <button key={x} onClick={() => setN(x)} style={{ padding: "8px 14px", borderRadius: 20, border: `1px solid ${n === x ? C.azul : C.linea}`, background: n === x ? C.azul : C.blanco, color: n === x ? C.blanco : C.tinta, fontWeight: 700, fontSize: 15, fontFamily: FUENTE, cursor: "pointer" }}>{x}</button>
+            ))}
           </div>
           <div style={{ display: "grid", gap: 10 }}>
             {[3, 6, 12].map((m) => { const c = cuenta(m); return (
@@ -123,7 +130,7 @@ export default function PaginaPartners() {
               </div>
             ); })}
           </div>
-          <p style={{ fontSize: 14, color: C.apagada, margin: "12px 0 0", lineHeight: 1.5 }}>Tu cartera crece cada mes: los comercios que ya tenés siguen pagando y se suman los nuevos. Es una cuenta, no una promesa: supone que nadie se da de baja, y algunos se dan.</p>
+          <p style={{ fontSize: 14, color: C.apagada, margin: "12px 0 0", lineHeight: 1.5 }}>Tu cartera crece cada mes: los comercios que ya tenés siguen pagando y se suman los nuevos. No hay tope: cuantos más sumás, más cobrás. La cuenta supone que tus comercios siguen pagando.</p>
         </section>
 
         {/* 4. Cómo funciona, 3 pasos con dibujo */}
