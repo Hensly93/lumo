@@ -8,7 +8,7 @@ import GuiaPantalla from "./GuiaPantalla";
 import BotonNicole from "./BotonNicole";
 import PartnerRef from "./PartnerRef";
 
-const SIN_HEADER = ["/landing", "/soluciones", "/login", "/empleado", "/reset-password", "/onboarding", "/admin", "/privacidad", "/terminos", "/partners"];
+const SIN_HEADER = ["/landing", "/soluciones", "/login", "/empleado", "/reset-password", "/onboarding", "/admin", "/privacidad", "/terminos", "/partners", "/p"];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();

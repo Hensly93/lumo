@@ -14,14 +14,17 @@ export function leerRefPartner(): string | null {
   } catch { return null; }
 }
 
+// El primero que trajo a la persona es el que cuenta: un link nuevo no pisa a uno vigente
+export function guardarRefPartner(codigo: string) {
+  try {
+    const c = String(codigo || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20);
+    if (c.length >= 5 && !leerRefPartner()) localStorage.setItem(CLAVE, JSON.stringify({ c, t: Date.now() }));
+  } catch { /* sin acceso al almacenamiento */ }
+}
+
 export default function PartnerRef() {
   useEffect(() => {
-    try {
-      const p = new URLSearchParams(window.location.search).get("p");
-      const c = (p || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20);
-      // El primero que trajo a la persona es el que cuenta: un link nuevo no pisa a uno vigente
-      if (c.length >= 5 && !leerRefPartner()) localStorage.setItem(CLAVE, JSON.stringify({ c, t: Date.now() }));
-    } catch { /* sin acceso al almacenamiento */ }
+    try { guardarRefPartner(new URLSearchParams(window.location.search).get("p") || ""); } catch { /* sin acceso */ }
   }, []);
   return null;
 }

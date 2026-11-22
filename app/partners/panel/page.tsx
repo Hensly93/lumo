@@ -8,7 +8,7 @@ import { C, FUENTE, Copiar, boton, input, pedir, pesos, fecha, tarjeta, tokenPar
 type Cliente = { negocio_id: number; nombre: string; rubro: string | null; desde: string; estado: "prueba" | "pagando" | "sin_pagar" | "baja"; detalle: string; arranque: string; ganado: number; mensual: number };
 type Mov = { id: number; tipo: "alta" | "cartera" | "bono_referido"; monto: number; estado: string; creado: string; nota: string | null; negocio: string | null };
 type Panel = {
-  partner: { nombre: string; email: string; codigo: string; link: string; link_partners: string; estado: string; zona: string | null; cobro: { cuit: string | null; alias_cbu: string | null; titular: string | null; completo: boolean } };
+  partner: { nombre: string; email: string; codigo: string; link: string; link_partners: string; estado: string; zona: string | null; formacion: boolean; cobro: { cuit: string | null; alias_cbu: string | null; titular: string | null; completo: boolean } };
   reglas: Reglas;
   resumen: { clientes: number; pagando: number; en_prueba: number; este_mes: number; pendiente: number; disponible: number; cobrado: number; cartera_mensual: number; elite: boolean };
   clientes: Cliente[];
@@ -30,6 +30,7 @@ export default function PanelPartner() {
   const [m, setM] = useState<Material | null>(null);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"cartera" | "mensajes" | "plata" | "cuenta">("cartera");
+  const [enviados, setEnviados] = useState(0);
   const [nuevo, setNuevo] = useState(false);
 
   const cargar = useCallback(async () => {
@@ -47,7 +48,9 @@ export default function PanelPartner() {
 
   useEffect(() => {
     const esNuevo = new URLSearchParams(window.location.search).get("nuevo") === "1";
-    cargar().then(() => { if (esNuevo) setNuevo(true); });
+    let env = 0;
+    try { env = (JSON.parse(localStorage.getItem("lumobi_partner_formacion") || "{}").mision || []).length; } catch { /* nada */ }
+    cargar().then(() => { if (esNuevo) setNuevo(true); setEnviados(env); });
   }, [cargar]);
 
   if (error) return <Marco><div style={tarjeta}><p style={{ color: C.critico }}>{error}</p><button style={boton} onClick={cargar}>Reintentar</button></div></Marco>;
@@ -65,9 +68,14 @@ export default function PanelPartner() {
       {nuevo && (
         <div style={{ ...tarjeta, background: C.okFondo, borderColor: "#B7DFCB" }}>
           <b>¡Listo, ya sos partner!</b>
-          <p style={{ margin: "6px 0 0", color: C.suave, fontSize: 15, lineHeight: 1.5 }}>Tu primer paso: mandale tu link a 3 comercios que conozcas. En la pestaña <b>Mensajes</b> tenés los textos listos.</p>
+          <p style={{ margin: "6px 0 0", color: C.suave, fontSize: 15, lineHeight: 1.5 }}>Tu primer paso: mandale tu link a 3 comercios que conozcas. En <b>📲 Mensajes</b> tenés los textos listos.</p>
         </div>
       )}
+
+      <Tarea d={d} enviados={enviados} onEnviar={() => {
+        const n = enviados + 1; setEnviados(n);
+        try { const p = JSON.parse(localStorage.getItem("lumobi_partner_formacion") || "{}"); p.mision = Array.from(new Set([...(p.mision || []), ...Array.from({ length: n }, (_, k) => k)])); localStorage.setItem("lumobi_partner_formacion", JSON.stringify(p)); } catch { /* nada */ }
+      }} irA={(t) => setTab(t)} irFormacion={() => router.push("/partners/formacion")} mensaje={m.mensajes[0]?.texto || d.partner.link} />
 
       <div style={{ ...tarjeta, background: C.tinta, borderColor: C.tinta, color: C.blanco }}>
         <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 6 }}>Tu link (todo negocio que se registre con él queda en tu cartera)</div>
@@ -75,7 +83,7 @@ export default function PanelPartner() {
         <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 12 }}>Código: <b style={{ letterSpacing: 1 }}>{d.partner.codigo}</b></div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <Copiar texto={d.partner.link} etiqueta="Copiar link" />
-          <a href={whatsapp(m.mensajes[0]?.texto || d.partner.link)} target="_blank" rel="noreferrer" style={{ ...boton, background: "#1FA855", textAlign: "center", textDecoration: "none" }}>WhatsApp</a>
+          <a href={whatsapp(m.mensajes[0]?.texto || d.partner.link)} target="_blank" rel="noreferrer" style={{ ...boton, background: "#1FA855", textAlign: "center", textDecoration: "none" }}>Mandar por WhatsApp</a>
         </div>
       </div>
 
@@ -102,7 +110,7 @@ export default function PanelPartner() {
         )}
       </div>
 
-      {!d.partner.cobro.completo && (
+      {!d.partner.cobro.completo && d.resumen.pagando + d.resumen.pendiente + d.resumen.disponible > 0 && (
         <div style={{ ...tarjeta, background: C.atencionFondo, borderColor: "#F1D29A" }}>
           <b>Cargá tus datos de cobro</b>
           <p style={{ margin: "6px 0 10px", color: C.suave, fontSize: 14 }}>Sin tu CUIT/CUIL y tu alias o CBU no te podemos transferir.</p>
@@ -111,7 +119,7 @@ export default function PanelPartner() {
       )}
 
       <div style={{ display: "flex", gap: 6, marginBottom: 12, overflowX: "auto" }}>
-        {([["cartera", "Cartera"], ["mensajes", "Mensajes"], ["plata", "Mi plata"], ["cuenta", "Mis datos"]] as const).map(([k, t]) => (
+        {([["cartera", "👥 Mis clientes"], ["mensajes", "📲 Mensajes"], ["plata", "💸 Mi plata"], ["cuenta", "⚙️ Mis datos"]] as const).map(([k, t]) => (
           <button key={k} onClick={() => setTab(k)} style={{ padding: "10px 14px", borderRadius: 20, border: `1px solid ${tab === k ? C.azul : C.linea}`, background: tab === k ? C.azul : C.blanco, color: tab === k ? C.blanco : C.tinta, fontWeight: 700, fontSize: 14, fontFamily: FUENTE, whiteSpace: "nowrap", cursor: "pointer" }}>{t}</button>
         ))}
       </div>
@@ -214,6 +222,28 @@ export default function PanelPartner() {
   );
 }
 
+// "Tu próxima tarea": una sola cosa para hacer ahora, la más importante. Así nunca se pregunta qué sigue.
+function Tarea({ d, enviados, onEnviar, irA, irFormacion, mensaje }: { d: Panel; enviados: number; onEnviar: () => void; irA: (t: "cartera" | "mensajes" | "plata" | "cuenta") => void; irFormacion: () => void; mensaje: string }) {
+  const sinArrancar = d.clientes.find((c) => c.estado === "prueba" && c.arranque !== "Ya usa la caja");
+  let t: { icono: string; titulo: string; texto: string; boton: string; accion?: () => void; href?: string };
+  if (!d.partner.formacion) t = { icono: "🎓", titulo: "Hacé tu formación", texto: "5 lecciones de 1 minuto. Te explican todo lo que tenés que saber.", boton: "Empezar", accion: irFormacion };
+  else if (!d.clientes.length && enviados < 3) t = { icono: "📲", titulo: `Mandale tu link a ${3 - enviados} comercio${3 - enviados === 1 ? "" : "s"} más`, texto: "Se abre WhatsApp con el mensaje listo. Elegís el contacto y enviás.", boton: "Mandar por WhatsApp", href: whatsapp(mensaje) };
+  else if (sinArrancar) t = { icono: "💬", titulo: `Ayudá a ${sinArrancar.nombre} a arrancar`, texto: `${sinArrancar.arranque}. Escribile: el que usa la caja en la prueba es el que se queda.`, boton: "Ver mis clientes", accion: () => irA("cartera") };
+  else if (d.resumen.disponible > 0 && !d.partner.cobro.completo) t = { icono: "🏦", titulo: "Cargá tus datos para cobrar", texto: `Tenés ${pesos(d.resumen.disponible)} para cobrar. Sin tu alias o CBU no te podemos transferir.`, boton: "Cargar mis datos", accion: () => irA("cuenta") };
+  else t = { icono: "🚀", titulo: "Sumá otro comercio", texto: "Cada comercio que se queda te deja plata todos los meses.", boton: "Mandar por WhatsApp", href: whatsapp(mensaje) };
+  const estilo: React.CSSProperties = { ...boton, display: "block", textAlign: "center", textDecoration: "none", background: t.href ? "#1FA855" : C.azul };
+  return (
+    <div style={{ ...tarjeta, border: `2px solid ${C.azul}` }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: C.azul, letterSpacing: 0.5, marginBottom: 8 }}>TU PRÓXIMA TAREA</div>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 14 }}>
+        <span style={{ fontSize: 34 }}>{t.icono}</span>
+        <div><div style={{ fontSize: 19, fontWeight: 800, lineHeight: 1.25 }}>{t.titulo}</div><div style={{ fontSize: 15, color: C.suave, lineHeight: 1.5, marginTop: 4 }}>{t.texto}</div></div>
+      </div>
+      {t.href ? <a href={t.href} target="_blank" rel="noreferrer" onClick={onEnviar} style={estilo}>{t.boton}</a> : <button onClick={t.accion} style={estilo}>{t.boton}</button>}
+    </div>
+  );
+}
+
 function DatosCobro({ d, alGuardar }: { d: Panel; alGuardar: () => void }) {
   const [f, setF] = useState({ cuit: d.partner.cobro.cuit || "", alias_cbu: d.partner.cobro.alias_cbu || "", titular: d.partner.cobro.titular || "" });
   const [msg, setMsg] = useState(""); const [err, setErr] = useState("");
@@ -256,7 +286,7 @@ function Marco({ children, onSalir }: { children: React.ReactNode; onSalir?: () 
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "18px 16px 60px" }}>
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <img src="/brand/lumobi-logo-dark.svg" alt="LumoBi" width={104} height={27} />
+            <img src="/brand/lumobi-logo-light.svg" alt="LumoBi" width={104} height={27} />
             <span style={{ fontWeight: 700, fontSize: 14, color: C.suave }}>Partners</span>
           </div>
           {onSalir && <button onClick={onSalir} style={{ background: "none", border: "none", color: C.azul, fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: FUENTE }}>Salir</button>}

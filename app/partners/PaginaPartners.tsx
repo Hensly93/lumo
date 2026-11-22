@@ -1,20 +1,25 @@
 "use client";
-// Página pública de LumoBi Partners: qué es, cuánto se gana (con los números reales del backend), reglas claras y alta.
-// Sin testimonios ni cifras inventadas: la calculadora dice exactamente qué supone.
+// LumoBi Partners — página pública. Pensada para que la entienda cualquiera, desde el celular:
+// frases cortas, una idea por bloque, montos en pesos, un "video" de 1 minuto y el alta en 2 pasos.
+// Sin testimonios ni cifras inventadas: la cuenta dice qué supone.
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { API, C, FUENTE, REGLAS_BASE, Reglas, boton, input, pedir, pesos, tarjeta, guardarToken, tokenPartner } from "./comun";
+import { API, C, FUENTE, REGLAS_BASE, Reglas, boton, botonSec, input, pedir, pesos, tarjeta, guardarToken, tokenPartner } from "./comun";
+import { lecciones } from "./lecciones";
+import Historias from "./Historias";
 
 const WHATSAPP = "5491166959457";
 
 export default function PaginaPartners() {
   const router = useRouter();
   const [R, setR] = useState<Reglas>(REGLAS_BASE);
-  const [porMes, setPorMes] = useState(3);
+  const [n, setN] = useState(3);
   const [ref, setRef] = useState<string | null>(null);
   const [refNombre, setRefNombre] = useState<string | null>(null);
-  const [f, setF] = useState({ nombre: "", email: "", celular: "", zona: "", password: "", acepto: false });
+  const [video, setVideo] = useState(false);
+  const [paso, setPaso] = useState<1 | 2>(1);
+  const [f, setF] = useState({ nombre: "", celular: "", zona: "", email: "", password: "", acepto: false });
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const [yaPartner, setYaPartner] = useState(false);
@@ -22,156 +27,193 @@ export default function PaginaPartners() {
   useEffect(() => {
     fetch(`${API}/api/partners/reglas`).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j) setR(j); }).catch(() => {});
     const q = new URLSearchParams(window.location.search).get("ref");
-    if (q) {
-      setRef(q);
-      fetch(`${API}/api/partners/codigo/${encodeURIComponent(q)}`).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.valido) setRefNombre(j.nombre); }).catch(() => {});
-    }
-    setYaPartner(!!tokenPartner());
+    const ya = !!tokenPartner();
+    Promise.resolve().then(() => { setYaPartner(ya); if (q) setRef(q); });
+    if (q) fetch(`${API}/api/partners/codigo/${encodeURIComponent(q)}`).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.valido) setRefNombre(j.nombre); }).catch(() => {});
   }, []);
 
-  const precio = R.precio_base || 45000;
-  const alta = precio * R.alta_pct;
-  const cartera = precio * R.cartera_pct;
-  // Cartera al mes N si suma "porMes" negocios por mes y todos siguen pagando (los del mes recién pagan su alta)
-  const mensualAl = (n: number) => porMes * (n - 1) * cartera + porMes * alta;
+  const base = R.precio_base || 45000;
+  const alta = base * R.alta_pct;
+  const mes = base * R.cartera_pct;
+  // Lo que cobrarías en el mes M si sumás N comercios por mes y todos siguen pagando
+  const enMes = (m: number) => n * alta + n * (m - 1) * mes;
+  const video1 = lecciones(R)[1];
 
+  function seguir(e: React.FormEvent) {
+    e.preventDefault(); setError("");
+    if (f.nombre.trim().length < 2) return setError("Escribí tu nombre y apellido.");
+    if (f.celular.replace(/\D/g, "").length < 8) return setError("Escribí tu celular con WhatsApp.");
+    setPaso(2);
+  }
   async function registrar(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    if (!f.acepto) { setError("Tenés que aceptar las condiciones del programa."); return; }
+    e.preventDefault(); setError("");
+    if (!f.acepto) return setError("Marcá la casilla para aceptar las reglas.");
     setCargando(true);
     try {
       const j = await pedir<{ token: string }>("/api/partners/registro", { cuerpo: { ...f, ref } });
       guardarToken(j.token);
-      router.push("/partners/panel?nuevo=1");
-    } catch (er) {
-      setError((er as Error).message);
-    } finally { setCargando(false); }
+      router.push("/partners/formacion");
+    } catch (er) { setError((er as Error).message); } finally { setCargando(false); }
   }
 
-  const h2: React.CSSProperties = { fontSize: 22, lineHeight: 1.25, margin: "0 0 12px", color: C.tinta };
-  const p: React.CSSProperties = { fontSize: 16, lineHeight: 1.6, color: C.suave, margin: "0 0 10px" };
+  const h2: React.CSSProperties = { fontSize: 24, lineHeight: 1.2, margin: "0 0 14px", color: C.tinta };
+  const grande: React.CSSProperties = { fontSize: 18, lineHeight: 1.5, color: C.suave, margin: 0 };
 
   return (
     <main style={{ background: C.papel, minHeight: "100vh", fontFamily: FUENTE, color: C.tinta }}>
-      <div style={{ maxWidth: 560, margin: "0 auto", padding: "20px 16px 60px" }}>
+      {video && <Historias pantallas={video1.pantallas} titulo="Cómo funciona · 1 minuto" textoFin="Quiero ser partner"
+        onCerrar={() => setVideo(false)} onFin={() => { setVideo(false); document.getElementById("alta")?.scrollIntoView({ behavior: "smooth" }); }} />}
+
+      <div style={{ maxWidth: 520, margin: "0 auto", padding: "18px 16px 60px" }}>
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
           <Link href="/landing" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <img src="/brand/lumobi-logo-dark.svg" alt="LumoBi" width={112} height={29} />
-            <span style={{ fontWeight: 700, color: C.tinta }}>Partners</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/lumobi-logo-light.svg" alt="LumoBi" width={104} height={27} />
+            <span style={{ fontWeight: 800, color: C.azul, fontSize: 15 }}>Partners</span>
           </Link>
-          <Link href={yaPartner ? "/partners/panel" : "/partners/ingresar"} style={{ color: C.azul, fontWeight: 700, textDecoration: "none", fontSize: 15 }}>
-            {yaPartner ? "Mi panel" : "Ingresar"}
+          <Link href={yaPartner ? "/partners/panel" : "/partners/ingresar"} style={{ color: C.azul, fontWeight: 700, textDecoration: "none", fontSize: 16, padding: "8px 4px" }}>
+            {yaPartner ? "Mi panel →" : "Ya soy partner"}
           </Link>
         </header>
 
         {refNombre && (
-          <div style={{ ...tarjeta, background: C.okFondo, borderColor: "#B7DFCB", padding: 14, fontSize: 15 }}>
-            Te invitó <b>{refNombre}</b>. Registrate con este link y queda anotado que vino de su parte.
-          </div>
+          <div style={{ ...tarjeta, background: C.okFondo, borderColor: "#B7DFCB", fontSize: 16 }}>👋 Te invitó <b>{refNombre}</b>.</div>
         )}
 
-        <section style={{ marginBottom: 26 }}>
-          <h1 style={{ fontSize: 30, lineHeight: 1.15, margin: "0 0 14px" }}>
-            Ganá plata todos los meses recomendando LumoBi a los comercios que conocés
-          </h1>
-          <p style={{ ...p, fontSize: 17 }}>
-            Por cada negocio que se suma con tu link cobrás <b>{pesos(alta)} cuando paga su primer mes</b>, y después{" "}
-            <b>{pesos(cartera)} todos los meses</b> mientras siga usando LumoBi. Sin inversión, sin horarios y sin cupo.
-          </p>
-          <a href="#alta" style={{ ...boton, display: "block", textAlign: "center", textDecoration: "none", marginTop: 16 }}>Quiero ser partner</a>
+        {/* 1. La promesa */}
+        <section style={{ marginBottom: 22 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: C.azul, letterSpacing: 0.5, marginBottom: 8 }}>LUMOBI PARTNERS</div>
+          <h1 style={{ fontSize: 34, lineHeight: 1.1, margin: "0 0 14px" }}>Recomendá LumoBi a comercios y cobrá todos los meses.</h1>
+          <p style={{ ...grande, marginBottom: 18 }}>No es un trabajo con horario. No tenés que invertir nada. Solo mandás tu link por WhatsApp.</p>
+          <div style={{ display: "grid", gap: 10 }}>
+            <a href="#alta" style={{ ...boton, display: "block", textAlign: "center", textDecoration: "none", fontSize: 18, padding: 17 }}>Quiero ser partner</a>
+            <button style={{ ...botonSec, fontSize: 17 }} onClick={() => setVideo(true)}>▶ Mirá cómo funciona (1 minuto)</button>
+          </div>
         </section>
 
+        {/* 2. Cuánto gano, en dos números */}
         <section style={tarjeta}>
-          <h2 style={h2}>Cuánto podés ganar</h2>
-          <p style={p}>Se cobra por negocio, no por local: tenga 1 local o 10, cada negocio te deja lo mismo (calculado sobre el abono base de {pesos(precio)} sin IVA).</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "12px 0 18px" }}>
-            <div style={{ background: C.papel, borderRadius: 12, padding: 14 }}>
-              <div style={{ fontSize: 13, color: C.apagada }}>Cuando paga su primer mes</div>
-              <div style={{ fontSize: 24, fontWeight: 800 }}>{pesos(alta)}</div>
-            </div>
-            <div style={{ background: C.papel, borderRadius: 12, padding: 14 }}>
-              <div style={{ fontSize: 13, color: C.apagada }}>Cada mes que sigue</div>
-              <div style={{ fontSize: 24, fontWeight: 800 }}>{pesos(cartera)}</div>
-            </div>
+          <h2 style={h2}>Cuánto ganás por cada comercio</h2>
+          <div style={{ display: "grid", gap: 10 }}>
+            <Numero icono="🎉" monto={pesos(alta)} texto="cuando paga su primer mes" />
+            <Numero icono="🔁" monto={pesos(mes)} texto="todos los meses que sigue pagando" />
           </div>
-          <label style={{ fontSize: 15, fontWeight: 600, display: "block", marginBottom: 8 }}>
-            Si sumás <b style={{ color: C.azul }}>{porMes}</b> {porMes === 1 ? "negocio" : "negocios"} por mes:
-          </label>
-          <input type="range" min={1} max={10} value={porMes} onChange={(e) => setPorMes(Number(e.target.value))} style={{ width: "100%", accentColor: C.azul }} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
+          <p style={{ fontSize: 15, color: C.apagada, margin: "12px 0 0", lineHeight: 1.5 }}>Es por comercio, no por local: si tiene 1 local o 10, cobrás lo mismo.</p>
+        </section>
+
+        {/* 3. Calculadora con botones grandes */}
+        <section style={tarjeta}>
+          <h2 style={h2}>Hacé la cuenta</h2>
+          <div style={{ fontSize: 17, color: C.suave, marginBottom: 12 }}>¿Cuántos comercios podés sumar por mes?</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, marginBottom: 16 }}>
+            <BotonRedondo onClick={() => setN(Math.max(1, n - 1))}>−</BotonRedondo>
+            <div style={{ fontSize: 48, fontWeight: 800, minWidth: 70, textAlign: "center" }}>{n}</div>
+            <BotonRedondo onClick={() => setN(Math.min(20, n + 1))}>+</BotonRedondo>
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
             {[3, 6, 12].map((m) => (
-              <div key={m} style={{ border: `1px solid ${C.linea}`, borderRadius: 12, padding: "10px 8px", textAlign: "center" }}>
-                <div style={{ fontSize: 12, color: C.apagada }}>En el mes {m}</div>
-                <div style={{ fontSize: 18, fontWeight: 800 }}>{pesos(mensualAl(m))}</div>
+              <div key={m} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: C.papel, borderRadius: 12, padding: "12px 14px" }}>
+                <span style={{ fontSize: 16, color: C.suave }}>En el mes {m} cobrás</span>
+                <b style={{ fontSize: 22 }}>{pesos(enMes(m))}</b>
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 13, color: C.apagada, margin: "12px 0 0", lineHeight: 1.5 }}>
-            Es una cuenta, no una promesa: supone que todos los negocios siguen pagando. En la realidad algunos se dan de baja.
-            Lo que ganás depende de los negocios que traés y de que se queden.
-          </p>
+          <p style={{ fontSize: 14, color: C.apagada, margin: "12px 0 0", lineHeight: 1.5 }}>Es una cuenta, no una promesa: supone que todos los comercios siguen pagando. Algunos se dan de baja.</p>
         </section>
 
+        {/* 4. Cómo funciona, 3 pasos con dibujo */}
         <section style={tarjeta}>
-          <h2 style={h2}>Cómo funciona</h2>
+          <h2 style={h2}>Así de simple</h2>
           {[
-            ["Te registrás", "En 1 minuto tenés tu link y tu código personal."],
-            ["Le pasás tu link a un comercio", "Te damos los mensajes listos para mandar por WhatsApp. El comercio prueba LumoBi 5 días gratis, sin tarjeta."],
-            ["Cuando paga, cobrás", `Su primer mes te deja ${pesos(alta)}. Cada mes que sigue, ${pesos(cartera)}. Lo ves todo en tu panel.`],
-          ].map(([t, d], i) => (
-            <div key={t} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 15, background: C.azul, color: C.blanco, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, flexShrink: 0 }}>{i + 1}</div>
-              <div><div style={{ fontWeight: 700, fontSize: 16 }}>{t}</div><div style={{ ...p, margin: 0, fontSize: 15 }}>{d}</div></div>
+            ["📲", "Mandás tu link", "Por WhatsApp. El mensaje ya está escrito."],
+            ["🆓", "El comercio prueba gratis", "5 días, sin tarjeta."],
+            ["💸", "Si se queda, cobrás", "El primer mes y todos los meses que siga."],
+          ].map(([ic, t, d]) => (
+            <div key={t} style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 14 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 28, background: C.papel, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 }}>{ic}</div>
+              <div><div style={{ fontWeight: 800, fontSize: 18 }}>{t}</div><div style={{ fontSize: 16, color: C.suave }}>{d}</div></div>
+            </div>
+          ))}
+          <div style={{ ...tarjeta, background: "#E8F0FC", borderColor: "#C9DAF6", margin: "4px 0 0", fontSize: 16, lineHeight: 1.5 }}>
+            🎓 Apenas te registrás, hacés una <b>formación de 5 minutos</b> que te explica todo: qué es LumoBi, a quién buscar y qué decir.
+          </div>
+        </section>
+
+        {/* 5. A quién */}
+        <section style={tarjeta}>
+          <h2 style={h2}>A quién se lo ofrecés</h2>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            {["🏪 Kioscos", "🧺 Almacenes", "🛒 Autoservicios", "👕 Ropa", "📱 Electrónica", "🔧 Ferreterías", "🏠 Bazar y hogar"].map((x) => (
+              <span key={x} style={{ background: C.papel, borderRadius: 20, padding: "8px 12px", fontSize: 15, fontWeight: 600 }}>{x}</span>
+            ))}
+          </div>
+          <p style={{ ...grande, fontSize: 16 }}>Mejor si el dueño tiene empleados o más de un local. Por ahora no: restaurantes, bares y mayoristas.</p>
+        </section>
+
+        {/* 6. Reglas en criollo */}
+        <section style={tarjeta}>
+          <h2 style={h2}>Las reglas</h2>
+          {[
+            ["✅", "Todos cobran lo mismo por comercio. Gana más el que trae más comercios."],
+            ["🔗", "El comercio es tuyo solo si se registra con tu link."],
+            ["💳", "Cobrás cuando el comercio paga. Si solo prueba y no paga, no hay comisión."],
+            ["⏳", `La plata queda ${R.retencion_dias} días en espera y después te la transferimos a tu alias o CBU.`],
+            ["🧾", "Para cobrar necesitás CUIT o CUIL y hacer factura (por ejemplo, como monotributista)."],
+            ["🤝", `Si invitás a alguien a ser partner y llega a ${R.bono_meta} comercios pagando, te damos ${pesos(R.bono_referido)}, una sola vez. No es una pirámide.`],
+            ["⭐", `Con ${R.elite_clientes} comercios pagando pasás a Elite: los nuevos te dejan ${pesos(base * R.elite_cartera_pct)} por mes.`],
+            ["🚫", "Prohibido prometer ahorros, mandar spam o hacerte pasar por empleado de LumoBi."],
+          ].map(([ic, t]) => (
+            <div key={t} style={{ display: "flex", gap: 12, fontSize: 16, lineHeight: 1.45, color: C.suave, marginBottom: 12 }}>
+              <span style={{ fontSize: 20 }}>{ic}</span><span>{t}</span>
             </div>
           ))}
         </section>
 
-        <section style={tarjeta}>
-          <h2 style={h2}>Qué le vas a recomendar</h2>
-          <p style={p}>
-            LumoBi es un sistema para comercios que venden productos: kioscos, almacenes, autoservicios, indumentaria, electrónica, hogar. Funciona
-            como caja y, con cada venta, aprende cómo es el negocio y avisa cuando algo se sale de lo normal: diferencias de caja por turno,
-            productos vendidos por debajo del costo, horarios flojos, qué pedir y cuándo.
-          </p>
-          <p style={{ ...p, margin: 0 }}>Le sirve sobre todo al dueño que no puede estar en el local todo el día: tiene empleados, varios turnos o más de un local.</p>
+        {/* 7. Alta en 2 pasos */}
+        <section id="alta" style={{ ...tarjeta, border: `2px solid ${C.azul}`, scrollMarginTop: 16 }}>
+          <div style={{ fontSize: 14, color: C.apagada, fontWeight: 700, marginBottom: 4 }}>Paso {paso} de 2</div>
+          <h2 style={{ ...h2, marginBottom: 16 }}>{paso === 1 ? "Sumate como partner" : "Tu cuenta"}</h2>
+          {paso === 1 ? (
+            <form onSubmit={seguir} style={{ display: "grid", gap: 12 }}>
+              <Campo etiqueta="Tu nombre y apellido"><input style={input} value={f.nombre} onChange={(e) => setF({ ...f, nombre: e.target.value })} autoComplete="name" /></Campo>
+              <Campo etiqueta="Tu celular con WhatsApp"><input style={input} type="tel" inputMode="tel" placeholder="11 5555 1234" value={f.celular} onChange={(e) => setF({ ...f, celular: e.target.value })} autoComplete="tel" /></Campo>
+              <Campo etiqueta="¿En qué zona vas a trabajar? (opcional)"><input style={input} placeholder="Ej.: Morón, Haedo" value={f.zona} onChange={(e) => setF({ ...f, zona: e.target.value })} /></Campo>
+              {error && <div style={{ color: C.critico, fontSize: 15 }}>{error}</div>}
+              <button type="submit" style={{ ...boton, fontSize: 18 }}>Seguir</button>
+            </form>
+          ) : (
+            <form onSubmit={registrar} style={{ display: "grid", gap: 12 }}>
+              <Campo etiqueta="Tu email"><input style={input} type="email" inputMode="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} autoComplete="email" /></Campo>
+              <Campo etiqueta="Inventá una contraseña (8 letras o números)"><input style={input} type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} autoComplete="new-password" /></Campo>
+              <label style={{ display: "flex", gap: 12, alignItems: "flex-start", fontSize: 16, color: C.suave, lineHeight: 1.45, background: C.papel, padding: 12, borderRadius: 12 }}>
+                <input type="checkbox" checked={f.acepto} onChange={(e) => setF({ ...f, acepto: e.target.checked })} style={{ marginTop: 2, width: 22, height: 22, flexShrink: 0 }} />
+                <span>Acepto las reglas. Sé que no es un empleo y que cobro por los comercios que paguen.</span>
+              </label>
+              {error && <div style={{ color: C.critico, fontSize: 15 }}>{error}</div>}
+              <button type="submit" style={{ ...boton, fontSize: 18, opacity: cargando ? 0.6 : 1 }} disabled={cargando}>{cargando ? "Creando tu cuenta…" : "Crear mi cuenta"}</button>
+              <button type="button" onClick={() => { setPaso(1); setError(""); }} style={{ background: "none", border: "none", color: C.azul, fontWeight: 700, fontSize: 16, cursor: "pointer", fontFamily: FUENTE }}>← Volver</button>
+            </form>
+          )}
         </section>
 
-        <section style={tarjeta}>
-          <h2 style={h2}>Las reglas, claras</h2>
-          <ul style={{ ...p, paddingLeft: 20, margin: 0 }}>
-            <li>La comisión es igual para todos los partners. Gana más el que tiene una cartera más grande, no el que entró antes.</li>
-            <li>Se cobra por negocio, no por local: un negocio con varios locales cuenta como uno.</li>
-            <li>Un negocio queda en tu cartera solo si se registra con tu link o tu código.</li>
-            <li>La comisión se genera cuando el negocio paga (registrarse o estar en la prueba no genera comisión).</li>
-            <li>Cada comisión queda en espera {R.retencion_dias} días por si el pago se cae, y después se puede cobrar. Se liquida por transferencia a tu alias o CBU.</li>
-            <li>Para cobrar tenés que cargar tu CUIT o CUIL y emitir la factura correspondiente (por ejemplo, como monotributista).</li>
-            <li>Si invitás a otra persona a ser partner y llega a {R.bono_meta} negocios pagando, cobrás un bono de {pesos(R.bono_referido)}, una sola vez. No cobrás nada de lo que venda después: no es una pirámide.</li>
-            <li>Con {R.elite_clientes} negocios pagando pasás a Elite: los negocios que sumes desde ahí te dejan {pesos(precio * R.elite_cartera_pct)} por mes.</li>
-            <li>No se permite prometer ahorros, mandar spam ni hacerse pasar por LumoBi. Si pasa, la cuenta se suspende.</li>
-          </ul>
-        </section>
-
-        <section id="alta" style={{ ...tarjeta, borderColor: C.azul, borderWidth: 2 }}>
-          <h2 style={h2}>Sumate como partner</h2>
-          <form onSubmit={registrar} style={{ display: "grid", gap: 10 }}>
-            <input style={input} placeholder="Nombre y apellido" value={f.nombre} onChange={(e) => setF({ ...f, nombre: e.target.value })} autoComplete="name" />
-            <input style={input} placeholder="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} autoComplete="email" />
-            <input style={input} placeholder="Celular con WhatsApp" type="tel" value={f.celular} onChange={(e) => setF({ ...f, celular: e.target.value })} autoComplete="tel" />
-            <input style={input} placeholder="Zona donde vas a trabajar (ej. Morón, Haedo)" value={f.zona} onChange={(e) => setF({ ...f, zona: e.target.value })} />
-            <input style={input} placeholder="Contraseña (8 caracteres o más)" type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} autoComplete="new-password" />
-            <label style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: C.suave, lineHeight: 1.5 }}>
-              <input type="checkbox" checked={f.acepto} onChange={(e) => setF({ ...f, acepto: e.target.checked })} style={{ marginTop: 3, width: 18, height: 18 }} />
-              <span>Leí y acepto las reglas del programa de arriba. Entiendo que no es un empleo y que cobro según los negocios que paguen.</span>
-            </label>
-            {error && <div style={{ color: C.critico, fontSize: 14 }}>{error}</div>}
-            <button type="submit" style={{ ...boton, opacity: cargando ? 0.6 : 1 }} disabled={cargando}>{cargando ? "Creando tu cuenta…" : "Crear mi cuenta de partner"}</button>
-          </form>
-          <p style={{ fontSize: 14, color: C.apagada, margin: "14px 0 0", textAlign: "center" }}>
-            ¿Dudas? <a href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola, quiero saber más de LumoBi Partners")}`} style={{ color: C.azul, fontWeight: 700 }}>Escribinos por WhatsApp</a>
-          </p>
-        </section>
+        <a href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola, quiero saber más de LumoBi Partners")}`}
+          style={{ ...botonSec, display: "block", textAlign: "center", textDecoration: "none", borderColor: "#1FA855", color: "#13803F" }}>💬 ¿Dudas? Escribinos por WhatsApp</a>
       </div>
     </main>
   );
+}
+
+function Numero({ icono, monto, texto }: { icono: string; monto: string; texto: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 14, background: C.papel, borderRadius: 14, padding: 14 }}>
+      <span style={{ fontSize: 30 }}>{icono}</span>
+      <div><div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.1 }}>{monto}</div><div style={{ fontSize: 16, color: C.suave }}>{texto}</div></div>
+    </div>
+  );
+}
+function BotonRedondo({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+  return <button onClick={onClick} style={{ width: 60, height: 60, borderRadius: 30, border: `2px solid ${C.azul}`, background: C.blanco, color: C.azul, fontSize: 32, fontWeight: 700, cursor: "pointer", lineHeight: 1, fontFamily: FUENTE }}>{children}</button>;
+}
+function Campo({ etiqueta, children }: { etiqueta: string; children: React.ReactNode }) {
+  return <label style={{ display: "grid", gap: 6 }}><span style={{ fontSize: 16, fontWeight: 700 }}>{etiqueta}</span>{children}</label>;
 }

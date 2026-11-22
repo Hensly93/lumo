@@ -24,7 +24,7 @@ export default function IngresarPartner() {
   return (
     <main style={{ background: C.papel, minHeight: "100vh", fontFamily: FUENTE, color: C.tinta }}>
       <div style={{ maxWidth: 420, margin: "0 auto", padding: "40px 16px" }}>
-        <img src="/brand/lumobi-logo-dark.svg" alt="LumoBi" width={128} height={33} style={{ marginBottom: 24 }} />
+        <img src="/brand/lumobi-logo-light.svg" alt="LumoBi" width={128} height={33} style={{ marginBottom: 24 }} />
         <div style={tarjeta}>
           <h1 style={{ fontSize: 24, margin: "0 0 6px" }}>Ingresar como partner</h1>
           <p style={{ color: C.suave, margin: "0 0 18px", fontSize: 15 }}>Tu cartera, tus comisiones y tus mensajes listos.</p>
