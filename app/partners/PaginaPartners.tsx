@@ -84,7 +84,8 @@ export default function PaginaPartners() {
         <section style={{ marginBottom: 22 }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: C.azul, letterSpacing: 0.5, marginBottom: 8 }}>LUMOBI PARTNERS · TRABAJÁ CON NOSOTROS</div>
           <h1 style={{ fontSize: 34, lineHeight: 1.1, margin: "0 0 10px" }}>Cobrá {pesos(alta)} por cada comercio que recomendás.</h1>
-          <div style={{ fontSize: 22, fontWeight: 700, color: C.azul, lineHeight: 1.25, margin: "0 0 14px" }}>Y {pesos(mes)} más todos los meses mientras siga.</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: C.azul, lineHeight: 1.25, margin: "0 0 8px" }}>Y {pesos(mes)} por mes por CADA comercio que siga.</div>
+          <div style={{ fontSize: 17, color: C.suave, margin: "0 0 14px" }}>Ejemplo: con 10 comercios cobrás <b style={{ color: C.tinta }}>{pesos(mes * 10)} todos los meses</b>. Con 50, <b style={{ color: C.tinta }}>{pesos(mes * 50)}</b>.</div>
           <div style={{ background: C.okFondo, border: "1px solid #B7DFCB", borderRadius: 12, padding: "12px 14px", fontSize: 17, fontWeight: 700, marginBottom: 12 }}>✅ No necesitás tener un negocio. Es para cualquier persona que quiera ganar plata.</div>
           <p style={{ ...grande, marginBottom: 18 }}>No tiene horario. No tenés que invertir nada. Les recomendás LumoBi a comercios desde tu celular y cobrás por cada uno que se suma.</p>
           <div style={{ display: "grid", gap: 10 }}>
@@ -98,7 +99,7 @@ export default function PaginaPartners() {
           <h2 style={h2}>Cuánto ganás por cada comercio</h2>
           <div style={{ display: "grid", gap: 10 }}>
             <Numero icono="🎉" monto={pesos(alta)} texto="cuando paga su primer mes" />
-            <Numero icono="🔁" monto={pesos(mes)} texto="todos los meses que sigue pagando" />
+            <Numero icono="🔁" monto={pesos(mes)} texto="por mes, por cada comercio que sigue pagando" />
           </div>
           <p style={{ fontSize: 15, color: C.apagada, margin: "12px 0 0", lineHeight: 1.5 }}>Es por comercio, no por local: si tiene 1 local o 10, cobrás lo mismo.</p>
         </section>

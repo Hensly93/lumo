@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/partners" },
   openGraph: {
     title: "Trabajá con LumoBi: cobrá $22.500 por cada comercio que recomendás",
-    description: "Y $10.000 más todos los meses mientras siga. No necesitás tener un negocio ni invertir nada: lo hacés desde tu celular.",
+    description: "Y $10.000 por mes por CADA comercio que siga (con 10 comercios, $100.000 todos los meses). No necesitás tener un negocio ni invertir nada.",
     url: "/partners", siteName: "LumoBi", locale: "es_AR", type: "website",
   },
   twitter: { card: "summary_large_image" },

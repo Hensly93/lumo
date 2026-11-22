@@ -10,7 +10,7 @@ export const contentType = "image/png";
 export default function Imagen() {
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#0A1628", padding: "56px 72px", color: "#FFFFFF", fontFamily: "sans-serif" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#0A1628", padding: "44px 72px", color: "#FFFFFF", fontFamily: "sans-serif" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <div style={{ width: 64, height: 64, borderRadius: 14, background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
             <div style={{ position: "absolute", left: 17, top: 13, width: 10, height: 38, borderRadius: 4, background: "#0A1628" }} />
@@ -22,8 +22,9 @@ export default function Imagen() {
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 34, fontWeight: 700, color: "#00C2FF", marginBottom: 14 }}>TRABAJÁ CON NOSOTROS</div>
-          <div style={{ fontSize: 70, fontWeight: 800, lineHeight: 1.08 }}>Cobrá $22.500 por cada comercio que recomendás</div>
-          <div style={{ fontSize: 40, lineHeight: 1.2, marginTop: 14, color: "#CFE3F5" }}>y $10.000 más todos los meses mientras siga</div>
+          <div style={{ fontSize: 64, fontWeight: 800, lineHeight: 1.08 }}>Cobrá $22.500 por cada comercio que recomendás</div>
+          <div style={{ fontSize: 38, lineHeight: 1.2, marginTop: 14, color: "#CFE3F5" }}>+ $10.000 por mes por CADA comercio que siga</div>
+          <div style={{ fontSize: 34, lineHeight: 1.2, marginTop: 8, color: "#00C2FF" }}>Con 10 comercios: $100.000 todos los meses</div>
         </div>
         <div style={{ display: "flex", gap: 18 }}>
           {["No necesitás tener negocio", "Sin invertir", "Desde tu celular"].map((t) => (
