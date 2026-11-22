@@ -1,15 +1,16 @@
 // Imagen que muestran WhatsApp, Facebook e Instagram al compartir lumobi.com.ar/partners.
+// Montos fijos de LumoBi Partners (si cambian PARTNER_ALTA_MONTO o PARTNER_CARTERA_MONTO en Render, actualizarlos acá).
 // Le habla a quien quiere ganar plata recomendando LumoBi (NO al dueño de un comercio): por eso no reusa la imagen general.
 import { ImageResponse } from "next/og";
 
-export const alt = "Trabajá con LumoBi: ganá plata recomendando LumoBi a comercios. No necesitás tener un negocio.";
+export const alt = "Trabajá con LumoBi: cobrá $22.500 por cada comercio que recomendás y $10.000 más todos los meses. No necesitás tener un negocio.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function Imagen() {
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#0A1628", padding: "64px 72px", color: "#FFFFFF", fontFamily: "sans-serif" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#0A1628", padding: "56px 72px", color: "#FFFFFF", fontFamily: "sans-serif" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <div style={{ width: 64, height: 64, borderRadius: 14, background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
             <div style={{ position: "absolute", left: 17, top: 13, width: 10, height: 38, borderRadius: 4, background: "#0A1628" }} />
@@ -21,7 +22,8 @@ export default function Imagen() {
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 34, fontWeight: 700, color: "#00C2FF", marginBottom: 14 }}>TRABAJÁ CON NOSOTROS</div>
-          <div style={{ fontSize: 66, fontWeight: 800, lineHeight: 1.08 }}>Ganá plata todos los meses recomendando LumoBi a comercios</div>
+          <div style={{ fontSize: 70, fontWeight: 800, lineHeight: 1.08 }}>Cobrá $22.500 por cada comercio que recomendás</div>
+          <div style={{ fontSize: 40, lineHeight: 1.2, marginTop: 14, color: "#CFE3F5" }}>y $10.000 más todos los meses mientras siga</div>
         </div>
         <div style={{ display: "flex", gap: 18 }}>
           {["No necesitás tener negocio", "Sin invertir", "Desde tu celular"].map((t) => (
