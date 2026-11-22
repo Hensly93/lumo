@@ -179,11 +179,11 @@ export default function PaginaPartners() {
         <section style={tarjeta}>
           <h2 style={h2}>A quién se lo ofrecés</h2>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-            {["🏪 Kioscos", "🧺 Almacenes", "🛒 Autoservicios", "👕 Ropa", "📱 Electrónica", "🔧 Ferreterías", "🏠 Bazar y hogar"].map((x) => (
+            {["🏪 Kioscos medianos y grandes", "🛒 Autoservicios", "🧺 Minimercados", "🏬 Supermercados", "📦 Mayoristas"].map((x) => (
               <span key={x} style={{ background: C.papel, borderRadius: 20, padding: "8px 12px", fontSize: 15, fontWeight: 600 }}>{x}</span>
             ))}
           </div>
-          <p style={{ ...grande, fontSize: 16 }}>Mejor si el dueño tiene empleados o más de un local. Por ahora no: restaurantes, bares y mayoristas.</p>
+          <p style={{ ...grande, fontSize: 16 }}><b>Desde 3 empleados en adelante</b>, sin techo: 3, 10, 50 o más, con uno o varios locales. No es para el kiosco chico que atiende el dueño solo, ni para restaurantes, bares o cafés.</p>
         </section>
 
         {/* 6. Reglas en criollo */}

@@ -30,7 +30,7 @@ export const EN_30_SEGUNDOS =
   "Casi todos los comercios pierden plata todos los meses sin enterarse: la caja que no cierra, productos vendidos por debajo del costo, mercadería que se termina. LumoBi aprende cómo funciona tu negocio, detecta cuando algo se sale de lo normal y te avisa al celular en el momento, con lo que tenés que hacer. Cobrás con LumoBi como con cualquier caja y él hace el resto. Lo probás 5 días gratis, sin tarjeta.";
 
 export const CALLE: Item[] = [
-  { icono: "🗺️", titulo: "Elegí una zona y recorrela", texto: "Una avenida o un centro comercial con muchos negocios juntos. Anotá a quién visitaste para volver." },
+  { icono: "🗺️", titulo: "Elegí una zona y recorrela", texto: "Una avenida con autoservicios, supermercados y kioscos grandes. Anotá a quién visitaste para volver." },
   { icono: "🕙", titulo: "Andá en horario tranquilo", texto: "Media mañana (10 a 12) o media tarde (15 a 17). Nunca cuando el local está lleno." },
   { icono: "🙋", titulo: "Preguntá por el dueño o el encargado", texto: "Con el empleado no se decide nada. Si no está, preguntá cuándo vuelve." },
   { icono: "❓", titulo: "Arrancá con una pregunta, no con la app", texto: "«¿Te pasó que al cerrar la caja no te dan los números?» Si dice que sí, ya tenés la charla." },
@@ -43,7 +43,7 @@ export const CALLE: Item[] = [
 export const INTERNET: Item[] = [
   { icono: "👥", titulo: "Empezá por tus contactos", texto: "Revisá tu WhatsApp: amigos, parientes y conocidos que tienen comercio. Mandales el mensaje uno por uno." },
   { icono: "📢", titulo: "Publicá en tu estado de WhatsApp", texto: "«Estoy trabajando con LumoBi, una caja que le avisa al dueño dónde pierde plata. Si tenés comercio, escribime y te cuento.»" },
-  { icono: "📍", titulo: "Buscá en Google Maps", texto: "Buscá «almacén», «kiosco» o «autoservicio» y tu barrio. Muchos tienen WhatsApp o teléfono. Escribiles uno por uno, con el nombre del local." },
+  { icono: "📍", titulo: "Buscá en Google Maps", texto: "Buscá «autoservicio», «supermercado», «minimercado», «mayorista» o «kiosco» y tu barrio. Elegí los que se ven grandes. Muchos tienen WhatsApp o teléfono. Escribiles uno por uno, con el nombre del local." },
   { icono: "📸", titulo: "Instagram y Facebook de comercios", texto: "Muchos comercios tienen cuenta. Mandá un mensaje privado corto y personalizado, nombrando el local." },
   { icono: "🏘️", titulo: "Grupos de comerciantes de tu zona", texto: "En Facebook hay grupos de comerciantes por barrio. Leé las reglas del grupo antes: si no se permite publicidad, no publiques." },
   { icono: "🚫", titulo: "Nunca mensajes masivos", texto: "No compres listas ni mandes el mismo mensaje a cientos de personas: es spam, WhatsApp te bloquea el número y está prohibido en el programa." },

@@ -16,7 +16,7 @@ export function lecciones(R: Reglas): Leccion[] {
     {
       id: "que-es", titulo: "El problema y la solución", minutos: "2 min", icono: "🧠",
       pantallas: [
-        { icono: "🏪", titulo: "Casi todos los comercios tienen el mismo problema", texto: "Kioscos, almacenes, autoservicios, ropa, electrónica, ferreterías." },
+        { icono: "🏪", titulo: "Casi todos los comercios tienen el mismo problema", texto: "Kioscos medianos y grandes, autoservicios, minimercados, supermercados y mayoristas." },
         ...DOLOR.map((x) => ({ icono: x.icono, titulo: x.titulo, texto: x.texto })),
         { icono: "💡", titulo: "LumoBi es la solución", texto: "No es una caja más: es la inteligencia que cuida la plata del comercio." },
         ...QUE_HACE.map((x) => ({ icono: x.icono, titulo: x.titulo, texto: x.texto })),
@@ -46,22 +46,22 @@ export function lecciones(R: Reglas): Leccion[] {
     {
       id: "a-quien", titulo: "A quién buscar", minutos: "1 min", icono: "🎯",
       pantallas: [
-        { icono: "🛒", titulo: "Comercios que venden productos", texto: "Kiosco, almacén, autoservicio, ropa, electrónica, bazar, ferretería." },
-        { icono: "👥", titulo: "Mejor si el dueño tiene empleados", texto: "O más de un local. Es al que más le sirve." },
-        { icono: "🚫", titulo: "Por ahora, no", texto: "Restaurantes, bares, cafés y mayoristas." },
-        { icono: "🤝", titulo: "Empezá por los que ya conocés", texto: "El almacén de tu barrio, un amigo, un pariente con negocio." },
+        { icono: "🛒", titulo: "Comercios que venden productos", texto: "Kioscos medianos y grandes, autoservicios, minimercados, supermercados y mayoristas." },
+        { icono: "👥", titulo: "Desde 3 empleados en adelante", texto: "3, 10, 50 o más. Cuantos más empleados, turnos o locales, más plata se le puede escapar al dueño." },
+        { icono: "🚫", titulo: "No es para", texto: "El kiosco chico que atiende el dueño solo, restaurantes, bares y cafés." },
+        { icono: "🤝", titulo: "Empezá por los que ya conocés", texto: "Un autoservicio o un supermercado de tu zona, un amigo o un pariente con negocio." },
       ],
       pregunta: {
         texto: "¿Cuál es el mejor cliente para LumoBi?",
-        opciones: ["Un almacén con 2 empleados", "Un bar", "Un mayorista"],
-        correcta: 0, porque: "Vende productos y tiene empleados: LumoBi le muestra lo que pasa en cada turno.",
+        opciones: ["Un autoservicio con 6 empleados", "Un kiosco chico que atiende el dueño solo", "Un bar"],
+        correcta: 0, porque: "Vende productos y tiene varios empleados: el dueño no puede ver todo, y LumoBi le muestra lo que pasa en cada turno."
       },
     },
     {
       id: "calle", titulo: "Buscar clientes en la calle", minutos: "2 min", icono: "🚶",
       pantallas: CALLE.map((x) => ({ icono: x.icono, titulo: x.titulo, texto: x.texto })),
       pregunta: {
-        texto: "Entrás a un almacén y está lleno de gente. ¿Qué hacés?",
+        texto: "Entrás a un autoservicio y está lleno de gente. ¿Qué hacés?",
         opciones: ["Vuelvo en un horario tranquilo", "Le hablo al dueño igual, mientras cobra", "Le dejo el link al empleado y me voy"],
         correcta: 0, porque: "Con el local lleno, el dueño no te va a escuchar. Volvé a media mañana o media tarde.",
       },
