@@ -79,13 +79,29 @@ export default function PanelPartner() {
       }} irA={(t) => setTab(t)} irFormacion={() => router.push("/partners/formacion")} mensaje={m.mensajes[0]?.texto || d.partner.link} />
 
       <div style={{ ...tarjeta, background: C.tinta, borderColor: C.tinta, color: C.blanco }}>
-        <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 6 }}>Tu link (todo negocio que se registre con él queda en tu cartera)</div>
+        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>🏪 Tu link para comercios</div>
+        <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 6 }}>Todo comercio que se registre con este link queda en tu cartera.</div>
         <div style={{ fontSize: 15, fontWeight: 700, wordBreak: "break-all", marginBottom: 10 }}>{d.partner.link}</div>
         <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 12 }}>Código: <b style={{ letterSpacing: 1 }}>{d.partner.codigo}</b></div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <Copiar texto={d.partner.link} etiqueta="Copiar link" />
           <a href={whatsapp(m.mensajes[0]?.texto || d.partner.link)} target="_blank" rel="noreferrer" style={{ ...boton, background: "#1FA855", textAlign: "center", textDecoration: "none" }}>Mandar por WhatsApp</a>
         </div>
+      </div>
+
+      <div style={{ ...tarjeta, border: `2px solid ${C.cian}`, background: "#EAF9FF" }}>
+        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>🤝 Tu link para invitar partners</div>
+        <div style={{ fontSize: 15, color: C.suave, lineHeight: 1.5, marginBottom: 10 }}>
+          Invitá a otras personas a ser partner. Por cada comercio que traiga y pague, <b style={{ color: C.tinta }}>cobrás {pesos(R.bono_por_negocio)}</b>, hasta {R.bono_tope} comercios: <b style={{ color: C.tinta }}>{pesos(R.bono_por_negocio * R.bono_tope)} por cada partner</b> que invites.
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 700, wordBreak: "break-all", marginBottom: 10 }}>{d.partner.link_partners}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <Copiar texto={d.partner.link_partners} etiqueta="Copiar link" />
+          <a href={whatsapp(invitacion(d))} target="_blank" rel="noreferrer" style={{ ...boton, background: "#1FA855", textAlign: "center", textDecoration: "none" }}>Invitar por WhatsApp</a>
+        </div>
+        {d.referidos.length > 0 && (
+          <div style={{ fontSize: 14, color: C.suave, marginTop: 10 }}>Invitaste a {d.referidos.length} {d.referidos.length === 1 ? "persona" : "personas"}. Te dejaron {pesos(d.referidos.reduce((a, r) => a + r.ganado, 0))}. Mirá el detalle en 📲 Mensajes.</div>
+        )}
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
@@ -246,6 +262,12 @@ export default function PanelPartner() {
       {tab === "cuenta" && <DatosCobro d={d} alGuardar={cargar} />}
     </Marco>
   );
+}
+
+// Mensaje para invitar a alguien a ser partner (con su link de invitación)
+function invitacion(d: Panel) {
+  const R = d.reglas;
+  return `Hola! Estoy trabajando como partner de LumoBi: recomiendo a comercios un sistema que les avisa dónde pierden plata, y cobro ${pesos(R.alta_monto)} cuando un comercio paga su primer mes y ${pesos(R.cartera_monto)} todos los meses que sigue. No hay que invertir nada y no tiene horario. Si te interesa, sumate con mi link: ${d.partner.link_partners}`;
 }
 
 // Proyección desde la cartera REAL del partner: lo que ya cobra por mes + los comercios nuevos que sume, acumulándose.
